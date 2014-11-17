@@ -4,9 +4,12 @@ import "github.com/peterstace/grayt"
 
 func main() {
 
-	tracer := grayt.NewTracer()
+	tracer := grayt.NewRayTracer()
+	tracer.SetNumFrames(10)
+	tracer.SetSamplesPerFrame(3)
+
 	sceneFactory := func(t float64) grayt.Scene {
 		return grayt.Scene{}
 	}
-	tracer.Trace("output", sceneFactory)
+	tracer.TraceAnimation("output", sceneFactory)
 }
