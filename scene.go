@@ -1,7 +1,7 @@
 package grayt
 
 type Scene struct {
-	Cam    *Camera
+	Cam    Camera
 	Objs   []Obj
 	Lights []Light
 }
