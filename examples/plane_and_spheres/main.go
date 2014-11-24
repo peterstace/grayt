@@ -4,7 +4,7 @@ import "github.com/peterstace/grayt"
 
 func main() {
 
-	tracer := grayt.NewRayTracer()
+	tracer := grayt.NewAnimationTracer()
 	tracer.SetNumFrames(10)
 	tracer.SetSamplesPerFrame(3)
 
