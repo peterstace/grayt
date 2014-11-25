@@ -6,9 +6,11 @@ type Engine struct {
 	pxWide, pxHigh int
 }
 
-func (e *Engine) SetImageDimensions(pxWide, pxHigh int) {
-	e.pxWide = pxWide
-	e.pxHigh = pxHigh
+func newEngine() Engine {
+	return Engine{
+		pxWide: 640,
+		pxHigh: 480,
+	}
 }
 
 func (e *Engine) traceScenes(s []Scene) image.Image {

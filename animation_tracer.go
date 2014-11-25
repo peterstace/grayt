@@ -20,10 +20,7 @@ func NewAnimationTracer() AnimationBuilder {
 	return AnimationBuilder{
 		numFrames:       1,
 		samplesPerFrame: 1,
-		engine: Engine{
-			pxWide: 640,
-			pxHigh: 480,
-		},
+		engine:          newEngine(),
 	}
 }
 
@@ -35,8 +32,9 @@ func (b *AnimationBuilder) SetSamplesPerFrame(samplesPerFrame int) {
 	b.samplesPerFrame = samplesPerFrame
 }
 
-func (b *AnimationBuilder) GetEngine() *Engine {
-	return &b.engine
+func (b *AnimationBuilder) SetImageDimensions(pxWide, pxHigh int) {
+	b.engine.pxWide = pxWide
+	b.engine.pxHigh = pxHigh
 }
 
 func (b *AnimationBuilder) TraceAnimation(
