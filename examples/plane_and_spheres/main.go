@@ -1,6 +1,10 @@
 package main
 
-import "github.com/peterstace/grayt"
+import (
+	"log"
+
+	"github.com/peterstace/grayt"
+)
 
 func main() {
 
@@ -11,5 +15,8 @@ func main() {
 	sceneFactory := func(t float64) grayt.Scene {
 		return grayt.Scene{}
 	}
-	tracer.TraceAnimation("output", sceneFactory)
+	err := tracer.TraceAnimation("output", sceneFactory)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
