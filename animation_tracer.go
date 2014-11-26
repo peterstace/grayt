@@ -10,31 +10,33 @@ import (
 	"time"
 )
 
-type AnimationBuilder struct {
-	numFrames       int
-	samplesPerFrame int
-	engine          Engine
+type Config struct {
+	FrameCount      int
+	PxWide, PxHigh  int
+	TemporalAALevel int
+	SpatialAALevel  int
 }
 
-func NewAnimationTracer() AnimationBuilder {
-	return AnimationBuilder{
-		numFrames:       1,
-		samplesPerFrame: 1,
-		engine:          newEngine(),
+func DefaultConfig() Config {
+	return Config{
+		FrameCount:      1,
+		PxWide:          320,
+		PxHigh:          240,
+		TemporalAALevel: 1,
+		SpatialAALevel:  1,
 	}
 }
 
-func (b *AnimationBuilder) SetNumFrames(numFrames int) {
-	b.numFrames = numFrames
+type AnimationBuilder struct {
+	engine engine
+	config Config
 }
 
-func (b *AnimationBuilder) SetSamplesPerFrame(samplesPerFrame int) {
-	b.samplesPerFrame = samplesPerFrame
-}
-
-func (b *AnimationBuilder) SetImageDimensions(pxWide, pxHigh int) {
-	b.engine.pxWide = pxWide
-	b.engine.pxHigh = pxHigh
+func NewAnimationTracer(c Config) AnimationBuilder {
+	return AnimationBuilder{
+		engine: engine{config: c},
+		config: c,
+	}
 }
 
 func (b *AnimationBuilder) TraceAnimation(
@@ -45,12 +47,12 @@ func (b *AnimationBuilder) TraceAnimation(
 	log.Print("Tracing Animation...")
 	animationStartTime := time.Now()
 
-	for i := 0; i < b.numFrames; i++ {
+	for i := 0; i < b.config.FrameCount; i++ {
 		frameStartTime := time.Now()
 
 		// Create scenes
-		scenes := make([]Scene, b.samplesPerFrame)
-		for j := 0; j < b.samplesPerFrame; j++ {
+		scenes := make([]Scene, b.config.TemporalAALevel)
+		for j := range scenes {
 			scenes[j] = sceneFactory(b.calculateSampleOffset(i, j))
 		}
 
@@ -73,7 +75,7 @@ func (b *AnimationBuilder) TraceAnimation(
 
 		// Log out that we're done!
 		log.Printf("Frame %d of %d complete (%v)",
-			i+1, b.numFrames, time.Now().Sub(frameStartTime))
+			i+1, b.config.FrameCount, time.Now().Sub(frameStartTime))
 	}
 
 	log.Printf("Done (%v)", time.Now().Sub(animationStartTime))
@@ -82,7 +84,7 @@ func (b *AnimationBuilder) TraceAnimation(
 }
 
 func (b *AnimationBuilder) calculateSampleOffset(frame, sample int) float64 {
-	frameWidth := 1.0 / float64(b.numFrames)
-	sampleWidth := frameWidth / float64(b.samplesPerFrame)
+	frameWidth := 1.0 / float64(b.config.FrameCount)
+	sampleWidth := frameWidth / float64(b.config.TemporalAALevel)
 	return float64(frame)*frameWidth + (float64(sample)+rand.Float64())*sampleWidth
 }

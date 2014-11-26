@@ -8,9 +8,8 @@ import (
 
 func main() {
 
-	tracer := grayt.NewAnimationTracer()
-	tracer.SetNumFrames(10)
-	tracer.SetSamplesPerFrame(3)
+	config := grayt.DefaultConfig()
+	tracer := grayt.NewAnimationTracer(config)
 
 	sceneFactory := func(t float64) grayt.Scene {
 		return grayt.Scene{}
