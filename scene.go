@@ -1,7 +1,9 @@
 package grayt
 
 type Scene struct {
-	Cam    Camera
+	Camera interface {
+		MakeRay(x, y float64) ray
+	}
 	Objs   []Obj
 	Lights []Light
 }
