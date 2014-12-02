@@ -11,7 +11,6 @@ import (
 )
 
 type Config struct {
-	FrameCount      int
 	PxWide, PxHigh  int
 	TemporalAALevel int
 	SpatialAALevel  int
@@ -19,7 +18,6 @@ type Config struct {
 
 func DefaultConfig() Config {
 	return Config{
-		FrameCount:      1,
 		PxWide:          320,
 		PxHigh:          240,
 		TemporalAALevel: 1,
@@ -39,21 +37,19 @@ func NewAnimationTracer(c Config) AnimationBuilder {
 	}
 }
 
-func (b *AnimationBuilder) TraceAnimation(
-	outDir string,
-	sceneFactory func(float64) Scene,
-) error {
+func (b *AnimationBuilder) TraceAnimation(outDir string, sceneFactory SceneFactory) error {
 
 	log.Print("Tracing Animation...")
 	animationStartTime := time.Now()
 
-	for i := 0; i < b.config.FrameCount; i++ {
+	for i := 0; i < sceneFactory.FrameCount(); i++ {
 		frameStartTime := time.Now()
 
 		// Create scenes
 		scenes := make([]Scene, b.config.TemporalAALevel)
 		for j := range scenes {
-			scenes[j] = sceneFactory(b.calculateSampleOffset(i, j))
+			offset := b.calculateSampleOffset(i, j, sceneFactory.FrameCount())
+			scenes[j] = sceneFactory.MakeScene(offset)
 		}
 
 		// Trace the scenes.
@@ -75,7 +71,7 @@ func (b *AnimationBuilder) TraceAnimation(
 
 		// Log out that we're done!
 		log.Printf("Frame %d of %d complete (%v)",
-			i+1, b.config.FrameCount, time.Now().Sub(frameStartTime))
+			i+1, sceneFactory.FrameCount(), time.Now().Sub(frameStartTime))
 	}
 
 	log.Printf("Done (%v)", time.Now().Sub(animationStartTime))
@@ -83,8 +79,8 @@ func (b *AnimationBuilder) TraceAnimation(
 	return nil
 }
 
-func (b *AnimationBuilder) calculateSampleOffset(frame, sample int) float64 {
-	frameWidth := 1.0 / float64(b.config.FrameCount)
+func (b *AnimationBuilder) calculateSampleOffset(frame, sample, frameCount int) float64 {
+	frameWidth := 1.0 / float64(frameCount)
 	sampleWidth := frameWidth / float64(b.config.TemporalAALevel)
 	return float64(frame)*frameWidth + (float64(sample)+rand.Float64())*sampleWidth
 }
