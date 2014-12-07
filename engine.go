@@ -7,13 +7,13 @@ import (
 )
 
 type engine struct {
-	config Config
+	quality Quality
 }
 
 func (e *engine) traceScenes(s []Scene) image.Image {
-	img := image.NewRGBA64(image.Rect(0, 0, e.config.PxWide, e.config.PxHigh))
-	for y := 0; y < e.config.PxHigh; y++ {
-		for x := 0; x < e.config.PxWide; x++ {
+	img := image.NewRGBA64(image.Rect(0, 0, e.quality.PxWide, e.quality.PxHigh))
+	for y := 0; y < e.quality.PxHigh; y++ {
+		for x := 0; x < e.quality.PxWide; x++ {
 			img.Set(x, y, e.trace())
 		}
 	}

@@ -10,30 +10,15 @@ import (
 	"time"
 )
 
-type Config struct {
-	PxWide, PxHigh  int
-	TemporalAALevel int
-	SpatialAALevel  int
-}
-
-func DefaultConfig() Config {
-	return Config{
-		PxWide:          320,
-		PxHigh:          240,
-		TemporalAALevel: 1,
-		SpatialAALevel:  1,
-	}
-}
-
 type AnimationBuilder struct {
-	engine engine
-	config Config
+	engine  engine
+	quality Quality
 }
 
-func NewAnimationTracer(c Config) AnimationBuilder {
+func NewAnimationTracer(q Quality) AnimationBuilder {
 	return AnimationBuilder{
-		engine: engine{config: c},
-		config: c,
+		engine:  engine{quality: q},
+		quality: q,
 	}
 }
 
@@ -46,7 +31,7 @@ func (b *AnimationBuilder) TraceAnimation(outDir string, sceneFactory SceneFacto
 		frameStartTime := time.Now()
 
 		// Create scenes
-		scenes := make([]Scene, b.config.TemporalAALevel)
+		scenes := make([]Scene, b.quality.TemporalAALevel)
 		for j := range scenes {
 			offset := b.calculateSampleOffset(i, j, sceneFactory.FrameCount())
 			scenes[j] = sceneFactory.MakeScene(offset)
@@ -81,6 +66,6 @@ func (b *AnimationBuilder) TraceAnimation(outDir string, sceneFactory SceneFacto
 
 func (b *AnimationBuilder) calculateSampleOffset(frame, sample, frameCount int) float64 {
 	frameWidth := 1.0 / float64(frameCount)
-	sampleWidth := frameWidth / float64(b.config.TemporalAALevel)
+	sampleWidth := frameWidth / float64(b.quality.TemporalAALevel)
 	return float64(frame)*frameWidth + (float64(sample)+rand.Float64())*sampleWidth
 }
