@@ -11,9 +11,13 @@ type engine struct {
 
 func (e *engine) traceScenes(s []Scene) image.Image {
 	img := image.NewRGBA64(image.Rect(0, 0, e.quality.PxWide, e.quality.PxHigh))
-	for y := 0; y < e.quality.PxHigh; y++ {
-		for x := 0; x < e.quality.PxWide; x++ {
-			img.Set(x, y, e.trace())
+	for pxY := 0; pxY < e.quality.PxHigh; pxY++ {
+		for pxX := 0; pxX < e.quality.PxWide; pxX++ {
+			// Calculate x and y
+			// Calculate the ray
+			// Trace the ray
+			// Set the image value
+			img.Set(pxX, pxY, e.trace())
 		}
 	}
 	return img

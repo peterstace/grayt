@@ -14,7 +14,7 @@ func (f sceneFactory) FrameCount() int {
 
 func (f sceneFactory) MakeScene(t float64) grayt.Scene {
 	return grayt.Scene{
-		Camera: grayt.NewRectilinearCamera(),
+		Cam: grayt.NewRectilinearCamera(),
 	}
 }
 

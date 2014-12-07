@@ -1,5 +1,9 @@
 package grayt
 
+type Camera interface {
+	MakeRay(x, y float64) ray
+}
+
 type RectilinearCamera struct {
 	screenX, screenY Vect
 	screenLoc        Vect

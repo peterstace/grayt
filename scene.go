@@ -6,9 +6,7 @@ type SceneFactory interface {
 }
 
 type Scene struct {
-	Camera interface {
-		MakeRay(x, y float64) ray
-	}
+	Cam    Camera
 	Objs   []Obj
 	Lights []Light
 }
