@@ -3,7 +3,6 @@ package grayt
 import (
 	"image"
 	"image/color"
-	"math"
 )
 
 type engine struct {
@@ -21,11 +20,5 @@ func (e *engine) traceScenes(s []Scene) image.Image {
 }
 
 func (e *engine) trace() color.Color {
-	c := color.NRGBA64{
-		R: math.MaxUint16,
-		G: math.MaxUint16 / 2,
-		B: 0,
-		A: math.MaxUint16,
-	}
-	return c
+	return NewColor(1, 0.5, 0)
 }
