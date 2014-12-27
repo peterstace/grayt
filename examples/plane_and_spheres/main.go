@@ -20,10 +20,7 @@ func (f sceneFactory) MakeScene(t float64) grayt.Scene {
 
 func main() {
 
-	quality := grayt.DefaultQuality()
-	tracer := grayt.NewAnimationTracer(quality)
-
-	err := tracer.TraceAnimation("output", sceneFactory{})
+	err := grayt.TraceAnimation(sceneFactory{}, "output", nil)
 	if err != nil {
 		log.Fatal(err)
 	}

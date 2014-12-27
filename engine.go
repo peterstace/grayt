@@ -5,24 +5,20 @@ import (
 	"image/color"
 )
 
-type engine struct {
-	quality Quality
-}
-
-func (e *engine) traceScenes(s []Scene) image.Image {
-	img := image.NewRGBA64(image.Rect(0, 0, e.quality.PxWide, e.quality.PxHigh))
-	for pxY := 0; pxY < e.quality.PxHigh; pxY++ {
-		for pxX := 0; pxX < e.quality.PxWide; pxX++ {
+func traceScenes(s []Scene, quality *Quality) image.Image {
+	img := image.NewRGBA64(image.Rect(0, 0, quality.PxWide(), quality.PxHigh()))
+	for pxY := 0; pxY < quality.PxHigh(); pxY++ {
+		for pxX := 0; pxX < quality.PxWide(); pxX++ {
 			// Calculate x and y
 			// Calculate the ray
 			// Trace the ray
 			// Set the image value
-			img.Set(pxX, pxY, e.trace())
+			img.Set(pxX, pxY, trace())
 		}
 	}
 	return img
 }
 
-func (e *engine) trace() color.Color {
+func trace() color.Color {
 	return NewColor(1, 0.5, 0)
 }

@@ -10,19 +10,11 @@ import (
 	"time"
 )
 
-type AnimationBuilder struct {
-	engine  engine
-	quality Quality
-}
-
-func NewAnimationTracer(q Quality) AnimationBuilder {
-	return AnimationBuilder{
-		engine:  engine{quality: q},
-		quality: q,
-	}
-}
-
-func (b *AnimationBuilder) TraceAnimation(outDir string, sceneFactory SceneFactory) error {
+func TraceAnimation(
+	sceneFactory SceneFactory,
+	outDir string,
+	quality *Quality,
+) error {
 
 	log.Print("Tracing Animation...")
 	animationStartTime := time.Now()
@@ -31,14 +23,16 @@ func (b *AnimationBuilder) TraceAnimation(outDir string, sceneFactory SceneFacto
 		frameStartTime := time.Now()
 
 		// Create scenes
-		scenes := make([]Scene, b.quality.TemporalAALevel)
+		scenes := make([]Scene, quality.TemporalAALevel())
 		for j := range scenes {
-			offset := b.calculateSampleOffset(i, j, sceneFactory.FrameCount())
+			offset := calculateSampleOffset(i, j,
+				sceneFactory.FrameCount(),
+				quality.TemporalAALevel())
 			scenes[j] = sceneFactory.MakeScene(offset)
 		}
 
 		// Trace the scenes.
-		img := b.engine.traceScenes(scenes)
+		img := traceScenes(scenes, quality)
 
 		// Write to file.
 		filename := path.Join(outDir, fmt.Sprintf("%d.jpeg", i))
@@ -64,8 +58,8 @@ func (b *AnimationBuilder) TraceAnimation(outDir string, sceneFactory SceneFacto
 	return nil
 }
 
-func (b *AnimationBuilder) calculateSampleOffset(frame, sample, frameCount int) float64 {
+func calculateSampleOffset(frame, sample, frameCount, temporalAALevel int) float64 {
 	frameWidth := 1.0 / float64(frameCount)
-	sampleWidth := frameWidth / float64(b.quality.TemporalAALevel)
+	sampleWidth := frameWidth / float64(temporalAALevel)
 	return float64(frame)*frameWidth + (float64(sample)+rand.Float64())*sampleWidth
 }
