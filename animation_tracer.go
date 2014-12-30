@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+// TraceAnimation produces a series of JPG images using scenes produced using a
+// SceneFactory.
 func TraceAnimation(
 	sceneFactory SceneFactory,
 	outDir string,
@@ -22,17 +24,17 @@ func TraceAnimation(
 	for i := 0; i < sceneFactory.FrameCount(); i++ {
 		frameStartTime := time.Now()
 
-		// Create scenes
-		scenes := make([]Scene, quality.TemporalAALevel())
-		for j := range scenes {
+		// Create samples
+		samples := make([]Scene, quality.TemporalAALevel)
+		for j := range samples {
 			offset := calculateSampleOffset(i, j,
 				sceneFactory.FrameCount(),
-				quality.TemporalAALevel())
-			scenes[j] = sceneFactory.MakeScene(offset)
+				quality.TemporalAALevel)
+			samples[j] = sceneFactory.MakeScene(offset)
 		}
 
-		// Trace the scenes.
-		img := traceScenes(scenes, quality)
+		// Trace the samples.
+		img := TraceScene(quality, samples...)
 
 		// Write to file.
 		filename := path.Join(outDir, fmt.Sprintf("%d.jpeg", i))
