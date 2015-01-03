@@ -10,10 +10,6 @@ type Camera interface {
 	MakeRay(x, y float64) ray
 }
 
-func pixelCoordsToCameraCoords(pxX, pxY int) (x, y float64) {
-	return 0.0, 0.0
-}
-
 type RectilinearCamera struct {
 	screenX, screenY Vect
 	screenLoc        Vect
@@ -21,7 +17,7 @@ type RectilinearCamera struct {
 }
 
 func NewRectilinearCamera() Camera {
-	return nil
+	return &RectilinearCamera{}
 }
 
 func (c *RectilinearCamera) MakeRay(x, y float64) ray {
