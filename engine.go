@@ -14,7 +14,7 @@ func TraceScene(quality *Quality, samples ...Scene) image.Image {
 
 			s := &samples[0] // XXX choose randomly
 
-			pxPitch := 2.0 / quality.PxWide
+			pxPitch := 2.0 / float64(quality.PxWide)
 			x := (float64(pxX-quality.PxWide/2) + 0.5) * pxPitch
 			y := (float64(pxY-quality.PxHigh/2) + 0.5) * pxPitch
 

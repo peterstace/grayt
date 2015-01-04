@@ -14,7 +14,15 @@ func (f sceneFactory) FrameCount() int {
 
 func (f sceneFactory) MakeScene(t float64) grayt.Scene {
 	return grayt.Scene{
-		Camera: grayt.NewRectilinearCamera(),
+		Camera: grayt.NewRectilinearCamera(grayt.CameraConfig{
+
+			Location:      grayt.Vect{},
+			ViewDirection: grayt.Vect{0.0, 0.0, -1.0},
+			UpDirection:   grayt.Vect{0.0, 1.0, 0.0},
+			FieldOfView:   90,
+			FocalLength:   1.0,
+			FocalRatio:    1.0,
+		}),
 	}
 }
 
