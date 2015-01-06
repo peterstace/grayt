@@ -7,6 +7,6 @@ type SceneFactory interface {
 
 type Scene struct {
 	Camera Camera
-	Objs   []Obj
+	Objs   []Surface
 	Lights []Light
 }
