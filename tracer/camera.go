@@ -2,6 +2,7 @@ package tracer
 
 import (
 	"math"
+	"math/rand"
 
 	"github.com/peterstace/grayt/ray"
 	"github.com/peterstace/grayt/vect"
@@ -64,7 +65,22 @@ func NewRectilinearCamera(conf CameraConfig) Camera {
 }
 
 func (c *RectilinearCamera) MakeRay(x, y float64) ray.Ray {
+	start := vect.Add(
+		c.eye.loc,
+		vect.Add(
+			c.eye.x.Extended(2*rand.Float64()-1.0),
+			c.eye.y.Extended(2*rand.Float64()-1.0),
+		),
+	)
+	end := vect.Add(
+		c.screen.loc,
+		vect.Add(
+			c.screen.x.Extended(x),
+			c.screen.y.Extended(y),
+		),
+	)
 	return ray.Ray{
-	//start: c.eye.loc.Plus().Plus(...)
+		Start: start,
+		Dir:   vect.Sub(end, start).Unit(),
 	}
 }
