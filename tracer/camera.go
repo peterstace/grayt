@@ -1,6 +1,11 @@
-package grayt
+package tracer
 
-import "math"
+import (
+	"math"
+
+	"github.com/peterstace/grayt/ray"
+	"github.com/peterstace/grayt/vect"
+)
 
 // Cameras produce rays that go from an eye to a virtual screen. The rays
 // produced are specified via a coordiate system on the virtual screen.  The
@@ -9,7 +14,7 @@ import "math"
 // coordinate v and the bottom of the virtual screen has y coordinate -v (where
 // the value of v depends on the aspect ratio of the screen).
 type Camera interface {
-	MakeRay(x, y float64) ray
+	MakeRay(x, y float64) ray.Ray
 }
 
 type RectilinearCamera struct {
@@ -18,7 +23,7 @@ type RectilinearCamera struct {
 		// the screen or eye.  Y vectors go from the center of the screen or
 		// eye towards the top of the screen or eye.  Loc is the location of
 		// the center of the screen or eye.
-		loc, x, y Vect
+		loc, x, y vect.Vect
 	}
 }
 
@@ -28,9 +33,9 @@ type RectilinearCamera struct {
 // configuration option is (compared to just passing in Vects and float64s to
 // the factory function).
 type CameraConfig struct {
-	Location      Vect
-	ViewDirection Vect
-	UpDirection   Vect
+	Location      vect.Vect
+	ViewDirection vect.Vect
+	UpDirection   vect.Vect
 	FieldOfView   float64
 	FocalLength   float64
 	FocalRatio    float64
@@ -43,8 +48,8 @@ func NewRectilinearCamera(conf CameraConfig) Camera {
 	conf.UpDirection = conf.UpDirection.Unit()
 	conf.ViewDirection = conf.ViewDirection.Unit()
 
-	cam.screen.x = Cross(conf.ViewDirection, conf.UpDirection)
-	cam.screen.y = Cross(cam.screen.x, conf.ViewDirection)
+	cam.screen.x = vect.Cross(conf.ViewDirection, conf.UpDirection)
+	cam.screen.y = vect.Cross(cam.screen.x, conf.ViewDirection)
 
 	cam.eye.x = cam.screen.x.Extended(conf.FocalLength / conf.FocalRatio)
 	cam.eye.y = cam.screen.y.Extended(conf.FocalLength / conf.FocalRatio)
@@ -53,13 +58,13 @@ func NewRectilinearCamera(conf CameraConfig) Camera {
 	halfScreenWidth := math.Tan(conf.FieldOfView/2) * conf.FocalLength
 	cam.screen.x = cam.screen.x.Extended(halfScreenWidth)
 	cam.screen.y = cam.screen.y.Extended(halfScreenWidth)
-	cam.screen.loc = Add(cam.eye.loc, conf.ViewDirection.Extended(conf.FocalLength))
+	cam.screen.loc = vect.Add(cam.eye.loc, conf.ViewDirection.Extended(conf.FocalLength))
 
 	return cam
 }
 
-func (c *RectilinearCamera) MakeRay(x, y float64) ray {
-	return ray{
+func (c *RectilinearCamera) MakeRay(x, y float64) ray.Ray {
+	return ray.Ray{
 	//start: c.eye.loc.Plus().Plus(...)
 	}
 }

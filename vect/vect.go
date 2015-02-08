@@ -1,4 +1,4 @@
-package grayt
+package vect
 
 import "math"
 
@@ -20,14 +20,6 @@ func (v Vect) Unit() Vect {
 		X: v.X / length,
 		Y: v.Y / length,
 		Z: v.Z / length,
-	}
-}
-
-func Cross(rhs, lhs Vect) Vect {
-	return Vect{
-		X: lhs.Y*rhs.Z - lhs.Z*rhs.Y,
-		Y: lhs.Z*rhs.X - lhs.X*rhs.Z,
-		Z: lhs.X*rhs.Y - lhs.Y*rhs.X,
 	}
 }
 
@@ -59,10 +51,10 @@ func Dot(lhs, rhs Vect) float64 {
 	return lhs.X*rhs.X + lhs.Y*rhs.Y + lhs.Z*rhs.Z
 }
 
-type ray struct {
-	start, dir Vect
-}
-
-func (r ray) at(t float64) Vect {
-	return Add(r.start, r.dir.Extended(t))
+func Cross(rhs, lhs Vect) Vect {
+	return Vect{
+		X: lhs.Y*rhs.Z - lhs.Z*rhs.Y,
+		Y: lhs.Z*rhs.X - lhs.X*rhs.Z,
+		Z: lhs.X*rhs.Y - lhs.Y*rhs.X,
+	}
 }
