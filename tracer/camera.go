@@ -24,7 +24,7 @@ type rectilinearCamera struct {
 		// the screen or eye.  Y vectors go from the center of the screen or
 		// eye towards the top of the screen or eye.  Loc is the location of
 		// the center of the screen or eye.
-		loc, x, y vect.Vect
+		loc, x, y vect.V
 	}
 }
 
@@ -34,9 +34,9 @@ type rectilinearCamera struct {
 // configuration option is (compared to just passing in Vects and float64s to
 // the factory function).
 type CameraConfig struct {
-	Location      vect.Vect
-	ViewDirection vect.Vect
-	UpDirection   vect.Vect
+	Location      vect.V
+	ViewDirection vect.V
+	UpDirection   vect.V
 	FieldOfView   float64
 	FocalLength   float64
 	FocalRatio    float64

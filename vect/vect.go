@@ -2,57 +2,57 @@ package vect
 
 import "math"
 
-type Vect struct {
+type V struct {
 	X, Y, Z float64
 }
 
-func (v Vect) Length() float64 {
+func (v V) Length() float64 {
 	return math.Sqrt(v.X*v.X + v.Y*v.Y + v.Z*v.Z)
 }
 
-func (v Vect) Length2() float64 {
+func (v V) Length2() float64 {
 	return v.X*v.X + v.Y*v.Y + v.Z*v.Z
 }
 
-func (v Vect) Unit() Vect {
+func (v V) Unit() V {
 	length := math.Sqrt(v.X*v.X + v.Y*v.Y + v.Z*v.Z)
-	return Vect{
+	return V{
 		X: v.X / length,
 		Y: v.Y / length,
 		Z: v.Z / length,
 	}
 }
 
-func (v Vect) Extended(mul float64) Vect {
-	return Vect{
+func (v V) Extended(mul float64) V {
+	return V{
 		X: v.X * mul,
 		Y: v.Y * mul,
 		Z: v.Z * mul,
 	}
 }
 
-func Add(v1, v2 Vect) Vect {
-	return Vect{
+func Add(v1, v2 V) V {
+	return V{
 		X: v1.X + v2.X,
 		Y: v1.Y + v2.Y,
 		Z: v1.Z + v2.Z,
 	}
 }
 
-func Sub(v1, v2 Vect) Vect {
-	return Vect{
+func Sub(v1, v2 V) V {
+	return V{
 		X: v1.X - v2.X,
 		Y: v1.Y - v2.Y,
 		Z: v1.Z - v2.Z,
 	}
 }
 
-func Dot(lhs, rhs Vect) float64 {
+func Dot(lhs, rhs V) float64 {
 	return lhs.X*rhs.X + lhs.Y*rhs.Y + lhs.Z*rhs.Z
 }
 
-func Cross(rhs, lhs Vect) Vect {
-	return Vect{
+func Cross(rhs, lhs V) V {
+	return V{
 		X: lhs.Y*rhs.Z - lhs.Z*rhs.Y,
 		Y: lhs.Z*rhs.X - lhs.X*rhs.Z,
 		Z: lhs.X*rhs.Y - lhs.Y*rhs.X,
