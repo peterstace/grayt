@@ -8,17 +8,17 @@ import (
 	"github.com/peterstace/grayt/vect"
 )
 
-// Cameras produce rays that go from an eye to a virtual screen. The rays
-// produced are specified via a coordiate system on the virtual screen.  The
-// left side of the virtual screen has x coordinate -1, the right side of the
-// virtual screen has coordinate +1. The top of the virtual screen has y
-// coordinate v and the bottom of the virtual screen has y coordinate -v (where
-// the value of v depends on the aspect ratio of the screen).
+// Camera implementations produce rays that go from an eye to a virtual screen.
+// The rays produced are specified via a coordiate system on the virtual
+// screen.  The left side of the virtual screen has x coordinate -1, the right
+// side of the virtual screen has coordinate +1. The top of the virtual screen
+// has y coordinate v and the bottom of the virtual screen has y coordinate -v
+// (where the value of v depends on the aspect ratio of the screen).
 type Camera interface {
 	MakeRay(x, y float64) ray.Ray
 }
 
-type RectilinearCamera struct {
+type rectilinearCamera struct {
 	screen, eye struct {
 		// X vectors go from the center of the screen or eye to the right of
 		// the screen or eye.  Y vectors go from the center of the screen or
@@ -42,9 +42,10 @@ type CameraConfig struct {
 	FocalRatio    float64
 }
 
+// NewRectilinearCamera creates a rectilinear camera from a camera config.
 func NewRectilinearCamera(conf CameraConfig) Camera {
 
-	cam := &RectilinearCamera{}
+	cam := &rectilinearCamera{}
 
 	conf.UpDirection = conf.UpDirection.Unit()
 	conf.ViewDirection = conf.ViewDirection.Unit()
@@ -64,7 +65,7 @@ func NewRectilinearCamera(conf CameraConfig) Camera {
 	return cam
 }
 
-func (c *RectilinearCamera) MakeRay(x, y float64) ray.Ray {
+func (c *rectilinearCamera) MakeRay(x, y float64) ray.Ray {
 	start := vect.Add(
 		c.eye.loc,
 		vect.Add(
