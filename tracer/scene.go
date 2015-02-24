@@ -1,5 +1,6 @@
 package tracer
 
 type Scene struct {
-	Camera Camera
+	Camera     Camera
+	Geometries []Geometry
 }
