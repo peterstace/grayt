@@ -58,6 +58,6 @@ func (c *rectilinearCamera) MakeRay(x, y float64) ray.Ray {
 	)
 	return ray.Ray{
 		Start: start,
-		Dir:   vect.Sub(end, start).Unit(),
+		Dir:   vect.Sub(end, start),
 	}
 }
