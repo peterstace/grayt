@@ -22,7 +22,7 @@ func TraceImage(samples []Scene) image.Image {
 			x := (float64(pxX-pxWide/2) + 0.5) * pxPitch
 			y := (float64(pxY-pxHigh/2) + 0.5) * pxPitch
 
-			s := &samples[rand.Intn(len(samples))]
+			s := samples[rand.Intn(len(samples))]
 			r := s.Camera.MakeRay(x, y)
 			img.Set(pxX, pxY, traceRay(s, r))
 		}
@@ -31,6 +31,6 @@ func TraceImage(samples []Scene) image.Image {
 	return img
 }
 
-func traceRay(s *Scene, r ray.Ray) color.Color {
+func traceRay(s Scene, r ray.Ray) color.Color {
 	return nil
 }

@@ -18,7 +18,7 @@ func (l *Light) sampleLocation() vect.V {
 		offset.X = rand.Float64()*2.0 - 1.0
 		offset.Y = rand.Float64()*2.0 - 1.0
 		offset.Z = rand.Float64()*2.0 - 1.0
-		if offset.Norm2() < 1.0 {
+		if offset.Length2() < 1.0 {
 			break
 		}
 	}
