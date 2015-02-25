@@ -24,6 +24,7 @@ func TraceImage(samples []Scene) image.Image {
 
 			s := samples[rand.Intn(len(samples))]
 			r := s.Camera.MakeRay(x, y)
+			r.Dir = r.Dir.Unit()
 			img.Set(pxX, pxY, traceRay(s, r))
 		}
 	}
@@ -31,6 +32,39 @@ func TraceImage(samples []Scene) image.Image {
 	return img
 }
 
+// traceRay is a recursive function to find the colour from a single ray into a
+// scene.
+//
+// Preconditions:
+//  * r.Dir must be a unit vector.
 func traceRay(s Scene, r ray.Ray) color.Color {
-	return nil
+
+	// Assert that r.Dir is a unit vector.
+	if ulpDiff(1.0, r.Dir.Length2()) > 50 {
+		panic("precondition not met: r.Dir not a unit vector")
+	}
+
+	// Establish the hit point.
+	hr, ok := closestHit(s.Geometries, r)
+	if !ok {
+		// Missed everything, shade black.
+		return color.Gray{Y: 0}
+	}
+	_ = hr
+
+	// Hit something, shade white.
+	return color.Gray{Y: 0xff}
+}
+
+func closestHit(gs []Geometry, r ray.Ray) (hitRec, bool) {
+	isHit := false
+	var closest hitRec
+	for _, geometry := range gs {
+		tmpHR, ok := geometry.intersect(r)
+		if ok && (!isHit || tmpHR.t < closest.t) {
+			closest = tmpHR
+			isHit = true
+		}
+	}
+	return closest, isHit
 }
