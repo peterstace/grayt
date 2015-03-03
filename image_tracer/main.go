@@ -1,36 +1,37 @@
 package main
 
 import (
-	"encoding/json"
-	"flag"
 	"image/jpeg"
-	"io/ioutil"
 	"log"
 	"os"
 
 	"github.com/peterstace/grayt/tracer"
+	"github.com/peterstace/grayt/vect"
 )
 
 func main() {
 
-	iFlag := flag.String("i", "", "input JSON file")
-	oFlag := flag.String("o", "", "output JPG file")
-	flag.Parse()
-	if *iFlag == "" || *oFlag == "" {
-		flag.PrintDefaults()
-		return
-	}
-
-	var scene tracer.Scene
-	if buf, err := ioutil.ReadFile(*iFlag); err != nil {
-		log.Fatal(err)
-	} else if err := json.Unmarshal(buf, &scene); err != nil {
-		log.Fatal(err)
+	scene := tracer.Scene{
+		Camera: tracer.NewRectilinearCamera(
+			tracer.CameraConfig{
+				Location:      vect.New(0, 0, 0),
+				ViewDirection: vect.New(0, 0, -1),
+				UpDirection:   vect.New(0, 1, 0),
+				FieldOfView:   1.5,
+				FocalLength:   10.0,
+				FocalRatio:    1000.0,
+			}),
+		Geometries: []tracer.Geometry{
+			tracer.NewSphere(vect.New(0, 0, -10), 1),
+		},
+		Lights: []tracer.Light{
+			tracer.Light{Location: vect.New(0, 10, -5), Radius: 0.5, Intensity: 25},
+		},
 	}
 
 	img := tracer.TraceImage([]tracer.Scene{scene})
 
-	if out, err := os.Create(*oFlag); err != nil {
+	if out, err := os.Create("out.jpg"); err != nil {
 		log.Fatal(err)
 	} else if err := jpeg.Encode(out, img, nil); err != nil {
 		log.Fatal(err)

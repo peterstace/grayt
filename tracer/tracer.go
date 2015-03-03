@@ -45,12 +45,11 @@ func traceRay(s Scene, r ray.Ray) color.Color {
 	}
 
 	// Establish the hit point.
-	hr, ok := closestHit(s.Geometries, r)
+	_, ok := closestHit(s.Geometries, r)
 	if !ok {
 		// Missed everything, shade black.
-		return color.Gray{Y: 0}
+		return color.Gray{Y: 0x00}
 	}
-	_ = hr
 
 	// Hit something, shade white.
 	return color.Gray{Y: 0xff}

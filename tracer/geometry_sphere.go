@@ -39,14 +39,10 @@ func (s *sphere) t(r ray.Ray) float64 {
 		return -1.0
 	}
 
-	// solve for x1 and x2
+	// Find x1 and x2 using a numerically stable algorithm.
 	var signOfB float64
-	if b > 0 {
-		signOfB = 1.0
-	} else if b < 0 {
-		signOfB = -1.0
-	}
-	q := -0.5 * (b * signOfB * math.Sqrt(disc))
+	signOfB = math.Copysign(1.0, b)
+	q := -0.5 * (b + signOfB*math.Sqrt(disc))
 	x1 := q / a
 	x2 := c / q
 

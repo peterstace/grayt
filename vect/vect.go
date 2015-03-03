@@ -6,6 +6,14 @@ type V struct {
 	X, Y, Z float64
 }
 
+func New(x, y, z float64) V {
+	return V{
+		X: x,
+		Y: y,
+		Z: z,
+	}
+}
+
 func (v V) Length() float64 {
 	return math.Sqrt(v.X*v.X + v.Y*v.Y + v.Z*v.Z)
 }
