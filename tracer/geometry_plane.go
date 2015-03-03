@@ -19,5 +19,5 @@ func NewPlane(normal, anchor vect.V) Geometry {
 func (p *plane) intersect(r ray.Ray) (hitRec, bool) {
 	t := vect.Dot(p.unitNormal, vect.Sub(p.anchor, r.Start)) /
 		vect.Dot(p.unitNormal, r.Dir)
-	return hitRec{t: t, n: p.unitNormal}, t > 0
+	return hitRec{distance: t, unitNormal: p.unitNormal}, t > 0
 }

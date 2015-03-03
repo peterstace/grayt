@@ -25,7 +25,7 @@ func main() {
 			tracer.NewSphere(vect.New(0, 0, -10), 1),
 		},
 		Lights: []tracer.Light{
-			tracer.Light{Location: vect.New(0, 10, -5), Radius: 0.5, Intensity: 25},
+			tracer.Light{Location: vect.New(0, 10, -10), Radius: 0.5, Intensity: 100},
 		},
 	}
 

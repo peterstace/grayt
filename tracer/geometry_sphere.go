@@ -22,7 +22,7 @@ func (s *sphere) intersect(r ray.Ray) (hitRec, bool) {
 	if t <= 0.0 {
 		return hitRec{}, false
 	}
-	return hitRec{t: t, n: vect.Sub(r.At(t), s.centre)}, true
+	return hitRec{distance: t, unitNormal: vect.Sub(r.At(t), s.centre).Unit()}, true
 }
 
 func (s *sphere) t(r ray.Ray) float64 {
