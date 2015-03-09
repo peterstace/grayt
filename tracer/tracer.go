@@ -22,7 +22,7 @@ func TraceImage(samples []Scene) image.Image {
 
 			pxPitch := 2.0 / float64(pxWide)
 			x := (float64(pxX-pxWide/2) + 0.5) * pxPitch
-			y := (float64(pxY-pxHigh/2) + 0.5) * pxPitch
+			y := (float64(pxY-pxHigh/2) + 0.5) * pxPitch * -1.0
 
 			s := samples[rand.Intn(len(samples))]
 			r := s.Camera.MakeRay(x, y)
@@ -69,7 +69,7 @@ func traceRay(s Scene, r ray.Ray) color.Color {
 		if tmpHR, ok := closestHit(
 			s.Geometries,
 			ray.Ray{Start: hitLoc, Dir: fromHitToLight},
-		); ok && tmpHR.distance < 1.0 {
+		); !ok || tmpHR.distance > 1.0 {
 
 			// Lambert shading.
 			lambertCoef := vect.Dot(unitFromHitToLight, hr.unitNormal)
@@ -82,6 +82,8 @@ func traceRay(s Scene, r ray.Ray) color.Color {
 	var colourUint8 uint8
 	if colour >= 1.0 {
 		colourUint8 = 0xff
+	} else if colour < 0.0 {
+		colourUint8 = 0x00
 	} else {
 		colourUint8 = uint8(colour * 256)
 	}
