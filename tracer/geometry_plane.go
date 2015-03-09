@@ -12,7 +12,7 @@ type plane struct {
 
 // NewPlane creates a plane given a normal to the plane and an anchor point on
 // the plane. The normal vector doesn't need to be a unit vector.
-func NewPlane(normal, anchor vect.V) Geometry {
+func NewPlane(anchor, normal vect.V) Geometry {
 	return &plane{unitNormal: normal.Unit(), anchor: anchor}
 }
 

@@ -22,6 +22,7 @@ func main() {
 				FocalRatio:    1000.0,
 			}),
 		Geometries: []tracer.Geometry{
+			tracer.NewPlane(vect.New(0, -2, 0), vect.New(0, 1, 0)),
 			tracer.NewSphere(vect.New(0, 0, -10), 1),
 		},
 		Lights: []tracer.Light{
