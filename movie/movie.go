@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"image/jpeg"
 	"io/ioutil"
+	"log"
 	"math/rand"
 	"os"
+	"os/exec"
 	"path"
 
 	"github.com/peterstace/grayt/tracer"
@@ -14,6 +16,10 @@ import (
 type Camera func(float64) tracer.Camera
 type Geometry func(float64) tracer.Geometry
 type Light func(float64) tracer.Light
+
+func ConstCamera(c tracer.Camera) Camera       { return func(float64) tracer.Camera { return c } }
+func ConstGeometry(g tracer.Geometry) Geometry { return func(float64) tracer.Geometry { return g } }
+func ConstLight(l tracer.Light) Light          { return func(float64) tracer.Light { return l } }
 
 type Movie struct {
 	Frames     int
@@ -29,7 +35,10 @@ func TraceMovie(m Movie, filename string) error {
 	if err != nil {
 		return err
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		log.Printf("cleaning up %q", tmpDir)
+		os.RemoveAll(tmpDir)
+	}()
 
 	for i := 0; i < m.Frames; i++ {
 
@@ -56,7 +65,16 @@ func TraceMovie(m Movie, filename string) error {
 	}
 
 	// Create a movie file from the images.
-	// XXX
+	wd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	cmd := exec.Command("ffmpeg", "-i", "%d.jpg", path.Join(wd, filename))
+	cmd.Dir = tmpDir
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("%s: %s", err, string(out))
+	}
 
 	return nil
 }
