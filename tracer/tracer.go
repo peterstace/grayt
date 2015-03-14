@@ -3,8 +3,10 @@ package tracer
 import (
 	"image"
 	"image/color"
+	"log"
 	"math"
 	"math/rand"
+	"time"
 
 	"github.com/peterstace/grayt/ray"
 	"github.com/peterstace/grayt/vect"
@@ -14,6 +16,16 @@ func TraceImage(samples []Scene) image.Image {
 
 	const pxWide = 640
 	const pxHigh = 480
+
+	startTime := time.Now()
+	defer func() {
+		totalTime := time.Since(startTime)
+		pxCount := pxWide * pxHigh
+		timePerPixel := time.Duration(int(totalTime) / pxCount)
+
+		log.Printf("Dimensions=%dx%d PxCount=%d TotalTime=%s TimePerPixel=%s",
+			pxWide, pxHigh, pxCount, totalTime, timePerPixel)
+	}()
 
 	img := image.NewGray(image.Rect(0, 0, pxWide, pxHigh))
 
