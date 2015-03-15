@@ -10,32 +10,37 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"time"
 
 	"github.com/peterstace/grayt/tracer"
 )
 
-type Camera func(float64) tracer.Camera
-type Geometry func(float64) tracer.Geometry
-type Light func(float64) tracer.Light
+type CameraFn func(float64) tracer.Camera
+type GeometryFn func(float64) tracer.Geometry
+type LightFn func(float64) tracer.Light
 
-func ConstCamera(c tracer.Camera) Camera       { return func(float64) tracer.Camera { return c } }
-func ConstGeometry(g tracer.Geometry) Geometry { return func(float64) tracer.Geometry { return g } }
-func ConstLight(l tracer.Light) Light          { return func(float64) tracer.Light { return l } }
+func StillCamera(c tracer.Camera) CameraFn       { return func(float64) tracer.Camera { return c } }
+func StillGeometry(g tracer.Geometry) GeometryFn { return func(float64) tracer.Geometry { return g } }
+func StillLight(l tracer.Light) LightFn          { return func(float64) tracer.Light { return l } }
 
 type Movie struct {
-	Frames     int
-	Camera     Camera
-	Geometries []Geometry
-	Lights     []Light
+	Duration   time.Duration
+	Camera     CameraFn
+	Geometries []GeometryFn
+	Lights     []LightFn
 }
 
 func TraceMovie(m Movie, filename string) error {
 
-	imgs := make([]image.Image, m.Frames)
-	for i := 0; i < m.Frames; i++ {
+	// Calculate the number of frames.
+	const fps = 24
+	numFrames := int(m.Duration.Seconds() * fps)
+
+	imgs := make([]image.Image, numFrames)
+	for i := 0; i < numFrames; i++ {
 
 		// Create the sample(s).
-		t := Sample(i, m.Frames)
+		t := Sample(i, numFrames)
 		var sample tracer.Scene
 		sample.Camera = m.Camera(t)
 		for _, g := range m.Geometries {
@@ -50,10 +55,10 @@ func TraceMovie(m Movie, filename string) error {
 
 	}
 
-	return outputMovie(imgs, filename)
+	return outputMovie(imgs, fps, filename)
 }
 
-func outputMovie(imgs []image.Image, filename string) error {
+func outputMovie(imgs []image.Image, fps int, filename string) error {
 
 	log.Print("outputting movie")
 
@@ -82,7 +87,7 @@ func outputMovie(imgs []image.Image, filename string) error {
 		return err
 	}
 	cmd := exec.Command("ffmpeg",
-		"-framerate", "30",
+		"-framerate", fmt.Sprintf("%d", fps),
 		"-i", "%d.jpg",
 		"-codec", "copy",
 		path.Join(wd, filename))
