@@ -38,7 +38,7 @@ func main() {
 		},
 	}
 
-	if err := movie.TraceMovie(mov, "out.avi"); err != nil {
+	if err := movie.TraceMovie(mov, "out.mkv"); err != nil {
 		log.Fatal(err)
 	}
 }

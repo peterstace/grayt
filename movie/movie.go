@@ -2,6 +2,7 @@ package movie
 
 import (
 	"fmt"
+	"image"
 	"image/jpeg"
 	"io/ioutil"
 	"log"
@@ -30,16 +31,7 @@ type Movie struct {
 
 func TraceMovie(m Movie, filename string) error {
 
-	// Get a temp dir to put the JPEG for each frame into.
-	tmpDir, err := ioutil.TempDir("", "")
-	if err != nil {
-		return err
-	}
-	defer func() {
-		log.Printf("cleaning up %q", tmpDir)
-		os.RemoveAll(tmpDir)
-	}()
-
+	imgs := make([]image.Image, m.Frames)
 	for i := 0; i < m.Frames; i++ {
 
 		// Create the sample(s).
@@ -54,12 +46,32 @@ func TraceMovie(m Movie, filename string) error {
 		}
 
 		// Trace the image.
-		img := tracer.TraceImage([]tracer.Scene{sample})
+		imgs[i] = tracer.TraceImage([]tracer.Scene{sample})
 
-		// Write the image out to file.
+	}
+
+	return outputMovie(imgs, filename)
+}
+
+func outputMovie(imgs []image.Image, filename string) error {
+
+	log.Print("outputting movie")
+
+	// Get a temp dir to put the JPEG for each frame into.
+	tmpDir, err := ioutil.TempDir("", "")
+	if err != nil {
+		return err
+	}
+	defer func() {
+		log.Printf("cleaning up %q", tmpDir)
+		os.RemoveAll(tmpDir)
+	}()
+
+	// Write the images out to file.
+	for i := 0; i < len(imgs); i++ {
 		if out, err := os.Create(path.Join(tmpDir, fmt.Sprintf("%d.jpg", i))); err != nil {
 			return err
-		} else if err := jpeg.Encode(out, img, nil); err != nil {
+		} else if err := jpeg.Encode(out, imgs[i], nil); err != nil {
 			return err
 		}
 	}
@@ -69,13 +81,18 @@ func TraceMovie(m Movie, filename string) error {
 	if err != nil {
 		return err
 	}
-	cmd := exec.Command("ffmpeg", "-i", "%d.jpg", path.Join(wd, filename))
+	cmd := exec.Command("ffmpeg",
+		"-framerate", "30",
+		"-i", "%d.jpg",
+		"-codec", "copy",
+		path.Join(wd, filename))
 	cmd.Dir = tmpDir
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, string(out))
 	}
 
+	log.Printf("movie output to %q", filename)
 	return nil
 }
 
