@@ -1,4 +1,4 @@
-package movie
+package tracer
 
 import (
 	"fmt"
@@ -11,17 +11,21 @@ import (
 	"os/exec"
 	"path"
 	"time"
-
-	"github.com/peterstace/grayt/tracer"
 )
 
-type CameraFn func(float64) tracer.Camera
-type GeometryFn func(float64) tracer.Geometry
-type LightFn func(float64) tracer.Light
+type CameraFn func(float64) Camera
+type GeometryFn func(float64) Geometry
+type LightFn func(float64) Light
 
-func StillCamera(c tracer.Camera) CameraFn       { return func(float64) tracer.Camera { return c } }
-func StillGeometry(g tracer.Geometry) GeometryFn { return func(float64) tracer.Geometry { return g } }
-func StillLight(l tracer.Light) LightFn          { return func(float64) tracer.Light { return l } }
+func StillCamera(c Camera) CameraFn {
+	return func(float64) Camera { return c }
+}
+func StillGeometry(g Geometry) GeometryFn {
+	return func(float64) Geometry { return g }
+}
+func StillLight(l Light) LightFn {
+	return func(float64) Light { return l }
+}
 
 type Movie struct {
 	Duration   time.Duration
@@ -41,7 +45,7 @@ func TraceMovie(m Movie, filename string) error {
 
 		// Create the sample(s).
 		t := Sample(i, numFrames)
-		var sample tracer.Scene
+		var sample Scene
 		sample.Camera = m.Camera(t)
 		for _, g := range m.Geometries {
 			sample.Geometries = append(sample.Geometries, g(t))
@@ -51,7 +55,7 @@ func TraceMovie(m Movie, filename string) error {
 		}
 
 		// Trace the image.
-		imgs[i] = tracer.TraceImage([]tracer.Scene{sample})
+		imgs[i] = TraceImage([]Scene{sample})
 
 	}
 
