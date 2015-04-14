@@ -1,19 +1,15 @@
 package tracer
 
-import (
-	"math/rand"
-
-	"github.com/peterstace/grayt/vect"
-)
+import "math/rand"
 
 type Light struct {
-	Location  vect.V
+	Location  Vect
 	Radius    float64
 	Intensity float64
 }
 
-func (l *Light) sampleLocation() vect.V {
-	var offset vect.V
+func (l *Light) sampleLocation() Vect {
+	var offset Vect
 	for {
 		offset.X = rand.Float64()*2.0 - 1.0
 		offset.Y = rand.Float64()*2.0 - 1.0
@@ -22,5 +18,5 @@ func (l *Light) sampleLocation() vect.V {
 			break
 		}
 	}
-	return vect.Add(l.Location, offset.Extended(l.Radius))
+	return VectAdd(l.Location, offset.Extended(l.Radius))
 }

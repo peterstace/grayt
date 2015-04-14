@@ -1,36 +1,31 @@
 package tracer
 
-import (
-	"math"
-
-	"github.com/peterstace/grayt/ray"
-	"github.com/peterstace/grayt/vect"
-)
+import "math"
 
 type sphere struct {
-	centre vect.V
+	centre Vect
 	radius float64
 }
 
 // NewSphere creates a sphere with the given centre and radius.
-func NewSphere(centre vect.V, radius float64) Geometry {
+func NewSphere(centre Vect, radius float64) Geometry {
 	return &sphere{centre: centre, radius: radius}
 }
 
-func (s *sphere) intersect(r ray.Ray) (hitRec, bool) {
+func (s *sphere) intersect(r Ray) (hitRec, bool) {
 	t := s.t(r)
 	if t <= 0.0 {
 		return hitRec{}, false
 	}
-	return hitRec{distance: t, unitNormal: vect.Sub(r.At(t), s.centre).Unit()}, true
+	return hitRec{distance: t, unitNormal: VectSub(r.At(t), s.centre).Unit()}, true
 }
 
-func (s *sphere) t(r ray.Ray) float64 {
+func (s *sphere) t(r Ray) float64 {
 
 	// Get coeficients to a.x^2 + b.x + c = 0
-	emc := vect.Sub(r.Start, s.centre)
+	emc := VectSub(r.Start, s.centre)
 	a := r.Dir.Length2()
-	b := 2 * vect.Dot(emc, r.Dir)
+	b := 2 * VectDot(emc, r.Dir)
 	c := emc.Length2() - s.radius*s.radius
 
 	// Find discrimenant b*b - 4*a*c

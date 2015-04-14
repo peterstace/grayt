@@ -3,9 +3,6 @@ package tracer
 import (
 	"math"
 	"math/rand"
-
-	"github.com/peterstace/grayt/ray"
-	"github.com/peterstace/grayt/vect"
 )
 
 type rectilinearCamera struct {
@@ -14,7 +11,7 @@ type rectilinearCamera struct {
 		// the screen or eye.  Y vectors go from the center of the screen or
 		// eye towards the top of the screen or eye.  Loc is the location of
 		// the center of the screen or eye.
-		loc, x, y vect.V
+		loc, x, y Vect
 	}
 }
 
@@ -26,8 +23,8 @@ func NewRectilinearCamera(conf CameraConfig) Camera {
 	conf.UpDirection = conf.UpDirection.Unit()
 	conf.ViewDirection = conf.ViewDirection.Unit()
 
-	cam.screen.x = vect.Cross(conf.ViewDirection, conf.UpDirection)
-	cam.screen.y = vect.Cross(cam.screen.x, conf.ViewDirection)
+	cam.screen.x = VectCross(conf.ViewDirection, conf.UpDirection)
+	cam.screen.y = VectCross(cam.screen.x, conf.ViewDirection)
 
 	cam.eye.x = cam.screen.x.Extended(conf.FocalLength / conf.FocalRatio)
 	cam.eye.y = cam.screen.y.Extended(conf.FocalLength / conf.FocalRatio)
@@ -36,28 +33,28 @@ func NewRectilinearCamera(conf CameraConfig) Camera {
 	halfScreenWidth := math.Tan(conf.FieldOfView/2) * conf.FocalLength
 	cam.screen.x = cam.screen.x.Extended(halfScreenWidth)
 	cam.screen.y = cam.screen.y.Extended(halfScreenWidth)
-	cam.screen.loc = vect.Add(cam.eye.loc, conf.ViewDirection.Extended(conf.FocalLength))
+	cam.screen.loc = VectAdd(cam.eye.loc, conf.ViewDirection.Extended(conf.FocalLength))
 
 	return cam
 }
 
-func (c *rectilinearCamera) MakeRay(x, y float64) ray.Ray {
-	start := vect.Add(
+func (c *rectilinearCamera) MakeRay(x, y float64) Ray {
+	start := VectAdd(
 		c.eye.loc,
-		vect.Add(
+		VectAdd(
 			c.eye.x.Extended(2*rand.Float64()-1.0),
 			c.eye.y.Extended(2*rand.Float64()-1.0),
 		),
 	)
-	end := vect.Add(
+	end := VectAdd(
 		c.screen.loc,
-		vect.Add(
+		VectAdd(
 			c.screen.x.Extended(x),
 			c.screen.y.Extended(y),
 		),
 	)
-	return ray.Ray{
+	return Ray{
 		Start: start,
-		Dir:   vect.Sub(end, start),
+		Dir:   VectSub(end, start),
 	}
 }

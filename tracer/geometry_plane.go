@@ -1,23 +1,18 @@
 package tracer
 
-import (
-	"github.com/peterstace/grayt/ray"
-	"github.com/peterstace/grayt/vect"
-)
-
 type plane struct {
-	unitNormal vect.V // Unit normal out of the plane.
-	anchor     vect.V // Any point on the plane.
+	unitNormal Vect // Unit normal out of the plane.
+	anchor     Vect // Any point on the plane.
 }
 
 // NewPlane creates a plane given a normal to the plane and an anchor point on
 // the plane. The normal vector doesn't need to be a unit vector.
-func NewPlane(anchor, normal vect.V) Geometry {
+func NewPlane(anchor, normal Vect) Geometry {
 	return &plane{unitNormal: normal.Unit(), anchor: anchor}
 }
 
-func (p *plane) intersect(r ray.Ray) (hitRec, bool) {
-	t := vect.Dot(p.unitNormal, vect.Sub(p.anchor, r.Start)) /
-		vect.Dot(p.unitNormal, r.Dir)
+func (p *plane) intersect(r Ray) (hitRec, bool) {
+	t := VectDot(p.unitNormal, VectSub(p.anchor, r.Start)) /
+		VectDot(p.unitNormal, r.Dir)
 	return hitRec{distance: t, unitNormal: p.unitNormal}, t > 0
 }

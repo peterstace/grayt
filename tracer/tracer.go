@@ -7,9 +7,6 @@ import (
 	"math"
 	"math/rand"
 	"time"
-
-	"github.com/peterstace/grayt/ray"
-	"github.com/peterstace/grayt/vect"
 )
 
 func TraceImage(samples []Scene) image.Image {
@@ -51,7 +48,7 @@ func TraceImage(samples []Scene) image.Image {
 //
 // Preconditions:
 //  * r.Dir must be a unit vector.
-func traceRay(s Scene, r ray.Ray) color.Color {
+func traceRay(s Scene, r Ray) color.Color {
 
 	// Assert that r.Dir is a unit vector.
 	if ulpDiff(1.0, r.Dir.Length2()) > 50 {
@@ -73,18 +70,18 @@ func traceRay(s Scene, r ray.Ray) color.Color {
 	for _, light := range s.Lights {
 
 		// Vector from hit location to the light.
-		fromHitToLight := vect.Sub(light.sampleLocation(), hitLoc)
+		fromHitToLight := VectSub(light.sampleLocation(), hitLoc)
 		unitFromHitToLight := fromHitToLight.Unit()
 		attenuation := fromHitToLight.Length2()
 
 		// Test if anything obscures the light.
 		if tmpHR, ok := closestHit(
 			s.Geometries,
-			ray.Ray{Start: hitLoc, Dir: fromHitToLight},
+			Ray{Start: hitLoc, Dir: fromHitToLight},
 		); !ok || tmpHR.distance > 1.0 {
 
 			// Lambert shading.
-			lambertCoef := vect.Dot(unitFromHitToLight, hr.unitNormal)
+			lambertCoef := VectDot(unitFromHitToLight, hr.unitNormal)
 
 			// Add shading to the colour.
 			colour += math.Abs(lambertCoef) * light.Intensity / attenuation
@@ -102,7 +99,7 @@ func traceRay(s Scene, r ray.Ray) color.Color {
 	return color.Gray{Y: colourUint8}
 }
 
-func closestHit(gs []Geometry, r ray.Ray) (hitRec, bool) {
+func closestHit(gs []Geometry, r Ray) (hitRec, bool) {
 	isHit := false
 	var closest hitRec
 	for _, geometry := range gs {
