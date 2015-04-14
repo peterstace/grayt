@@ -31,12 +31,13 @@ func TraceMovie(m Movie, outputDir string) error {
 		}
 
 		// Trace the image.
-		log.Printf("Tracing image %d of %d", i+1, m.FrameCount)
+		log.Printf("Tracing image %d of %d", i, m.FrameCount)
 		img := TraceImage([]Scene{sample})
 
 		// Output the image.
 		// TODO: Should pad filename with leading zeros.
-		filepath := path.Join(outputDir, fmt.Sprintf("%d.jpg", i))
+		numWidth := len(fmt.Sprintf("%d", m.FrameCount))
+		filepath := path.Join(outputDir, fmt.Sprintf("%0*d.jpg", numWidth, i))
 		log.Printf("Saving traced image to %q", filepath)
 		if file, err := os.Create(filepath); err != nil {
 			return err
