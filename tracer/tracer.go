@@ -14,8 +14,8 @@ import (
 
 func TraceImage(samples []Scene) image.Image {
 
-	const pxWide = 192
-	const pxHigh = 120
+	const pxWide = 640
+	const pxHigh = 480
 
 	startTime := time.Now()
 	defer func() {
