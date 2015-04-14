@@ -3,6 +3,7 @@ package tracer
 import (
 	"fmt"
 	"image/jpeg"
+	"log"
 	"math/rand"
 	"os"
 	"path"
@@ -30,11 +31,14 @@ func TraceMovie(m Movie, outputDir string) error {
 		}
 
 		// Trace the image.
+		log.Printf("Tracing image %d of %d", i+1, m.FrameCount)
 		img := TraceImage([]Scene{sample})
 
 		// Output the image.
 		// TODO: Should pad filename with leading zeros.
-		if file, err := os.Create(path.Join(outputDir, fmt.Sprintf("%d.jpg", i))); err != nil {
+		filepath := path.Join(outputDir, fmt.Sprintf("%d.jpg", i))
+		log.Printf("Saving traced image to %q", filepath)
+		if file, err := os.Create(filepath); err != nil {
 			return err
 		} else if err := jpeg.Encode(file, img, nil); err != nil {
 			return err
