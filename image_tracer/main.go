@@ -30,7 +30,7 @@ func main() {
 				tracer.NewPlane(vect.New(0, -0.5, -10), vect.New(-0.2, 1, 0)),
 				tracer.NewPlane(vect.New(0, -0.5, -10), vect.New(0, 1, 0.2)),
 				tracer.NewPlane(vect.New(0, -0.5, -10), vect.New(0, 1, -0.2)),
-				tracer.NewSphere(vect.New(0, 1, -10), 1),
+				tracer.NewSphere(vect.New(0, 1, -10), t*2),
 			}
 		},
 		LightsFactory: func(t float64) []tracer.Light {
