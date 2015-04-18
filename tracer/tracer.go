@@ -81,7 +81,7 @@ func traceRay(s Scene, r Ray) color.Color {
 		); !ok || tmpHR.distance > 1.0 {
 
 			// Lambert shading.
-			lambertCoef := VectDot(unitFromHitToLight, hr.unitNormal)
+			lambertCoef := unitFromHitToLight.Dot(hr.unitNormal)
 
 			// Add shading to the colour.
 			colour += math.Abs(lambertCoef) * light.Intensity / attenuation

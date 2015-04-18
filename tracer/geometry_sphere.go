@@ -25,7 +25,7 @@ func (s *sphere) t(r Ray) float64 {
 	// Get coeficients to a.x^2 + b.x + c = 0
 	emc := r.Start.Sub(s.centre)
 	a := r.Dir.Length2()
-	b := 2 * VectDot(emc, r.Dir)
+	b := 2 * emc.Dot(r.Dir)
 	c := emc.Length2() - s.radius*s.radius
 
 	// Find discrimenant b*b - 4*a*c

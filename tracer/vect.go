@@ -47,8 +47,8 @@ func (v Vect) Sub(u Vect) Vect {
 	}
 }
 
-func VectDot(lhs, rhs Vect) float64 {
-	return lhs.X*rhs.X + lhs.Y*rhs.Y + lhs.Z*rhs.Z
+func (v Vect) Dot(u Vect) float64 {
+	return v.X*u.X + v.Y*u.Y + v.Z*u.Z
 }
 
 func VectCross(rhs, lhs Vect) Vect {
