@@ -47,6 +47,6 @@ func (c *rectilinearCamera) MakeRay(x, y float64) Ray {
 		Add(c.screen.y.Extended(y))
 	return Ray{
 		Start: start,
-		Dir:   VectSub(end, start),
+		Dir:   end.Sub(start),
 	}
 }

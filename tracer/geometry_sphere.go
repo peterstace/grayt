@@ -17,13 +17,13 @@ func (s *sphere) intersect(r Ray) (hitRec, bool) {
 	if t <= 0.0 {
 		return hitRec{}, false
 	}
-	return hitRec{distance: t, unitNormal: VectSub(r.At(t), s.centre).Unit()}, true
+	return hitRec{distance: t, unitNormal: r.At(t).Sub(s.centre).Unit()}, true
 }
 
 func (s *sphere) t(r Ray) float64 {
 
 	// Get coeficients to a.x^2 + b.x + c = 0
-	emc := VectSub(r.Start, s.centre)
+	emc := r.Start.Sub(s.centre)
 	a := r.Dir.Length2()
 	b := 2 * VectDot(emc, r.Dir)
 	c := emc.Length2() - s.radius*s.radius

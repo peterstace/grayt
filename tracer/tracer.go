@@ -70,7 +70,7 @@ func traceRay(s Scene, r Ray) color.Color {
 	for _, light := range s.Lights {
 
 		// Vector from hit location to the light.
-		fromHitToLight := VectSub(light.sampleLocation(), hitLoc)
+		fromHitToLight := light.sampleLocation().Sub(hitLoc)
 		unitFromHitToLight := fromHitToLight.Unit()
 		attenuation := fromHitToLight.Length2()
 
