@@ -51,10 +51,10 @@ func (v Vect) Dot(u Vect) float64 {
 	return v.X*u.X + v.Y*u.Y + v.Z*u.Z
 }
 
-func VectCross(rhs, lhs Vect) Vect {
+func (v Vect) Cross(u Vect) Vect {
 	return Vect{
-		X: lhs.Y*rhs.Z - lhs.Z*rhs.Y,
-		Y: lhs.Z*rhs.X - lhs.X*rhs.Z,
-		Z: lhs.X*rhs.Y - lhs.Y*rhs.X,
+		X: v.Y*u.Z - v.Z*u.Y,
+		Y: v.Z*u.X - v.X*u.Z,
+		Z: v.X*u.Y - v.Y*u.X,
 	}
 }

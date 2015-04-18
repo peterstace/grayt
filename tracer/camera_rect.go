@@ -23,8 +23,8 @@ func NewRectilinearCamera(conf CameraConfig) Camera {
 	conf.UpDirection = conf.UpDirection.Unit()
 	conf.ViewDirection = conf.ViewDirection.Unit()
 
-	cam.screen.x = VectCross(conf.ViewDirection, conf.UpDirection)
-	cam.screen.y = VectCross(cam.screen.x, conf.ViewDirection)
+	cam.screen.x = conf.ViewDirection.Cross(conf.UpDirection)
+	cam.screen.y = cam.screen.x.Cross(conf.ViewDirection)
 
 	cam.eye.x = cam.screen.x.Extended(conf.FocalLength / conf.FocalRatio)
 	cam.eye.y = cam.screen.y.Extended(conf.FocalLength / conf.FocalRatio)
