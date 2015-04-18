@@ -6,14 +6,6 @@ type Vect struct {
 	X, Y, Z float64
 }
 
-func NewVect(x, y, z float64) Vect {
-	return Vect{
-		X: x,
-		Y: y,
-		Z: z,
-	}
-}
-
 func (v Vect) Length() float64 {
 	return math.Sqrt(v.X*v.X + v.Y*v.Y + v.Z*v.Z)
 }
