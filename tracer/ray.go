@@ -5,5 +5,5 @@ type Ray struct {
 }
 
 func (r Ray) At(t float64) Vect {
-	return VectAdd(r.Start, r.Dir.Extended(t))
+	return r.Start.Add(r.Dir.Extended(t))
 }

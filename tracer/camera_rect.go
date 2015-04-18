@@ -33,26 +33,18 @@ func NewRectilinearCamera(conf CameraConfig) Camera {
 	halfScreenWidth := math.Tan(conf.FieldOfView/2) * conf.FocalLength
 	cam.screen.x = cam.screen.x.Extended(halfScreenWidth)
 	cam.screen.y = cam.screen.y.Extended(halfScreenWidth)
-	cam.screen.loc = VectAdd(cam.eye.loc, conf.ViewDirection.Extended(conf.FocalLength))
+	cam.screen.loc = cam.eye.loc.Add(conf.ViewDirection.Extended(conf.FocalLength))
 
 	return cam
 }
 
 func (c *rectilinearCamera) MakeRay(x, y float64) Ray {
-	start := VectAdd(
-		c.eye.loc,
-		VectAdd(
-			c.eye.x.Extended(2*rand.Float64()-1.0),
-			c.eye.y.Extended(2*rand.Float64()-1.0),
-		),
-	)
-	end := VectAdd(
-		c.screen.loc,
-		VectAdd(
-			c.screen.x.Extended(x),
-			c.screen.y.Extended(y),
-		),
-	)
+	start := c.eye.loc.
+		Add(c.eye.x.Extended(2*rand.Float64() - 1.0)).
+		Add(c.eye.y.Extended(2*rand.Float64() - 1.0))
+	end := c.screen.loc.
+		Add(c.screen.x.Extended(x)).
+		Add(c.screen.y.Extended(y))
 	return Ray{
 		Start: start,
 		Dir:   VectSub(end, start),

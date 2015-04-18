@@ -18,5 +18,5 @@ func (l *Light) sampleLocation() Vect {
 			break
 		}
 	}
-	return VectAdd(l.Location, offset.Extended(l.Radius))
+	return l.Location.Add(offset.Extended(l.Radius))
 }
