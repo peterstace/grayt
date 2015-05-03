@@ -39,7 +39,7 @@ func main() {
 		},
 	}
 
-	if err := grayt.TraceMovie(mov, "out"); err != nil {
+	if err := grayt.TraceMovie(mov, "out.mkv"); err != nil {
 		log.Fatal(err)
 	}
 }

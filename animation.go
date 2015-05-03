@@ -1,12 +1,16 @@
 package grayt
 
 import (
+	"errors"
 	"fmt"
 	"image/jpeg"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"os"
+	"os/exec"
 	"path"
+	"strings"
 )
 
 type Movie struct {
@@ -16,7 +20,22 @@ type Movie struct {
 	LightsFactory     func(t float64) []Light
 }
 
-func TraceMovie(m Movie, outputDir string) error {
+func TraceMovie(m Movie, outputFile string) error {
+
+	if !strings.HasSuffix(outputFile, ".mkv") {
+		return errors.New("outputFile must end in '.mkv'")
+	}
+
+	// TODO: Ensure that ffmpeg exists.
+	// TODO: make sure we would actually be able to write to the output file.
+
+	tmpDir, err := ioutil.TempDir("", "")
+	if err != nil {
+		return err
+	}
+	defer os.RemoveAll(tmpDir)
+
+	numWidth := len(fmt.Sprintf("%d", m.FrameCount))
 
 	for i := 0; i < m.FrameCount; i++ {
 
@@ -35,9 +54,7 @@ func TraceMovie(m Movie, outputDir string) error {
 		img := TraceImage([]Scene{sample})
 
 		// Output the image.
-		// TODO: Should pad filename with leading zeros.
-		numWidth := len(fmt.Sprintf("%d", m.FrameCount))
-		filepath := path.Join(outputDir, fmt.Sprintf("%0*d.jpg", numWidth, i))
+		filepath := path.Join(tmpDir, fmt.Sprintf("%0*d.jpg", numWidth, i))
 		log.Printf("Saving traced image to %q", filepath)
 		if file, err := os.Create(filepath); err != nil {
 			return err
@@ -45,6 +62,17 @@ func TraceMovie(m Movie, outputDir string) error {
 			return err
 		}
 	}
+
+	log.Println(numWidth)
+	foo := fmt.Sprintf("%s/%%%dd.jpg", tmpDir, numWidth)
+	log.Println(foo)
+	if out, err := exec.Command(
+		"ffmpeg", "-framerate", "24", "-i", foo,
+		"-codec", "copy", outputFile,
+	).CombinedOutput(); err != nil {
+		return errors.New(err.Error() + ": " + string(out))
+	}
+
 	return nil
 }
 
