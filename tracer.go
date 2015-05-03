@@ -1,4 +1,4 @@
-package tracer
+package grayt
 
 import (
 	"image"
@@ -44,10 +44,7 @@ func TraceImage(samples []Scene) image.Image {
 }
 
 // traceRay is a recursive function to find the colour from a single ray into a
-// scene.
-//
-// Preconditions:
-//  * r.Dir must be a unit vector.
+// scene. It's a precondition that r.Dir must be a unit vector.
 func traceRay(s Scene, r Ray) color.Color {
 
 	// Assert that r.Dir is a unit vector.

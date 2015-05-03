@@ -1,4 +1,4 @@
-package tracer
+package grayt
 
 type Ray struct {
 	Start, Dir Vect

@@ -1,4 +1,4 @@
-package tracer
+package grayt
 
 type Scene struct {
 	Camera     Camera

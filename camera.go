@@ -1,4 +1,4 @@
-package tracer
+package grayt
 
 // Camera implementations produce rays that go from an eye to a virtual screen.
 // The rays produced are specified via a coordiate system on the virtual

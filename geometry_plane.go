@@ -1,4 +1,4 @@
-package tracer
+package grayt
 
 type plane struct {
 	unitNormal Vect // Unit normal out of the plane.

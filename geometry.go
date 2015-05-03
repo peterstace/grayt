@@ -1,4 +1,4 @@
-package tracer
+package grayt
 
 type hitRec struct {
 	distance   float64
