@@ -42,7 +42,7 @@ func TraceMovie(m Movie, outputFile string) error {
 		// Create the sample(s).
 		// TODO: This currently only creates a single sample per frame. It
 		// should instead generate multiple samples per frame.
-		t := Sample(i, m.FrameCount)
+		t := sample(i, m.FrameCount)
 		sample := Scene{
 			Camera:     m.CameraFactory(t),
 			Geometries: m.GeometriesFactory(t),
@@ -79,6 +79,6 @@ func TraceMovie(m Movie, outputFile string) error {
 // Sample returns a value in the interval [0, 1). The interval [0, 1) is
 // divided equally into n parts, with the random value being selected from
 // within the ith segment. Precondition: 0 <= i < n.
-func Sample(i int, n int) float64 {
+func sample(i int, n int) float64 {
 	return (float64(i) + rand.Float64()) / float64(n)
 }
