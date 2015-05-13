@@ -5,11 +5,10 @@ import (
 	"image/color"
 	"log"
 	"math"
-	"math/rand"
 	"time"
 )
 
-func TraceImage(samples []Scene) image.Image {
+func TraceImage(s Scene) image.Image {
 
 	const pxWide = 640
 	const pxHigh = 480
@@ -33,7 +32,6 @@ func TraceImage(samples []Scene) image.Image {
 			x := (float64(pxX-pxWide/2) + 0.5) * pxPitch
 			y := (float64(pxY-pxHigh/2) + 0.5) * pxPitch * -1.0
 
-			s := samples[rand.Intn(len(samples))]
 			r := s.Camera.MakeRay(x, y)
 			r.Dir = r.Dir.Unit()
 			img.Set(pxX, pxY, traceRay(s, r))
