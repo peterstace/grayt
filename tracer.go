@@ -8,6 +8,12 @@ import (
 	"time"
 )
 
+type Scene struct {
+	Camera     *camera
+	Geometries []geometry
+	Lights     []Light
+}
+
 func TraceImage(s Scene) image.Image {
 
 	const pxWide = 640
@@ -105,4 +111,16 @@ func closestHit(gs []geometry, r Ray) (intersection, bool) {
 		}
 	}
 	return closest, isHit
+}
+
+func ulpDiff(a, b float64) uint64 {
+
+	ulpA := math.Float64bits(a)
+	ulpB := math.Float64bits(b)
+
+	if ulpA > ulpB {
+		return ulpA - ulpB
+	} else {
+		return ulpB - ulpA
+	}
 }
