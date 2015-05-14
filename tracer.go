@@ -8,6 +8,11 @@ import (
 	"time"
 )
 
+type Light struct {
+	Location  Vect
+	Intensity float64
+}
+
 type Scene struct {
 	Camera     *camera
 	Geometries []geometry
