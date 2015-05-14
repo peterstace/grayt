@@ -94,9 +94,9 @@ func traceRay(s Scene, r Ray) color.Color {
 	return color.Gray{Y: colourUint8}
 }
 
-func closestHit(gs []Geometry, r Ray) (hitRec, bool) {
+func closestHit(gs []geometry, r Ray) (intersection, bool) {
 	isHit := false
-	var closest hitRec
+	var closest intersection
 	for _, geometry := range gs {
 		tmpHR, ok := geometry.intersect(r)
 		if ok && (!isHit || tmpHR.distance < closest.distance) {
