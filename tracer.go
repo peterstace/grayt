@@ -19,7 +19,7 @@ type Scene struct {
 	Lights     []Light
 }
 
-func TraceImage(s Scene) image.Image {
+func RayTraceImage(s Scene) image.Image {
 
 	const pxWide = 640
 	const pxHigh = 480
