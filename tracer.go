@@ -14,7 +14,7 @@ type Light struct {
 }
 
 type Scene struct {
-	Camera     *camera
+	Camera     Camera
 	Geometries []geometry
 	Lights     []Light
 }
