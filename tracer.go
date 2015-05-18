@@ -15,7 +15,7 @@ type Light struct {
 
 type Scene struct {
 	Camera     Camera
-	Geometries []geometry
+	Geometries []Geometry
 	Lights     []Light
 }
 
@@ -68,7 +68,7 @@ func traceRay(s Scene, r Ray) color.Color {
 		return color.Gray{Y: 0x00}
 	}
 
-	hitLoc := r.At(hr.distance * 0.999999) // XXX move by several ULPs
+	hitLoc := r.At(hr.Distance * 0.999999) // XXX move by several ULPs
 
 	var colour float64
 
@@ -84,10 +84,10 @@ func traceRay(s Scene, r Ray) color.Color {
 		if tmpHR, ok := closestHit(
 			s.Geometries,
 			Ray{Start: hitLoc, Dir: fromHitToLight},
-		); !ok || tmpHR.distance > 1.0 {
+		); !ok || tmpHR.Distance > 1.0 {
 
 			// Lambert shading.
-			lambertCoef := unitFromHitToLight.Dot(hr.unitNormal)
+			lambertCoef := unitFromHitToLight.Dot(hr.UnitNormal)
 
 			// Add shading to the colour.
 			colour += math.Abs(lambertCoef) * light.Intensity / attenuation
@@ -105,12 +105,12 @@ func traceRay(s Scene, r Ray) color.Color {
 	return color.Gray{Y: colourUint8}
 }
 
-func closestHit(gs []geometry, r Ray) (intersection, bool) {
+func closestHit(gs []Geometry, r Ray) (Intersection, bool) {
 	isHit := false
-	var closest intersection
+	var closest Intersection
 	for _, geometry := range gs {
-		tmpHR, ok := geometry.intersect(r)
-		if ok && (!isHit || tmpHR.distance < closest.distance) {
+		tmpHR, ok := geometry.Intersect(r)
+		if ok && (!isHit || tmpHR.Distance < closest.Distance) {
 			closest = tmpHR
 			isHit = true
 		}

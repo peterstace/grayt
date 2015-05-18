@@ -42,7 +42,7 @@ type rectCamera struct {
 }
 
 // NewRectilinearCamera creates a rectilinear camera from a camera config.
-func NewRectilinearCamera(conf CameraConfig) *rectCamera {
+func NewRectilinearCamera(conf CameraConfig) Camera {
 
 	cam := &rectCamera{}
 

@@ -2,13 +2,25 @@ package grayt
 
 import "math"
 
-type intersection struct {
-	distance   float64
-	unitNormal Vect
+// Intersection between some geometry and a ray.
+type Intersection struct {
+	Distance   float64 // Distance along the ray where the intersection occurred.
+	UnitNormal Vect    // Unit normal (pointing 'away' from the geometry, not 'into' it).
 }
 
-type geometry interface {
-	intersect(Ray) (intersection, bool)
+// Geometry implementations represent surfaces that can be intersected with.
+type Geometry interface {
+
+	// Intersect finds the intersection (if it exists) between a ray and the
+	// geometry.
+	Intersect(Ray) (Intersection, bool)
+}
+
+func NewPlane(normal, anchor Vect) Geometry {
+	return &plane{
+		unitNormal: normal.Unit(),
+		anchor:     anchor,
+	}
 }
 
 type plane struct {
@@ -16,9 +28,16 @@ type plane struct {
 	anchor     Vect // Any point on the plane.
 }
 
-func (p *plane) intersect(r Ray) (intersection, bool) {
+func (p *plane) Intersect(r Ray) (Intersection, bool) {
 	t := p.unitNormal.Dot(p.anchor.Sub(r.Start)) / p.unitNormal.Dot(r.Dir)
-	return intersection{distance: t, unitNormal: p.unitNormal}, t > 0
+	return Intersection{Distance: t, UnitNormal: p.unitNormal}, t > 0
+}
+
+func NewSphere(centre Vect, radius float64) Geometry {
+	return &sphere{
+		centre: centre,
+		radius: radius,
+	}
 }
 
 type sphere struct {
@@ -26,7 +45,7 @@ type sphere struct {
 	radius float64
 }
 
-func (s *sphere) intersect(r Ray) (intersection, bool) {
+func (s *sphere) Intersect(r Ray) (Intersection, bool) {
 
 	// Get coeficients to a.x^2 + b.x + c = 0
 	emc := r.Start.Sub(s.centre)
@@ -37,7 +56,7 @@ func (s *sphere) intersect(r Ray) (intersection, bool) {
 	// Find discrimenant b*b - 4*a*c
 	disc := b*b - 4*a*c
 	if disc < 0 {
-		return intersection{}, false
+		return Intersection{}, false
 	}
 
 	// Find x1 and x2 using a numerically stable algorithm.
@@ -57,5 +76,5 @@ func (s *sphere) intersect(r Ray) (intersection, bool) {
 		t = math.Max(x1, x2)
 	}
 
-	return intersection{distance: t, unitNormal: r.At(t).Sub(s.centre).Unit()}, t > 0
+	return Intersection{Distance: t, UnitNormal: r.At(t).Sub(s.centre).Unit()}, t > 0
 }
