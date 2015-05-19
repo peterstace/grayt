@@ -3,9 +3,7 @@ package grayt
 import (
 	"image"
 	"image/color"
-	"log"
 	"math"
-	"time"
 )
 
 type Light struct {
@@ -19,20 +17,10 @@ type Scene struct {
 	Lights     []Light
 }
 
-func RayTraceImage(s Scene) image.Image {
+func RayTracer(s Scene) image.Image {
 
 	const pxWide = 640
 	const pxHigh = 480
-
-	startTime := time.Now()
-	defer func() {
-		totalTime := time.Since(startTime)
-		pxCount := pxWide * pxHigh
-		timePerPixel := time.Duration(int(totalTime) / pxCount)
-
-		log.Printf("Dimensions=%dx%d PxCount=%d TotalTime=%s TimePerPixel=%s",
-			pxWide, pxHigh, pxCount, totalTime, timePerPixel)
-	}()
 
 	img := image.NewGray(image.Rect(0, 0, pxWide, pxHigh))
 
