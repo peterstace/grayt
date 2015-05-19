@@ -15,7 +15,7 @@ type CameraConfig struct {
 	ViewDirection Vect
 	UpDirection   Vect
 	FieldOfView   float64
-	FocalLength   float64
+	FocalLength   float64 // Distance to the focus plane.
 	FocalRatio    float64
 }
 
