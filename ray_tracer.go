@@ -17,19 +17,20 @@ type Scene struct {
 	Lights     []Light
 }
 
-func RayTracer(s Scene) image.Image {
+type Quality struct {
+	PxWide, PxHigh int
+}
 
-	const pxWide = 300
-	const pxHigh = 300
+func RayTracer(s Scene, q Quality) image.Image {
 
-	img := image.NewGray(image.Rect(0, 0, pxWide, pxHigh))
+	img := image.NewGray(image.Rect(0, 0, q.PxWide, q.PxHigh))
 
-	for pxX := 0; pxX < pxWide; pxX++ {
-		for pxY := 0; pxY < pxHigh; pxY++ {
+	for pxX := 0; pxX < q.PxWide; pxX++ {
+		for pxY := 0; pxY < q.PxHigh; pxY++ {
 
-			pxPitch := 2.0 / float64(pxWide)
-			x := (float64(pxX-pxWide/2) + 0.5) * pxPitch
-			y := (float64(pxY-pxHigh/2) + 0.5) * pxPitch * -1.0
+			pxPitch := 2.0 / float64(q.PxWide)
+			x := (float64(pxX-q.PxWide/2) + 0.5) * pxPitch
+			y := (float64(pxY-q.PxHigh/2) + 0.5) * pxPitch * -1.0
 
 			r := s.Camera.MakeRay(x, y)
 			r.Dir = r.Dir.Unit()
