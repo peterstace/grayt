@@ -76,12 +76,9 @@ func main() {
 		},
 	}
 
-	quality := grayt.Quality{
-		PxWide: 300,
-		PxHigh: 300,
-	}
-
-	img := grayt.RayTracer(scene, quality)
+	acc := grayt.NewAccumulator(300, 300)
+	grayt.RayTracer(scene, acc)
+	img := acc.ToImage()
 
 	f, err := os.Create(out)
 	if err != nil {
