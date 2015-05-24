@@ -32,7 +32,15 @@ func main() {
 	//            \     /
 	//             \   /
 	//              \ /
-	//               C (0.5,0.5,1)
+	//               C (0.5,0.5,D)
+	//
+	//
+	// SINE(0.5*T) = 0.5 / SQRT(0.5^2 + D)
+	// T = 2*ARCSINE(0.5/SQRT(0.25 + D))
+
+	const (
+		D = 1.3
+	)
 
 	var (
 		up    = grayt.Vect{0.0, 1.0, 0.0}
@@ -49,7 +57,7 @@ func main() {
 			Location:      grayt.Vect{0.5, 0.5, 1.0},
 			ViewDirection: grayt.Vect{0.0, 0.0, -1.0},
 			UpDirection:   up,
-			FieldOfView:   1.5, // XXX this is a guess
+			FieldOfView:   2 * math.Asin(0.5/math.Sqrt(0.25+D)),
 			FocalLength:   1.5,
 			FocalRatio:    math.Inf(+1),
 		}),
@@ -62,8 +70,8 @@ func main() {
 		},
 		Lights: []grayt.Light{
 			grayt.Light{
-				Location:  grayt.Vect{0.5, 0.9, -0.5},
-				Intensity: 1.0,
+				Location:  zero.Add(one).Extended(0.5),
+				Intensity: 0.3,
 			},
 		},
 	}

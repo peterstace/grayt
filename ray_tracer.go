@@ -19,8 +19,8 @@ type Scene struct {
 
 func RayTracer(s Scene) image.Image {
 
-	const pxWide = 640
-	const pxHigh = 480
+	const pxWide = 300
+	const pxHigh = 300
 
 	img := image.NewGray(image.Rect(0, 0, pxWide, pxHigh))
 
