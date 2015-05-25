@@ -78,7 +78,7 @@ func main() {
 
 	acc := grayt.NewAccumulator(300, 300)
 	grayt.RayTracer(scene, acc)
-	img := acc.ToImage()
+	img := acc.ToImage(1.0)
 
 	f, err := os.Create(out)
 	if err != nil {

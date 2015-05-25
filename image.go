@@ -28,43 +28,32 @@ func (a Accumulator) get(x, y int) float64 {
 	return a.acc[y*a.wide+x]
 }
 
-func (a Accumulator) distribution() (mean, stddev float64) {
+func (a Accumulator) mean() float64 {
+	var sum float64
 	for _, v := range a.acc {
-		mean += v
+		sum += v
 	}
-	mean /= float64(len(a.acc))
-	for _, v := range a.acc {
-		stddev += (mean - v) * (mean - v)
-	}
-	stddev /= float64(len(a.acc))
-	stddev = math.Sqrt(stddev)
-	return
+	return sum / float64(len(a.acc))
 }
 
-func (a Accumulator) ToImage() image.Image {
+// ToImage converts the accumulator into an image. Exposure controls how bright
+// the arithmetic mean brightness in the image is. A value of 1.0 results in a
+// mean brightness half way between black and white.
+func (a Accumulator) ToImage(exposure float64) image.Image {
 
-	// Number of stdandard deviations between the mean and the minimum/maiximum
-	// pixel intensity. In the diagram below, this value is x.
-	//
-	//    WHITE        _         BLACK
-	//      |       ,./ \.,        |
-	//      | ,-----       ------, |
-	//      +----------+-----------+
-	// mean-x*stddev  mean  mean+x*stddev
+	const gamma = 2.2
 
-	const numStdDevs = 3
-
-	mean, stddev := a.distribution()
+	mean := a.mean()
 
 	img := image.NewGray(image.Rect(0, 0, a.wide, a.high))
 	for pxX := 0; pxX < a.wide; pxX++ {
 		for pxY := 0; pxY < a.high; pxY++ {
 
 			colour := a.get(pxX, pxY)
-			colour -= mean
-			colour /= stddev * numStdDevs
-			colour += 1.0
-			colour /= 2.0
+			colour /= mean
+			colour *= 0.5 * exposure
+
+			colour = math.Pow(colour, 1.0/gamma)
 
 			var colourUint8 uint8
 			if colour >= 1.0 {
