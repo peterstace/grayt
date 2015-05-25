@@ -48,7 +48,7 @@ func traceRay(s Scene, r Ray) Colour {
 	//hitLoc := r.At(hr.Distance * 0.999999) // XXX move by several ULPs
 	hitLoc := r.At(hr.Distance)
 
-	var intensity float64
+	var colour Colour
 
 	// Calculate the colour at the hit point.
 	for _, light := range s.Lights {
@@ -65,13 +65,15 @@ func traceRay(s Scene, r Ray) Colour {
 		); !ok || tmpHR.Distance > 1.0 {
 
 			// Lambert shading.
-			lambertCoef := unitFromHitToLight.Dot(hr.UnitNormal)
+			lambertCoef := math.Abs(unitFromHitToLight.Dot(hr.UnitNormal))
+			lambertColour := hr.Material.Colour.Scale(
+				lambertCoef * light.Intensity / attenuation,
+			)
 
-			// Add shading to the colour.
-			intensity += math.Abs(lambertCoef) * light.Intensity / attenuation
+			colour = colour.Add(lambertColour)
 		}
 	}
-	return Colour{intensity, intensity, intensity}
+	return colour
 }
 
 func closestHit(gs []Geometry, r Ray) (Intersection, bool) {

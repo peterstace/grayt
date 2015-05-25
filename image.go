@@ -40,7 +40,7 @@ func (a Accumulator) mean() float64 {
 func (a Accumulator) ToImage(exposure float64) image.Image {
 	const gamma = 2.2
 	mean := a.mean()
-	img := image.NewGray(image.Rect(0, 0, a.wide, a.high))
+	img := image.NewNRGBA(image.Rect(0, 0, a.wide, a.high))
 	for x := 0; x < a.wide; x++ {
 		for y := 0; y < a.high; y++ {
 			img.Set(x, y, a.get(x, y).

@@ -2,10 +2,16 @@ package grayt
 
 import "math"
 
+// Material describes physical properties of a surface.
+type Material struct {
+	Colour Colour
+}
+
 // Intersection between some geometry and a ray.
 type Intersection struct {
 	Distance   float64 // Distance along the ray where the intersection occurred.
 	UnitNormal Vect    // Unit normal (pointing 'away' from the geometry, not 'into' it).
+	Material   Material
 }
 
 // Geometry implementations represent surfaces that can be intersected with.
@@ -16,33 +22,37 @@ type Geometry interface {
 	Intersect(Ray) (Intersection, bool)
 }
 
-func NewPlane(normal, anchor Vect) Geometry {
+func NewPlane(material Material, normal, anchor Vect) Geometry {
 	return &plane{
+		material:   material,
 		unitNormal: normal.Unit(),
 		anchor:     anchor,
 	}
 }
 
 type plane struct {
+	material   Material
 	unitNormal Vect // Unit normal out of the plane.
 	anchor     Vect // Any point on the plane.
 }
 
 func (p *plane) Intersect(r Ray) (Intersection, bool) {
 	t := p.unitNormal.Dot(p.anchor.Sub(r.Start)) / p.unitNormal.Dot(r.Dir)
-	return Intersection{Distance: t, UnitNormal: p.unitNormal}, t > 0
+	return Intersection{Distance: t, UnitNormal: p.unitNormal, Material: p.material}, t > 0
 }
 
-func NewSphere(centre Vect, radius float64) Geometry {
+func NewSphere(material Material, centre Vect, radius float64) Geometry {
 	return &sphere{
-		centre: centre,
-		radius: radius,
+		material: material,
+		centre:   centre,
+		radius:   radius,
 	}
 }
 
 type sphere struct {
-	centre Vect
-	radius float64
+	material Material
+	centre   Vect
+	radius   float64
 }
 
 func (s *sphere) Intersect(r Ray) (Intersection, bool) {
@@ -76,5 +86,5 @@ func (s *sphere) Intersect(r Ray) (Intersection, bool) {
 		t = math.Max(x1, x2)
 	}
 
-	return Intersection{Distance: t, UnitNormal: r.At(t).Sub(s.centre).Unit()}, t > 0
+	return Intersection{Distance: t, UnitNormal: r.At(t).Sub(s.centre).Unit(), Material: s.material}, t > 0
 }

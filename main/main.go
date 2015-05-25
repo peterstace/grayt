@@ -52,6 +52,12 @@ func main() {
 		one   = grayt.Vect{1.0, 1.0, -1.0}
 	)
 
+	var (
+		white = grayt.Material{grayt.Colour{1, 1, 1}}
+		green = grayt.Material{grayt.Colour{0, 1, 0}}
+		red   = grayt.Material{grayt.Colour{1, 0, 0}}
+	)
+
 	scene := grayt.Scene{
 		Camera: grayt.NewRectilinearCamera(grayt.CameraConfig{
 			Location:      grayt.Vect{0.5, 0.5, 1.0},
@@ -62,11 +68,11 @@ func main() {
 			FocalRatio:    math.Inf(+1),
 		}),
 		Geometries: []grayt.Geometry{
-			grayt.NewPlane(up, zero),
-			grayt.NewPlane(down, one),
-			grayt.NewPlane(right, zero),
-			grayt.NewPlane(left, one),
-			grayt.NewPlane(back, one),
+			grayt.NewPlane(white, up, zero),
+			grayt.NewPlane(white, down, one),
+			grayt.NewPlane(red, right, zero),
+			grayt.NewPlane(green, left, one),
+			grayt.NewPlane(white, back, one),
 		},
 		Lights: []grayt.Light{
 			grayt.Light{
