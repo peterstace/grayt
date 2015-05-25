@@ -31,7 +31,7 @@ func RayTracer(s Scene, a Accumulator) {
 
 // traceRay is a recursive function to find the colour from a single ray into a
 // scene. It's a precondition that r.Dir must be a unit vector.
-func traceRay(s Scene, r Ray) float64 {
+func traceRay(s Scene, r Ray) Colour {
 
 	// Assert that r.Dir is a unit vector.
 	if ulpDiff(1.0, r.Dir.Length2()) > 50 {
@@ -42,13 +42,13 @@ func traceRay(s Scene, r Ray) float64 {
 	hr, ok := closestHit(s.Geometries, r)
 	if !ok {
 		// Missed everything, shade black.
-		return 0.0
+		return Colour{0, 0, 0}
 	}
 
 	//hitLoc := r.At(hr.Distance * 0.999999) // XXX move by several ULPs
 	hitLoc := r.At(hr.Distance)
 
-	var colour float64
+	var intensity float64
 
 	// Calculate the colour at the hit point.
 	for _, light := range s.Lights {
@@ -68,10 +68,10 @@ func traceRay(s Scene, r Ray) float64 {
 			lambertCoef := unitFromHitToLight.Dot(hr.UnitNormal)
 
 			// Add shading to the colour.
-			colour += math.Abs(lambertCoef) * light.Intensity / attenuation
+			intensity += math.Abs(lambertCoef) * light.Intensity / attenuation
 		}
 	}
-	return colour
+	return Colour{intensity, intensity, intensity}
 }
 
 func closestHit(gs []Geometry, r Ray) (Intersection, bool) {
