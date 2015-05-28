@@ -45,7 +45,9 @@ func traceRay(s Scene, r Ray) Colour {
 		return Colour{0, 0, 0}
 	}
 
-	//hitLoc := r.At(hr.Distance * 0.999999) // XXX move by several ULPs
+	// Subtract a small amount to the hit distance, to prevent the object
+	// shaddowing itself.
+	hr.Distance = addULPs(hr.Distance, -50)
 	hitLoc := r.At(hr.Distance)
 
 	var colour Colour
