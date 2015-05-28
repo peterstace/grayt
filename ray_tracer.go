@@ -71,10 +71,14 @@ func traceRay(s Scene, r Ray) Colour {
 			lambertColour := hr.Material.Colour.Scale(
 				lambertCoef * light.Intensity / attenuation,
 			)
-
 			colour = colour.Add(lambertColour)
 		}
 	}
+
+	// Add ambient light.
+	const ambientCoef = 0.3
+	colour = colour.Scale(1 - ambientCoef).Add(hr.Material.Colour.Scale(ambientCoef))
+
 	return colour
 }
 
