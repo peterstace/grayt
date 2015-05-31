@@ -4,7 +4,7 @@ import (
 	"math"
 )
 
-func RayTracer(s Scene, a Accumulator) {
+func RayTracer(s Scene, a Accumulator, samplesPerPixel int) {
 
 	for pxX := 0; pxX < a.wide; pxX++ {
 		for pxY := 0; pxY < a.high; pxY++ {
@@ -17,9 +17,11 @@ func RayTracer(s Scene, a Accumulator) {
 			x := (float64(pxX-a.wide/2) + 0.5) * pxPitch
 			y := (float64(pxY-a.high/2) + 0.5) * pxPitch * -1.0
 
-			r := s.Camera.MakeRay(x, y)
-			r.Dir = r.Dir.Unit()
-			a.add(pxX, pxY, traceRay(s, r))
+			for i := 0; i < samplesPerPixel; i++ {
+				r := s.Camera.MakeRay(x, y)
+				r.Dir = r.Dir.Unit()
+				a.add(pxX, pxY, traceRay(s, r))
+			}
 		}
 	}
 }
