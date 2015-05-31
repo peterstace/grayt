@@ -1,22 +1,18 @@
 package grayt
 
-import "math"
-
-type Light struct {
-	Location  Vect
-	Intensity float64
-}
-
-type Scene struct {
-	Camera     Camera
-	Geometries []Geometry
-	Lights     []Light
-}
+import (
+	"log"
+	"math"
+)
 
 func RayTracer(s Scene, a Accumulator) {
 
 	for pxX := 0; pxX < a.wide; pxX++ {
 		for pxY := 0; pxY < a.high; pxY++ {
+
+			//if pxX != 140 || pxY != 40 {
+			//	continue
+			//}
 
 			pxPitch := 2.0 / float64(a.wide)
 			x := (float64(pxX-a.wide/2) + 0.5) * pxPitch
@@ -33,43 +29,50 @@ func RayTracer(s Scene, a Accumulator) {
 // scene. It's a precondition that r.Dir must be a unit vector.
 func traceRay(s Scene, r Ray) Colour {
 
+	log.Print("Ray: ", r)
+
 	// Assert that r.Dir is a unit vector.
 	if ulpDiff(1.0, r.Dir.Length2()) > 50 {
 		panic("precondition not met: r.Dir not a unit vector")
 	}
 
 	// Establish the hit point.
-	hr, ok := closestHit(s.Geometries, r)
-	if !ok {
+	intersection, reflector := closestHit(s.Reflectors, r)
+	if reflector == nil {
 		// Missed everything, shade black.
 		return Colour{0, 0, 0}
 	}
 
+	log.Print("Reflector: ", reflector)
+
 	// Subtract a small amount to the hit distance, to prevent the object
 	// shaddowing itself.
-	hr.Distance = addULPs(hr.Distance, -50)
-	hitLoc := r.At(hr.Distance)
+	intersection.Distance = addULPs(intersection.Distance, -50)
+	hitLoc := r.At(intersection.Distance)
 
 	var colour Colour
 
 	// Calculate the colour at the hit point.
-	for _, light := range s.Lights {
+	for _, emitter := range s.Emitters {
+
+		log.Print("Emitter: ", emitter)
 
 		// Vector from hit location to the light.
-		fromHitToLight := light.Location.Sub(hitLoc)
+		min, max := emitter.BoundingBox()
+		fromHitToLight := min.Add(max).Extended(0.5).Sub(hitLoc)
 		unitFromHitToLight := fromHitToLight.Unit()
 		attenuation := fromHitToLight.Length2()
 
 		// Test if anything obscures the light.
-		if tmpHR, ok := closestHit(
-			s.Geometries,
+		if maskIntersection, mask := closestHit(
+			s.Reflectors,
 			Ray{Start: hitLoc, Dir: fromHitToLight},
-		); !ok || tmpHR.Distance > 1.0 {
+		); mask == nil || maskIntersection.Distance > 1.0 {
 
 			// Lambert shading.
-			lambertCoef := math.Abs(unitFromHitToLight.Dot(hr.UnitNormal))
-			lambertColour := hr.Material.Colour.Scale(
-				lambertCoef * light.Intensity / attenuation,
+			lambertCoef := math.Abs(unitFromHitToLight.Dot(intersection.UnitNormal))
+			lambertColour := reflector.Material.Colour.Scale(
+				lambertCoef * emitter.Intensity / attenuation,
 			)
 			colour = colour.Add(lambertColour)
 		}
@@ -77,22 +80,28 @@ func traceRay(s Scene, r Ray) Colour {
 
 	// Add ambient light.
 	const ambientCoef = 0.3
-	colour = colour.Scale(1 - ambientCoef).Add(hr.Material.Colour.Scale(ambientCoef))
+	colour = colour.Scale(1 - ambientCoef).Add(reflector.Material.Colour.Scale(ambientCoef))
 
+	log.Print("Colour: ", colour)
 	return colour
 }
 
-func closestHit(gs []Geometry, r Ray) (Intersection, bool) {
-	isHit := false
-	var closest Intersection
-	for _, geometry := range gs {
-		tmpHR, ok := geometry.Intersect(r)
-		if ok && (!isHit || tmpHR.Distance < closest.Distance) {
-			closest = tmpHR
-			isHit = true
+func closestHit(reflectors []Reflector, r Ray) (Intersection, *Reflector) {
+	var closest struct {
+		Intersection
+		*Reflector
+	}
+	for i := range reflectors {
+		intersection, hit := reflectors[i].Intersect(r)
+		if !hit {
+			continue
+		}
+		if closest.Reflector == nil || intersection.Distance < closest.Intersection.Distance {
+			closest.Intersection = intersection
+			closest.Reflector = &reflectors[i]
 		}
 	}
-	return closest, isHit
+	return closest.Intersection, closest.Reflector
 }
 
 func ulpDiff(a, b float64) uint64 {

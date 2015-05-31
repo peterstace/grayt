@@ -1,24 +1,27 @@
 package grayt
 
-func NewPlane(material Material, normal, anchor Vect) Geometry {
+import "math"
+
+func NewPlane(normal, anchor Vect) Surface {
 	return &plane{
-		material:   material,
 		unitNormal: normal.Unit(),
 		anchor:     anchor,
 	}
 }
 
 type plane struct {
-	material   Material
 	unitNormal Vect // Unit normal out of the plane.
 	anchor     Vect // Any point on the plane.
 }
 
 func (p *plane) Intersect(r Ray) (Intersection, bool) {
 	t := p.unitNormal.Dot(p.anchor.Sub(r.Start)) / p.unitNormal.Dot(r.Dir)
-	return Intersection{
-		Distance:   t,
-		UnitNormal: p.unitNormal,
-		Material:   p.material,
-	}, t > 0
+	return Intersection{p.unitNormal, t}, t > 0
+}
+
+func (p *plane) BoundingBox() (min, max Vect) {
+	inf := math.Inf(1)
+	max = Vect{inf, inf, inf}
+	min = max.Extended(-1)
+	return
 }

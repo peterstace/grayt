@@ -1,10 +1,11 @@
 package grayt
 
-func NewTriangle(material Material, cornerA, cornerB, cornerC Vect) Geometry {
+import "math"
+
+func NewTriangle(cornerA, cornerB, cornerC Vect) Surface {
 	u := cornerB.Sub(cornerA)
 	v := cornerC.Sub(cornerA)
 	t := &triangle{
-		material: material,
 		a:        cornerA,
 		u:        u,
 		v:        v,
@@ -17,7 +18,6 @@ func NewTriangle(material Material, cornerA, cornerB, cornerC Vect) Geometry {
 }
 
 type triangle struct {
-	material            Material
 	a, u, v             Vect // Corner A, A to B, and A to C.
 	unitNorm            Vect
 	dotUV, dotUU, dotVV float64 // Precomputed dot products.
@@ -55,9 +55,22 @@ func (t *triangle) Intersect(r Ray) (Intersection, bool) {
 	if alpha < 0 || beta < 0 || alpha+beta > 1 {
 		return Intersection{}, false
 	}
-	return Intersection{
-		Distance:   h,
-		UnitNormal: t.unitNorm,
-		Material:   t.material,
-	}, true
+	return Intersection{t.unitNorm, h}, true
+}
+
+func (t *triangle) BoundingBox() (min, max Vect) {
+	a := t.a
+	b := t.a.Add(t.u)
+	c := t.a.Add(t.v)
+	min = Vect{
+		math.Min(math.Min(a.X, b.X), c.X),
+		math.Min(math.Min(a.Y, b.Y), c.Y),
+		math.Min(math.Min(a.Z, b.Z), c.Z),
+	}
+	max = Vect{
+		math.Max(math.Max(a.X, b.X), c.X),
+		math.Max(math.Max(a.Y, b.Y), c.Y),
+		math.Max(math.Max(a.Z, b.Z), c.Z),
+	}
+	return
 }

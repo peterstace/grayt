@@ -47,21 +47,21 @@ func cam() grayt.Camera {
 		UpDirection:   up,
 		FieldOfView:   2 * math.Asin(0.5/math.Sqrt(0.25+D*D)),
 		FocalLength:   0.5 + D,
-		FocalRatio:    10.0, //math.Inf(+1),
+		FocalRatio:    math.Inf(+1),
 	})
 }
 
-func box() []grayt.Geometry {
-	return []grayt.Geometry{
-		grayt.NewPlane(white, up, zero),
-		grayt.NewPlane(white, down, one),
-		grayt.NewPlane(red, right, zero),
-		grayt.NewPlane(green, left, one),
-		grayt.NewPlane(white, back, one),
+func box() []grayt.Reflector {
+	return []grayt.Reflector{
+		grayt.Reflector{grayt.NewPlane(up, zero), white},
+		grayt.Reflector{grayt.NewPlane(down, one), white},
+		grayt.Reflector{grayt.NewPlane(right, zero), red},
+		grayt.Reflector{grayt.NewPlane(left, one), green},
+		grayt.Reflector{grayt.NewPlane(back, one), white},
 	}
 }
 
-func shortBlock(m grayt.Material) []grayt.Geometry {
+func shortBlock() []grayt.Surface {
 	var (
 		// Left/Right, Top/Bottom, Front/Back.
 		LBF = grayt.Vect{0.76, 0.00, -0.12}
@@ -73,16 +73,16 @@ func shortBlock(m grayt.Material) []grayt.Geometry {
 		RTF = grayt.Vect{0.47, 0.30, -0.21}
 		RTB = grayt.Vect{0.56, 0.30, -0.49}
 	)
-	var gs []grayt.Geometry
-	gs = append(gs, grayt.NewSquare(m, LTF, LTB, RTB, RTF)...)
-	gs = append(gs, grayt.NewSquare(m, LBF, RBF, RTF, LTF)...)
-	gs = append(gs, grayt.NewSquare(m, LBB, RBB, RTB, LTB)...)
-	gs = append(gs, grayt.NewSquare(m, LBF, LBB, LTB, LTF)...)
-	gs = append(gs, grayt.NewSquare(m, RBF, RBB, RTB, RTF)...)
-	return gs
+	ss := []grayt.Surface{}
+	ss = append(ss, grayt.NewSquare(LTF, LTB, RTB, RTF)...)
+	ss = append(ss, grayt.NewSquare(LBF, RBF, RTF, LTF)...)
+	ss = append(ss, grayt.NewSquare(LBB, RBB, RTB, LTB)...)
+	ss = append(ss, grayt.NewSquare(LBF, LBB, LTB, LTF)...)
+	ss = append(ss, grayt.NewSquare(RBF, RBB, RTB, RTF)...)
+	return ss
 }
 
-func tallBlock(m grayt.Material) []grayt.Geometry {
+func tallBlock() []grayt.Surface {
 	var (
 		// Left/Right, Top/Bottom, Front/Back.
 		LBF = grayt.Vect{0.52, 0.00, -0.54}
@@ -94,27 +94,32 @@ func tallBlock(m grayt.Material) []grayt.Geometry {
 		RTF = grayt.Vect{0.23, 0.60, -0.45}
 		RTB = grayt.Vect{0.14, 0.60, -0.74}
 	)
-	var gs []grayt.Geometry
-	gs = append(gs, grayt.NewSquare(m, LTF, LTB, RTB, RTF)...)
-	gs = append(gs, grayt.NewSquare(m, LBF, RBF, RTF, LTF)...)
-	gs = append(gs, grayt.NewSquare(m, LBB, RBB, RTB, LTB)...)
-	gs = append(gs, grayt.NewSquare(m, LBF, LBB, LTB, LTF)...)
-	gs = append(gs, grayt.NewSquare(m, RBF, RBB, RTB, RTF)...)
-	return gs
+	var ss []grayt.Surface
+	ss = append(ss, grayt.NewSquare(LTF, LTB, RTB, RTF)...)
+	ss = append(ss, grayt.NewSquare(LBF, RBF, RTF, LTF)...)
+	ss = append(ss, grayt.NewSquare(LBB, RBB, RTB, LTB)...)
+	ss = append(ss, grayt.NewSquare(LBF, LBB, LTB, LTF)...)
+	ss = append(ss, grayt.NewSquare(RBF, RBB, RTB, RTF)...)
+	return ss
 }
 
 func CornellBoxStandard() grayt.Scene {
 	s := grayt.Scene{
 		Camera: cam(),
-		Lights: []grayt.Light{
-			grayt.Light{
-				Location:  grayt.Vect{0.5, 0.9, -0.5},
-				Intensity: 0.3,
+		Emitters: []grayt.Emitter{
+			{
+				Surface:   grayt.NewSphere(grayt.Vect{0.5, 0.999, -0.5}, 0.5),
+				Colour:    grayt.Colour{1, 1, 1},
+				Intensity: 1,
 			},
 		},
 	}
-	s.Geometries = append(s.Geometries, box()...)
-	s.Geometries = append(s.Geometries, tallBlock(white)...)
-	s.Geometries = append(s.Geometries, shortBlock(white)...)
+	s.Reflectors = append(s.Reflectors, box()...)
+	for _, surf := range tallBlock() {
+		s.Reflectors = append(s.Reflectors, grayt.Reflector{surf, white})
+	}
+	for _, surf := range shortBlock() {
+		s.Reflectors = append(s.Reflectors, grayt.Reflector{surf, white})
+	}
 	return s
 }

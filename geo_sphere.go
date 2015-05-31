@@ -2,18 +2,16 @@ package grayt
 
 import "math"
 
-func NewSphere(material Material, centre Vect, radius float64) Geometry {
+func NewSphere(centre Vect, radius float64) Surface {
 	return &sphere{
-		material: material,
-		centre:   centre,
-		radius:   radius,
+		centre: centre,
+		radius: radius,
 	}
 }
 
 type sphere struct {
-	material Material
-	centre   Vect
-	radius   float64
+	centre Vect
+	radius float64
 }
 
 func (s *sphere) Intersect(r Ray) (Intersection, bool) {
@@ -47,9 +45,12 @@ func (s *sphere) Intersect(r Ray) (Intersection, bool) {
 		t = math.Max(x1, x2)
 	}
 
-	return Intersection{
-		Distance:   t,
-		UnitNormal: r.At(t).Sub(s.centre).Unit(),
-		Material:   s.material,
-	}, t > 0
+	return Intersection{r.At(t).Sub(s.centre).Unit(), t}, t > 0
+}
+
+func (s *sphere) BoundingBox() (min, max Vect) {
+	r := Vect{s.radius, s.radius, s.radius}
+	min = s.centre.Sub(r)
+	max = s.centre.Add(r)
+	return
 }
