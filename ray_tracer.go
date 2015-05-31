@@ -51,8 +51,7 @@ func traceRay(s Scene, r Ray) Colour {
 	for _, emitter := range s.Emitters {
 
 		// Vector from hit location to the light.
-		min, max := emitter.BoundingBox()
-		fromHitToLight := min.Add(max).Extended(0.5).Sub(hitLoc)
+		fromHitToLight := emitter.Sample().Sub(hitLoc)
 		unitFromHitToLight := fromHitToLight.Unit()
 		attenuation := fromHitToLight.Length2()
 

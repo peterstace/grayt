@@ -1,6 +1,9 @@
 package grayt
 
-import "math"
+import (
+	"math"
+	"math/rand"
+)
 
 func NewTriangle(cornerA, cornerB, cornerC Vect) Surface {
 	u := cornerB.Sub(cornerA)
@@ -73,4 +76,15 @@ func (t *triangle) BoundingBox() (min, max Vect) {
 		math.Max(math.Max(a.Z, b.Z), c.Z),
 	}
 	return
+}
+
+func (t *triangle) Sample() Vect {
+	a := t.a
+	b := t.a.Add(t.u)
+	c := t.a.Add(t.v)
+	alpha := rand.Float64()
+	beta := rand.Float64()
+	return a.Extended(alpha).
+		Add(b.Extended(beta)).
+		Add(c.Extended(1.0 - alpha - beta))
 }

@@ -1,6 +1,9 @@
 package grayt
 
-import "math"
+import (
+	"math"
+	"math/rand"
+)
 
 func NewPlane(normal, anchor Vect) Surface {
 	return &plane{
@@ -24,4 +27,11 @@ func (p *plane) BoundingBox() (min, max Vect) {
 	max = Vect{inf, inf, inf}
 	min = max.Extended(-1)
 	return
+}
+
+func (p *plane) Sample() Vect {
+	// No uniform distribution exists on the plane. So just find a normally
+	// distributed random vector, and project it onto the plane.
+	rnd := Vect{rand.NormFloat64(), rand.NormFloat64(), rand.NormFloat64()}.Add(p.anchor)
+	return rnd.Sub(p.unitNormal.Extended(rnd.Dot(p.unitNormal)))
 }

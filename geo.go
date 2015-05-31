@@ -18,6 +18,11 @@ type Surface interface {
 	// of a coordinate in min always being less than or equal to the
 	// corresponding coordinate in max.
 	BoundingBox() (min, max Vect)
+
+	// Sample returns a uniformly distributed random point on the surface. If a
+	// uniform distribution doesn't exist, then some other "well behaved but
+	// undefined" distribution is used instead.
+	Sample() Vect
 }
 
 type Emitter struct {

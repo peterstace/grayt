@@ -1,6 +1,9 @@
 package grayt
 
-import "math"
+import (
+	"math"
+	"math/rand"
+)
 
 func NewSphere(centre Vect, radius float64) Surface {
 	return &sphere{
@@ -53,4 +56,9 @@ func (s *sphere) BoundingBox() (min, max Vect) {
 	min = s.centre.Sub(r)
 	max = s.centre.Add(r)
 	return
+}
+
+func (s *sphere) Sample() Vect {
+	rnd := Vect{rand.NormFloat64(), rand.NormFloat64(), rand.NormFloat64()}
+	return rnd.Extended(s.radius / rnd.Length()).Add(s.centre)
 }
