@@ -1,7 +1,6 @@
 package grayt
 
 import (
-	"log"
 	"math"
 )
 
@@ -29,8 +28,6 @@ func RayTracer(s Scene, a Accumulator) {
 // scene. It's a precondition that r.Dir must be a unit vector.
 func traceRay(s Scene, r Ray) Colour {
 
-	log.Print("Ray: ", r)
-
 	// Assert that r.Dir is a unit vector.
 	if ulpDiff(1.0, r.Dir.Length2()) > 50 {
 		panic("precondition not met: r.Dir not a unit vector")
@@ -43,8 +40,6 @@ func traceRay(s Scene, r Ray) Colour {
 		return Colour{0, 0, 0}
 	}
 
-	log.Print("Reflector: ", reflector)
-
 	// Subtract a small amount to the hit distance, to prevent the object
 	// shaddowing itself.
 	intersection.Distance = addULPs(intersection.Distance, -50)
@@ -54,8 +49,6 @@ func traceRay(s Scene, r Ray) Colour {
 
 	// Calculate the colour at the hit point.
 	for _, emitter := range s.Emitters {
-
-		log.Print("Emitter: ", emitter)
 
 		// Vector from hit location to the light.
 		min, max := emitter.BoundingBox()
@@ -82,7 +75,6 @@ func traceRay(s Scene, r Ray) Colour {
 	const ambientCoef = 0.3
 	colour = colour.Scale(1 - ambientCoef).Add(reflector.Material.Colour.Scale(ambientCoef))
 
-	log.Print("Colour: ", colour)
 	return colour
 }
 
