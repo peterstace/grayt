@@ -4,6 +4,8 @@ import (
 	"math"
 )
 
+// RayTracer traces a scene using the distributed ray tracing algorith. The
+// ambient shading colour is white with an intensity of 1.0.
 func RayTracer(s Scene, a Accumulator, samplesPerPixel int) {
 
 	for pxX := 0; pxX < a.wide; pxX++ {
@@ -72,9 +74,8 @@ func traceRay(s Scene, r Ray) Colour {
 		}
 	}
 
-	// Add ambient light.
-	const ambientCoef = 0.3
-	colour = colour.Scale(1 - ambientCoef).Add(reflector.Material.Colour.Scale(ambientCoef))
+	// Add ambient light (white, intensity of 1.0).
+	colour = colour.Add(reflector.Material.Colour)
 
 	return colour
 }
