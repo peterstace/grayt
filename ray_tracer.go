@@ -2,12 +2,14 @@ package grayt
 
 import (
 	"math"
+	"math/rand"
 )
 
 // RayTracer traces a scene using the distributed ray tracing algorith. The
 // ambient shading colour is white with an intensity of 1.0.
 func RayTracer(s Scene, a Accumulator, samplesPerPixel int) {
 
+	pxPitch := 2.0 / float64(a.wide)
 	for pxX := 0; pxX < a.wide; pxX++ {
 		for pxY := 0; pxY < a.high; pxY++ {
 
@@ -15,11 +17,9 @@ func RayTracer(s Scene, a Accumulator, samplesPerPixel int) {
 			//	continue
 			//}
 
-			pxPitch := 2.0 / float64(a.wide)
-			x := (float64(pxX-a.wide/2) + 0.5) * pxPitch
-			y := (float64(pxY-a.high/2) + 0.5) * pxPitch * -1.0
-
 			for i := 0; i < samplesPerPixel; i++ {
+				x := (float64(pxX-a.wide/2) + rand.Float64()) * pxPitch
+				y := (float64(pxY-a.high/2) + rand.Float64()) * pxPitch * -1.0
 				r := s.Camera.MakeRay(x, y)
 				r.Dir = r.Dir.Unit()
 				a.add(pxX, pxY, traceRay(s, r))
