@@ -2,6 +2,7 @@ package main
 
 import (
 	"image/png"
+	"log"
 	"os"
 	"strings"
 
@@ -13,52 +14,25 @@ func main() {
 
 	var out string
 
-	flag.StringVar(&out, "o", "", "output file (must end in .jpeg, .jpg, or .png)")
+	flag.StringVar(&out, "o", "", "output file (must end in .png)")
 	flag.Parse()
 
-	if getOutType(out) == outTypeUnknown {
-		flag.Usage()
-		return
+	if !strings.HasSuffix(out, ".png") {
+		log.Fatalf(`%q does not end in ".png"`, out)
 	}
 
 	scene := CornellBoxStandard()
 
 	acc := grayt.NewAccumulator(300, 300)
-	grayt.RayTracer(scene, acc, 100)
+	grayt.RayTracer(scene, acc, 10)
 	img := acc.ToImage(1.0)
 
 	f, err := os.Create(out)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	defer f.Close()
-	switch getOutType(out) {
-	case outTypePNG:
-		if err := png.Encode(f, img); err != nil {
-			panic(err)
-		}
-	case outTypeJPEG:
-		panic("unimplemented") // XXX
-	case outTypeUnknown:
-		panic("unknown outType should have been rejected during flag validation")
-	}
-}
-
-type outType int
-
-const (
-	outTypeUnknown outType = iota
-	outTypePNG
-	outTypeJPEG
-)
-
-func getOutType(out string) outType {
-	switch {
-	case strings.HasSuffix(out, ".jpeg") || strings.HasSuffix(out, ".jpg"):
-		return outTypeJPEG
-	case strings.HasSuffix(out, ".png"):
-		return outTypePNG
-	default:
-		return outTypeUnknown
+	if err := png.Encode(f, img); err != nil {
+		log.Fatal(err)
 	}
 }
