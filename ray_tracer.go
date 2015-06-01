@@ -1,36 +1,30 @@
 package grayt
 
-import (
-	"math"
-	"math/rand"
-)
+import "math"
+
+type rayTracerWorld struct {
+	reflectors []Surface // always stores reflectors.
+	emitters   []Emitter
+}
 
 // RayTracer traces a scene using the distributed ray tracing algorith. The
 // ambient shading colour is white with an intensity of 1.0.
 func RayTracer(s Scene, a Accumulator, samplesPerPixel int) {
-
-	pxPitch := 2.0 / float64(a.wide)
-	for pxX := 0; pxX < a.wide; pxX++ {
-		for pxY := 0; pxY < a.high; pxY++ {
-
-			//if pxX != 140 || pxY != 40 {
-			//	continue
-			//}
-
-			for i := 0; i < samplesPerPixel; i++ {
-				x := (float64(pxX-a.wide/2) + rand.Float64()) * pxPitch
-				y := (float64(pxY-a.high/2) + rand.Float64()) * pxPitch * -1.0
-				r := s.Camera.MakeRay(x, y)
-				r.Dir = r.Dir.Unit()
-				a.add(pxX, pxY, traceRay(s, r))
-			}
-		}
+	world := rayTracerWorld{
+		reflectors: make([]Surface, len(s.Reflectors)),
+		emitters:   s.Emitters,
 	}
+	for i := range s.Reflectors {
+		world.reflectors[i] = s.Reflectors[i]
+	}
+	trace(func(r Ray) Colour {
+		return traceRay(world, r)
+	}, s.Camera, a, samplesPerPixel)
 }
 
 // traceRay is a recursive function to find the colour from a single ray into a
 // scene. It's a precondition that r.Dir must be a unit vector.
-func traceRay(s Scene, r Ray) Colour {
+func traceRay(w rayTracerWorld, r Ray) Colour {
 
 	// Assert that r.Dir is a unit vector.
 	if ulpDiff(1.0, r.Dir.Length2()) > 50 {
@@ -38,11 +32,12 @@ func traceRay(s Scene, r Ray) Colour {
 	}
 
 	// Establish the hit point.
-	intersection, reflector := closestHit(s.Reflectors, r)
-	if reflector == nil {
+	intersection, reflectorSurface := closestHit(w.reflectors, r)
+	if reflectorSurface == nil {
 		// Missed everything, shade black.
 		return Colour{0, 0, 0}
 	}
+	reflector := reflectorSurface.(Reflector)
 
 	// Subtract a small amount to the hit distance, to prevent the object
 	// shaddowing itself.
@@ -52,7 +47,7 @@ func traceRay(s Scene, r Ray) Colour {
 	var colour Colour
 
 	// Calculate the colour at the hit point.
-	for _, emitter := range s.Emitters {
+	for _, emitter := range w.emitters {
 
 		// Vector from hit location to the light.
 		fromHitToLight := emitter.Sample().Sub(hitLoc)
@@ -61,7 +56,7 @@ func traceRay(s Scene, r Ray) Colour {
 
 		// Test if anything obscures the light.
 		if maskIntersection, mask := closestHit(
-			s.Reflectors,
+			w.reflectors,
 			Ray{Start: hitLoc, Dir: fromHitToLight},
 		); mask == nil || maskIntersection.Distance > 1.0 {
 
@@ -78,34 +73,4 @@ func traceRay(s Scene, r Ray) Colour {
 	colour = colour.Add(reflector.Material.Colour)
 
 	return colour
-}
-
-func closestHit(reflectors []Reflector, r Ray) (Intersection, *Reflector) {
-	var closest struct {
-		Intersection
-		*Reflector
-	}
-	for i := range reflectors {
-		intersection, hit := reflectors[i].Intersect(r)
-		if !hit {
-			continue
-		}
-		if closest.Reflector == nil || intersection.Distance < closest.Intersection.Distance {
-			closest.Intersection = intersection
-			closest.Reflector = &reflectors[i]
-		}
-	}
-	return closest.Intersection, closest.Reflector
-}
-
-func ulpDiff(a, b float64) uint64 {
-
-	ulpA := math.Float64bits(a)
-	ulpB := math.Float64bits(b)
-
-	if ulpA > ulpB {
-		return ulpA - ulpB
-	} else {
-		return ulpB - ulpA
-	}
 }
