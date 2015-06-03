@@ -33,14 +33,14 @@ var (
 )
 
 var (
-	white = grayt.Material{grayt.Colour{1, 1, 1}}
-	green = grayt.Material{grayt.Colour{0, 1, 0}}
-	red   = grayt.Material{grayt.Colour{1, 0, 0}}
-	blue  = grayt.Material{grayt.Colour{0, 0, 1}}
+	white = grayt.Material{grayt.Colour{1, 1, 1}, 0.0}
+	green = grayt.Material{grayt.Colour{0, 1, 0}, 0.0}
+	red   = grayt.Material{grayt.Colour{1, 0, 0}, 0.0}
+	blue  = grayt.Material{grayt.Colour{0, 0, 1}, 0.0}
 )
 
-func cam() grayt.Camera {
-	const D = 1.3
+func CornellBoxCamera() grayt.Camera {
+	const D = 1.3 // Estimated.
 	return grayt.NewRectilinearCamera(grayt.CameraConfig{
 		Location:      grayt.Vect{0.5, 0.5, D},
 		ViewDirection: grayt.Vect{0.0, 0.0, -1.0},
@@ -51,13 +51,28 @@ func cam() grayt.Camera {
 	})
 }
 
-func box() []grayt.Reflector {
-	return []grayt.Reflector{
-		grayt.Reflector{grayt.NewPlane(up, zero), white},
-		grayt.Reflector{grayt.NewPlane(down, one), white},
-		grayt.Reflector{grayt.NewPlane(right, zero), red},
-		grayt.Reflector{grayt.NewPlane(left, one), green},
-		grayt.Reflector{grayt.NewPlane(back, one), white},
+func CornellBoxStandard() []grayt.Entity {
+	ee := []grayt.Entity{{
+		grayt.NewSphere(grayt.Vect{0.5, 1.0, -0.5}, 0.25),
+		grayt.Material{grayt.Colour{1, 1, 1}, 5},
+	}}
+	ee = append(ee, box()...)
+	for _, e := range tallBlock() {
+		ee = append(ee, grayt.Entity{e, white})
+	}
+	for _, e := range shortBlock() {
+		ee = append(ee, grayt.Entity{e, white})
+	}
+	return ee
+}
+
+func box() []grayt.Entity {
+	return []grayt.Entity{
+		{grayt.NewPlane(up, zero), white},
+		{grayt.NewPlane(down, one), white},
+		{grayt.NewPlane(right, zero), red},
+		{grayt.NewPlane(left, one), green},
+		{grayt.NewPlane(back, one), white},
 	}
 }
 
@@ -103,23 +118,13 @@ func tallBlock() []grayt.Surface {
 	return ss
 }
 
-func CornellBoxStandard() grayt.Scene {
-	s := grayt.Scene{
-		Camera: cam(),
-		Emitters: []grayt.Emitter{
-			{
-				Surface:   grayt.NewSphere(grayt.Vect{0.5, 1, -0.5}, 0.25),
-				Colour:    grayt.Colour{1, 1, 1},
-				Intensity: 5,
-			},
-		},
-	}
-	s.Reflectors = append(s.Reflectors, box()...)
-	for _, surf := range tallBlock() {
-		s.Reflectors = append(s.Reflectors, grayt.Reflector{surf, white})
-	}
-	for _, surf := range shortBlock() {
-		s.Reflectors = append(s.Reflectors, grayt.Reflector{surf, white})
-	}
-	return s
-}
+//s := grayt.Scene{
+//	Emitters: []grayt.Emitter{
+//		{
+//			Surface:   grayt.NewSphere(grayt.Vect{0.5, 1, -0.5}, 0.25),
+//			Colour:    grayt.Colour{1, 1, 1},
+//			Intensity: 5,
+//		},
+//	},
+//}
+//}

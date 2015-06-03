@@ -2,43 +2,69 @@ package grayt
 
 import "math/rand"
 
-// PathTracer traces a scene using the path tracing algorithm.
-func PathTracer(s Scene, a Accumulator, spp int) {
-	surfs := make([]Surface, len(s.Emitters)+len(s.Reflectors))
-	for i := range s.Reflectors {
-		surfs[i] = s.Reflectors[i]
-	}
-	for i := range s.Emitters {
-		surfs[len(s.Reflectors)+i] = s.Emitters[i]
-	}
-	trace(func(r Ray) Colour {
-		return tracePath(surfs, r, 0)
-	}, s.Camera, a, spp)
+type Quality struct {
+	SamplesPerPixel int
 }
 
-func tracePath(surfs []Surface, r Ray, i int) Colour {
+func TracerImage(cam Camera, entities []Entity, acc Accumulator, quality Quality) {
+	pxPitch := 2.0 / float64(acc.wide)
+	for pxX := 0; pxX < acc.wide; pxX++ {
+		for pxY := 0; pxY < acc.high; pxY++ {
+			//if pxX != 140 || pxY != 40 {
+			//	continue
+			//}
+			for i := 0; i < quality.SamplesPerPixel; i++ {
+				x := (float64(pxX-acc.wide/2) + rand.Float64()) * pxPitch
+				y := (float64(pxY-acc.high/2) + rand.Float64()) * pxPitch * -1.0
+				r := cam.MakeRay(x, y)
+				r.Dir = r.Dir.Unit()
+				acc.add(pxX, pxY, tracePath(entities, r))
+			}
+		}
+	}
+}
 
-	if i == 10 {
+func tracePath(entities []Entity, r Ray) Colour {
+
+	intersection, hitEntity := closestHit(entities, r)
+	if hitEntity == nil {
 		return Colour{0, 0, 0}
 	}
 
-	intersection, hitSurf := closestHit(surfs, r)
-	if hitSurf == nil {
-		return Colour{0, 0, 0}
+	// Since a 50/50 probability is used, don't bother scaling each colour by 2.
+	switch rand.Int() % 2 {
+	case 0:
+		return hitEntity.Material.Colour.Scale(hitEntity.Material.Emittance)
+	case 1:
+		rnd := Vect{rand.NormFloat64(), rand.NormFloat64(), rand.NormFloat64()}
+		rnd = rnd.Unit()
+		if rnd.Dot(intersection.UnitNormal) < 0 {
+			rnd = rnd.Extended(-1.0)
+		}
+		brdf := rnd.Dot(intersection.UnitNormal)
+		hitLoc := r.At(addULPs(intersection.Distance, -50))
+		return tracePath(entities, Ray{Start: hitLoc, Dir: rnd}).
+			Scale(brdf).
+			Mul(hitEntity.Material.Colour)
+	default:
+		panic("unexpected default case")
 	}
+}
 
-	if emitter, ok := hitSurf.(Emitter); ok {
-		return emitter.Colour.Scale(emitter.Intensity)
+func closestHit(entities []Entity, r Ray) (Intersection, *Entity) {
+	var closest struct {
+		intersection Intersection
+		entity       *Entity
 	}
-	reflector := hitSurf.(Reflector)
-
-	rnd := Vect{rand.NormFloat64(), rand.NormFloat64(), rand.NormFloat64()}
-	rnd = rnd.Unit()
-	if rnd.Dot(intersection.UnitNormal) < 0 {
-		rnd.Extended(-1)
+	for i := range entities {
+		intersection, hit := entities[i].Surface.Intersect(r)
+		if !hit {
+			continue
+		}
+		if closest.entity == nil || intersection.Distance < closest.intersection.Distance {
+			closest.intersection = intersection
+			closest.entity = &entities[i]
+		}
 	}
-	hitLoc := r.At(addULPs(intersection.Distance, -50))
-	colour := tracePath(surfs, Ray{Start: hitLoc, Dir: rnd}, i+1)
-	colour = colour.Mul(reflector.Material.Colour)
-	return colour
+	return closest.intersection, closest.entity
 }

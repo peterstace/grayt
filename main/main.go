@@ -21,10 +21,11 @@ func main() {
 		log.Fatalf(`%q does not end in ".png"`, out)
 	}
 
-	scene := CornellBoxStandard()
+	box := CornellBoxStandard()
+	cam := CornellBoxCamera()
 
 	acc := grayt.NewAccumulator(300, 300)
-	grayt.PathTracer(scene, acc, 1000)
+	grayt.TracerImage(cam, box, acc, grayt.Quality{1000})
 	img := acc.ToImage(1.0)
 
 	f, err := os.Create(out)
