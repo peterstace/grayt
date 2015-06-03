@@ -108,7 +108,7 @@ func CornellBoxStandard() grayt.Scene {
 		Camera: cam(),
 		Emitters: []grayt.Emitter{
 			{
-				Surface:   grayt.NewSphere(grayt.Vect{0.5, 0.999, -0.5}, 0.05),
+				Surface:   grayt.NewSphere(grayt.Vect{0.5, 1, -0.5}, 0.25),
 				Colour:    grayt.Colour{1, 1, 1},
 				Intensity: 5,
 			},

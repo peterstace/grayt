@@ -33,6 +33,14 @@ func (c Colour) Pow(exp float64) Colour {
 	}
 }
 
+func (c Colour) Mul(r Colour) Colour {
+	return Colour{
+		c.R * r.R,
+		c.G * r.G,
+		c.B * r.B,
+	}
+}
+
 func (c Colour) ToNRGBA() color.NRGBA {
 	return color.NRGBA{
 		R: float64ToUint8(c.R),
