@@ -117,14 +117,3 @@ func tallBlock() []grayt.Surface {
 	ss = append(ss, grayt.NewSquare(RBF, RBB, RTB, RTF)...)
 	return ss
 }
-
-//s := grayt.Scene{
-//	Emitters: []grayt.Emitter{
-//		{
-//			Surface:   grayt.NewSphere(grayt.Vect{0.5, 1, -0.5}, 0.25),
-//			Colour:    grayt.Colour{1, 1, 1},
-//			Intensity: 5,
-//		},
-//	},
-//}
-//}
