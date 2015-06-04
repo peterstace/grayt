@@ -31,37 +31,37 @@ func tracePath(entities []Entity, r Ray) Colour {
 		return Colour{0, 0, 0}
 	}
 
-	// Since a 50/50 probability is used, don't bother scaling each colour by 2.
-	switch rand.Int() % 2 {
-	case 0:
-		return hitEntity.Material.Colour.Scale(hitEntity.Material.Emittance)
-	case 1:
+	// Calculate probability of emitting.
+	const pEmit = 0.5
 
-		// Find where the ray hit. Reduce the intersection distance by a small
-		// amount so that reflected rays don't intersect with it immediately.
-		hitLoc := r.At(addULPs(intersection.Distance, -50))
-
-		// Orient the unit normal towards the ray origin.
-		if intersection.UnitNormal.Dot(r.Dir) > 0 {
-			intersection.UnitNormal = Intersect.UnitNormal.Extended(-1.0)
-		}
-
-		// Create a random vector on the hemisphere towards the normal.
-		rnd := Vect{rand.NormFloat64(), rand.NormFloat64(), rand.NormFloat64()}
-		rnd = rnd.Unit()
-		if rnd.Dot(intersection.UnitNormal) < 0 {
-			rnd = rnd.Extended(-1.0)
-		}
-
-		// Apply the BRDF (bidirectional reflection distribution function).
-		brdf := rnd.Dot(intersection.UnitNormal)
-
-		return tracePath(entities, Ray{Start: hitLoc, Dir: rnd}).
-			Scale(brdf).
-			Mul(hitEntity.Material.Colour)
-	default:
-		panic("unexpected default case")
+	// Handle emit case.
+	if rand.Float64() < pEmit {
+		return hitEntity.Material.Colour.
+			Scale(1.0 / pEmit * hitEntity.Material.Emittance)
 	}
+
+	// Find where the ray hit. Reduce the intersection distance by a small
+	// amount so that reflected rays don't intersect with it immediately.
+	hitLoc := r.At(addULPs(intersection.Distance, -50))
+
+	// Orient the unit normal towards the ray origin.
+	if intersection.UnitNormal.Dot(r.Dir) > 0 {
+		intersection.UnitNormal = intersection.UnitNormal.Extended(-1.0)
+	}
+
+	// Create a random vector on the hemisphere towards the normal.
+	rnd := Vect{rand.NormFloat64(), rand.NormFloat64(), rand.NormFloat64()}
+	rnd = rnd.Unit()
+	if rnd.Dot(intersection.UnitNormal) < 0 {
+		rnd = rnd.Extended(-1.0)
+	}
+
+	// Apply the BRDF (bidirectional reflection distribution function).
+	brdf := rnd.Dot(intersection.UnitNormal)
+
+	return tracePath(entities, Ray{Start: hitLoc, Dir: rnd}).
+		Scale(1.0 / (1 - pEmit) * brdf).
+		Mul(hitEntity.Material.Colour)
 }
 
 func closestHit(entities []Entity, r Ray) (Intersection, *Entity) {
