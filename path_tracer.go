@@ -6,19 +6,19 @@ type Quality struct {
 	SamplesPerPixel int
 }
 
-func TracerImage(cam Camera, entities []Entity, acc Accumulator, quality Quality) {
+func TracerImage(s Scene, acc Accumulator, q Quality) {
 	pxPitch := 2.0 / float64(acc.wide)
 	for pxX := 0; pxX < acc.wide; pxX++ {
 		for pxY := 0; pxY < acc.high; pxY++ {
 			//if pxX != 140 || pxY != 40 {
 			//	continue
 			//}
-			for i := 0; i < quality.SamplesPerPixel; i++ {
+			for i := 0; i < q.SamplesPerPixel; i++ {
 				x := (float64(pxX-acc.wide/2) + rand.Float64()) * pxPitch
 				y := (float64(pxY-acc.high/2) + rand.Float64()) * pxPitch * -1.0
-				r := cam.MakeRay(x, y)
+				r := s.Camera.MakeRay(x, y)
 				r.Dir = r.Dir.Unit()
-				acc.add(pxX, pxY, tracePath(entities, r))
+				acc.add(pxX, pxY, tracePath(s.Entities, r))
 			}
 		}
 	}

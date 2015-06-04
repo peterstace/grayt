@@ -39,7 +39,7 @@ var (
 	blue  = grayt.Material{grayt.Colour{0, 0, 1}, 0.0}
 )
 
-func CornellBoxCamera() grayt.Camera {
+func cam() grayt.Camera {
 	const D = 1.3 // Estimated.
 	return grayt.NewRectilinearCamera(grayt.CameraConfig{
 		Location:      grayt.Vect{0.5, 0.5, D},
@@ -51,7 +51,7 @@ func CornellBoxCamera() grayt.Camera {
 	})
 }
 
-func CornellBoxStandard() []grayt.Entity {
+func CornellBox() grayt.Scene {
 	ee := []grayt.Entity{{
 		grayt.NewSphere(grayt.Vect{0.5, 1.0, -0.5}, 0.25),
 		grayt.Material{grayt.Colour{1, 1, 1}, 5},
@@ -63,7 +63,7 @@ func CornellBoxStandard() []grayt.Entity {
 	for _, e := range shortBlock() {
 		ee = append(ee, grayt.Entity{e, white})
 	}
-	return ee
+	return grayt.Scene{cam(), ee}
 }
 
 func box() []grayt.Entity {

@@ -28,6 +28,11 @@ type Entity struct {
 	Material Material
 }
 
+type Scene struct {
+	Camera   Camera
+	Entities []Entity
+}
+
 // Sphere
 
 func NewSphere(centre Vect, radius float64) Surface {
