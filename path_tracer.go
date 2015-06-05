@@ -7,6 +7,11 @@ type Quality struct {
 }
 
 func TracerImage(s Scene, acc Accumulator, q Quality) {
+
+	totalSamples := uint64(q.SamplesPerPixel * acc.wide * acc.high)
+	prog := newProgress(totalSamples)
+	defer prog.done()
+
 	pxPitch := 2.0 / float64(acc.wide)
 	for pxX := 0; pxX < acc.wide; pxX++ {
 		for pxY := 0; pxY < acc.high; pxY++ {
@@ -19,6 +24,7 @@ func TracerImage(s Scene, acc Accumulator, q Quality) {
 				r := s.Camera.MakeRay(x, y)
 				r.Dir = r.Dir.Unit()
 				acc.add(pxX, pxY, tracePath(s.Entities, r))
+				prog.step()
 			}
 		}
 	}
