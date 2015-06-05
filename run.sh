@@ -7,8 +7,6 @@ rev=`git rev-parse --short HEAD`
 
 mkdir -p img
 
-for i in `seq 1 3`;
-do
-	k=$((10 ** i))
-	$GOPATH/bin/main -o img/$dt\_$rev\_$k.png -s $k
-done
+$GOPATH/bin/main -o img/$dt\_$rev\_10.png  -s 10
+$GOPATH/bin/main -o img/$dt\_$rev\_100.png -s 100
+$GOPATH/bin/main -o img/$dt\_$rev\_1000.png -s 1000
