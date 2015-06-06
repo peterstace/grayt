@@ -9,21 +9,29 @@ import (
 
 	"github.com/peterstace/grayt"
 )
-import "flag"
+import (
+	"flag"
+	"fmt"
+)
 
 func main() {
 
 	var (
-		out string
-		spp int
+		out  string
+		spp  int
+		nrsd float64
 	)
 
 	flag.StringVar(&out, "o", "", "output file (must end in .png)")
-	flag.IntVar(&spp, "s", 10, "samples per pixel")
+	flag.IntVar(&spp, "s", 0, "samples per pixel stopping point")
+	flag.Float64Var(&nrsd, "d", 0.0, "neighbourhood relative std dev stopping point")
 	flag.Parse()
 
 	if !strings.HasSuffix(out, ".png") {
 		log.Fatalf(`%q does not end in ".png"`, out)
+	}
+	if (spp == 0 && nrsd == 0) || (spp != 0 && nrsd != 0) {
+		log.Fatalf(`exactly 1 of s and d must be set`)
 	}
 
 	scene := CornellBox()
@@ -34,14 +42,38 @@ func main() {
 		totalPx = pxWide * pxHigh
 	)
 	acc := grayt.NewAccumulator(pxWide, pxHigh)
+
 	startTime := time.Now()
-	for i := 1; i <= spp; i++ {
-		samplesPerSecond := float64(i*totalPx) / time.Now().Sub(startTime).Seconds()
-		timeRemaining := time.Duration(((spp-i)*totalPx)/int(samplesPerSecond)) * time.Second
-		log.Printf("Sample=%d/%d Sampes/sec=%.2e NRSD=%.2f%% ETA=%s\n",
-			i, spp, samplesPerSecond, acc.NeighbourRelativeStdDev()*100, timeRemaining)
+	iteration := 0
+	var prevRSD, currentRSD float64
+	var downRSDCount int
+	for {
+		iteration++
+		samplesPerSecond := float64(iteration*totalPx) / time.Now().Sub(startTime).Seconds()
+		timeRemaining := "??"
+		totalSamples := "??"
+		if spp != 0 {
+			timeRemaining = fmt.Sprintf("%v",
+				time.Duration(((spp-iteration)*totalPx)/int(samplesPerSecond))*time.Second)
+			totalSamples = fmt.Sprintf("%d", spp)
+		}
 		grayt.TracerImage(scene, acc)
+		prevRSD, currentRSD = currentRSD, acc.NeighbourRelativeStdDev()
+		log.Printf("Sample=%d/%s, Samples/sec=%.2e NRSD=%.4f ETA=%s\n",
+			iteration, totalSamples, samplesPerSecond, currentRSD, timeRemaining)
+		if currentRSD < prevRSD {
+			downRSDCount++
+		} else {
+			downRSDCount = 0
+		}
+		if downRSDCount > 5 && currentRSD < nrsd {
+			break
+		}
+		if spp != 0 && iteration == spp {
+			break
+		}
 	}
+
 	img := acc.ToImage(1.0)
 
 	f, err := os.Create(out)
