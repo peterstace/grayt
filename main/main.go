@@ -38,8 +38,8 @@ func main() {
 	for i := 1; i <= spp; i++ {
 		samplesPerSecond := float64(i*totalPx) / time.Now().Sub(startTime).Seconds()
 		timeRemaining := time.Duration(((spp-i)*totalPx)/int(samplesPerSecond)) * time.Second
-		log.Printf("Sample=%d/%d SampesPerSec=%.2e ETA=%s\n",
-			i, spp, samplesPerSecond, timeRemaining)
+		log.Printf("Sample=%d/%d Sampes/sec=%.2e NRSD=%.2f%% ETA=%s\n",
+			i, spp, samplesPerSecond, acc.NeighbourRelativeStdDev()*100, timeRemaining)
 		grayt.TracerImage(scene, acc)
 	}
 	img := acc.ToImage(1.0)
