@@ -92,6 +92,8 @@ func run(mode mode, scene grayt.Scene, acc grayt.Accumulator) {
 		log.Printf("Sample=%d/%s, Samples/sec=%.2e RSD=%.4f ETA=%s\n",
 			iteration, totalSamplesStr, samplesPerSecond, rsd, eta)
 	}
+
+	log.Printf("TotalTime=%s", time.Now().Sub(startTime))
 }
 
 type mode interface {
