@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/peterstace/grayt"
 )
@@ -27,8 +28,20 @@ func main() {
 
 	scene := CornellBox()
 
-	acc := grayt.NewAccumulator(300, 300)
-	grayt.TracerImage(scene, acc)
+	const (
+		pxWide  = 300
+		pxHigh  = 300
+		totalPx = pxWide * pxHigh
+	)
+	acc := grayt.NewAccumulator(pxWide, pxHigh)
+	startTime := time.Now()
+	for i := 1; i <= spp; i++ {
+		samplesPerSecond := float64(i*totalPx) / time.Now().Sub(startTime).Seconds()
+		timeRemaining := time.Duration(((spp-i)*totalPx)/int(samplesPerSecond)) * time.Second
+		log.Printf("Sample=%d/%d SampesPerSec=%.2e ETA=%s\n",
+			i, spp, samplesPerSecond, timeRemaining)
+		grayt.TracerImage(scene, acc)
+	}
 	img := acc.ToImage(1.0)
 
 	f, err := os.Create(out)
