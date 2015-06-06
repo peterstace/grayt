@@ -34,6 +34,10 @@ func (a Accumulator) mean() float64 {
 	return sum / float64(len(a.acc)) / 3.0
 }
 
+func (a Accumulator) Dimensions() (pxHigh, pxWide int) {
+	return a.wide, a.high
+}
+
 // ToImage converts the accumulator into an image. Exposure controls how bright
 // the arithmetic mean brightness in the image is. A value of 1.0 results in a
 // mean brightness half way between black and white.
@@ -50,4 +54,35 @@ func (a Accumulator) ToImage(exposure float64) image.Image {
 		}
 	}
 	return img
+}
+
+func (a Accumulator) NeighbourRelativeStdDev() float64 {
+	var mean float64
+	for x := 1; x < a.wide; x++ {
+		for y := 1; y < a.high; y++ {
+
+			h, i, j, k := a.get(x, y), a.get(x-1, y), a.get(x, y-1), a.get(x-1, y-1)
+
+			m := sum(h, i, j, k).Scale(-0.25)
+			v := sum(
+				m.Add(h).Square(),
+				m.Add(i).Square(),
+				m.Add(j).Square(),
+				m.Add(k).Square(),
+			).Scale(0.25)
+
+			if m.R == 0 || m.G == 0 || m.B == 0 {
+				continue
+			}
+
+			rsd := v.Pow(0.5).Div(m.Scale(-1))
+
+			mean += (rsd.R + rsd.G + rsd.B) / 3
+		}
+	}
+	return mean / float64((a.wide-1)*(a.high-1))
+}
+
+func sum(c1, c2, c3, c4 Colour) Colour {
+	return c1.Add(c2).Add(c3).Add(c4)
 }

@@ -2,30 +2,18 @@ package grayt
 
 import "math/rand"
 
-type Quality struct {
-	SamplesPerPixel int
-}
-
-func TracerImage(s Scene, acc Accumulator, q Quality) {
-
-	totalSamples := uint64(q.SamplesPerPixel * acc.wide * acc.high)
-	prog := newProgress(totalSamples)
-	defer prog.done()
-
+func TracerImage(s Scene, acc Accumulator) {
 	pxPitch := 2.0 / float64(acc.wide)
 	for pxX := 0; pxX < acc.wide; pxX++ {
 		for pxY := 0; pxY < acc.high; pxY++ {
 			//if pxX != 140 || pxY != 40 {
 			//	continue
 			//}
-			for i := 0; i < q.SamplesPerPixel; i++ {
-				x := (float64(pxX-acc.wide/2) + rand.Float64()) * pxPitch
-				y := (float64(pxY-acc.high/2) + rand.Float64()) * pxPitch * -1.0
-				r := s.Camera.MakeRay(x, y)
-				r.Dir = r.Dir.Unit()
-				acc.add(pxX, pxY, tracePath(s.Entities, r))
-				prog.step()
-			}
+			x := (float64(pxX-acc.wide/2) + rand.Float64()) * pxPitch
+			y := (float64(pxY-acc.high/2) + rand.Float64()) * pxPitch * -1.0
+			r := s.Camera.MakeRay(x, y)
+			r.Dir = r.Dir.Unit()
+			acc.add(pxX, pxY, tracePath(s.Entities, r))
 		}
 	}
 }
