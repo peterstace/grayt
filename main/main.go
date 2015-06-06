@@ -28,7 +28,7 @@ func main() {
 	scene := CornellBox()
 
 	acc := grayt.NewAccumulator(300, 300)
-	grayt.TracerImage(scene, acc, grayt.Quality{spp})
+	grayt.TracerImage(scene, acc)
 	img := acc.ToImage(1.0)
 
 	f, err := os.Create(out)
