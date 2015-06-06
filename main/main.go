@@ -33,6 +33,12 @@ func main() {
 	if (spp == 0 && nrsd == 0) || (spp != 0 && nrsd != 0) {
 		log.Fatalf(`exactly 1 of s and d must be set`)
 	}
+	var mode mode
+	if spp != 0 {
+		mode = &fixedSamplesPerPixel{required: spp}
+	} else {
+		mode = &untilRelativeStdDevBelowThreshold{threshold: nrsd}
+	}
 
 	scene := CornellBox()
 
@@ -43,36 +49,7 @@ func main() {
 	)
 	acc := grayt.NewAccumulator(pxWide, pxHigh)
 
-	startTime := time.Now()
-	iteration := 0
-	var prevRSD, currentRSD float64
-	var downRSDCount int
-	for {
-		iteration++
-		samplesPerSecond := float64(iteration*totalPx) / time.Now().Sub(startTime).Seconds()
-		timeRemaining := "??"
-		totalSamples := "??"
-		if spp != 0 {
-			timeRemaining = fmt.Sprintf("%v",
-				time.Duration(((spp-iteration)*totalPx)/int(samplesPerSecond))*time.Second)
-			totalSamples = fmt.Sprintf("%d", spp)
-		}
-		grayt.TracerImage(scene, acc)
-		prevRSD, currentRSD = currentRSD, acc.NeighbourRelativeStdDev()
-		log.Printf("Sample=%d/%s, Samples/sec=%.2e NRSD=%.4f ETA=%s\n",
-			iteration, totalSamples, samplesPerSecond, currentRSD, timeRemaining)
-		if currentRSD < prevRSD {
-			downRSDCount++
-		} else {
-			downRSDCount = 0
-		}
-		if downRSDCount > 5 && currentRSD < nrsd {
-			break
-		}
-		if spp != 0 && iteration == spp {
-			break
-		}
-	}
+	run(mode, scene, acc)
 
 	img := acc.ToImage(1.0)
 
@@ -84,4 +61,97 @@ func main() {
 	if err := png.Encode(f, img); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func run(mode mode, scene grayt.Scene, acc grayt.Accumulator) {
+
+	wide, high := acc.Dimensions()
+	totalPx := wide * high
+
+	startTime := time.Now()
+	iteration := 0
+
+	for !mode.stop() {
+
+		grayt.TracerImage(scene, acc)
+		iteration++
+		rsd := acc.NeighbourRelativeStdDev()
+		mode.finishSample(rsd)
+
+		samplesPerSecond := float64(iteration*totalPx) / time.Now().Sub(startTime).Seconds()
+
+		totalSamples := mode.estSamplesPerPixelRequired()
+		totalSamplesStr := "??"
+		eta := "??"
+		if totalSamples >= 0 {
+			totalSamplesStr = fmt.Sprintf("%d", totalSamples)
+			etaSeconds := float64((totalSamples-iteration)*totalPx) / samplesPerSecond
+			eta = fmt.Sprintf("%v", time.Duration(etaSeconds)*time.Second)
+		}
+
+		log.Printf("Sample=%d/%s, Samples/sec=%.2e RSD=%.4f ETA=%s\n",
+			iteration, totalSamplesStr, samplesPerSecond, rsd, eta)
+	}
+}
+
+type mode interface {
+	// estSamplesPerPixelRequired is an estimation of the number of total
+	// samples per pixel that will be required before the render is completed.
+	estSamplesPerPixelRequired() int
+
+	// finishSample signals to the mode that a sample has been finished. The
+	// new relative std dev should be supplied.
+	finishSample(relativeStdDev float64)
+
+	// stop indicates if the render is complete.
+	stop() bool
+}
+
+type fixedSamplesPerPixel struct {
+	required  int
+	completed int
+}
+
+func (f *fixedSamplesPerPixel) estSamplesPerPixelRequired() int {
+	return f.required
+}
+
+func (f *fixedSamplesPerPixel) finishSample(float64) {
+	f.completed++
+}
+
+func (f *fixedSamplesPerPixel) stop() bool {
+	return f.required == f.completed
+}
+
+type untilRelativeStdDevBelowThreshold struct {
+	threshold         float64
+	currentRSD        float64
+	previousRSD       float64
+	reducedRSDCount   int
+	completed         int
+	rsdDeltaPerSample float64
+}
+
+func (u *untilRelativeStdDevBelowThreshold) estSamplesPerPixelRequired() int {
+	if u.reducedRSDCount < 5 {
+		return -1
+	}
+	more := (u.currentRSD - u.threshold) / u.rsdDeltaPerSample
+	return u.completed + int(more)
+}
+
+func (u *untilRelativeStdDevBelowThreshold) finishSample(relStdDev float64) {
+	u.currentRSD, u.previousRSD = relStdDev, u.currentRSD
+	if u.currentRSD < u.previousRSD {
+		u.reducedRSDCount++
+	} else {
+		u.reducedRSDCount = 0
+	}
+	u.completed++
+	u.rsdDeltaPerSample = 0.9*u.rsdDeltaPerSample + 0.1*(u.previousRSD-u.currentRSD)
+}
+
+func (u *untilRelativeStdDevBelowThreshold) stop() bool {
+	return u.reducedRSDCount >= 5 && u.currentRSD < u.threshold
 }
