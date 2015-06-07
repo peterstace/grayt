@@ -17,22 +17,26 @@ import (
 func main() {
 
 	var (
-		out string
-		spp int
-		cv  float64
+		out            string
+		spp            int
+		cv             float64
+		pxWide, pxHigh int
 	)
 
 	// Set up flags.
-	flag.StringVar(&out, "out", "",
+	flag.StringVar(&out, "o", "",
 		"output file (must end in .png)")
-	flag.IntVar(&spp, "spp-limit", 0,
+	flag.IntVar(&spp, "spp", 0,
 		"samples per pixel stopping point")
-	flag.Float64Var(&cv, "cv-limit", 0.0,
+	flag.Float64Var(&cv, "cv", 0.0,
 		"neighbourhood CV (coefficient of variation) stopping point")
+	flag.IntVar(&pxWide, "w", 0, "width in pixels")
+	flag.IntVar(&pxHigh, "h", 0, "height in pixels")
 	flag.Parse()
 
 	// Validate and interpret flags.
 	if !strings.HasSuffix(out, ".png") {
+		flag.Usage()
 		log.Fatalf(`%q does not end in ".png"`, out)
 	}
 	if (spp == 0 && cv == 0) || (spp != 0 && cv != 0) {
@@ -44,16 +48,15 @@ func main() {
 	} else {
 		mode = &untilRelativeStdDevBelowThreshold{threshold: cv}
 	}
+	if pxWide == 0 || pxHigh == 0 {
+		flag.Usage()
+		log.Fatal("width and height must be set")
+	}
 
 	// Load scene. TODO: load from file.
 	scene := CornellBox()
 
 	// TODO: these should come from command line args.
-	const (
-		pxWide  = 300
-		pxHigh  = 300
-		totalPx = pxWide * pxHigh
-	)
 	acc := grayt.NewAccumulator(pxWide, pxHigh)
 
 	run(mode, scene, acc)
