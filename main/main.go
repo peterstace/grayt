@@ -82,26 +82,31 @@ func run(mode mode, scene grayt.Scene, acc grayt.Accumulator) {
 	startTime := time.Now()
 	iteration := 0
 
+	smoothedSamplesPerSecond := expSmoothedVar{alpha: 0.1}
+
 	for !mode.stop() {
+
+		startIterationTime := time.Now()
 
 		grayt.TracerImage(scene, acc)
 		iteration++
 		cv := acc.NeighbourCoefficientOfVariation()
 		mode.finishSample(cv)
 
-		samplesPerSecond := float64(iteration*totalPx) / time.Now().Sub(startTime).Seconds()
+		samplesPerSecondInIteration := float64(totalPx) / time.Now().Sub(startIterationTime).Seconds()
+		smoothedSamplesPerSecond.next(samplesPerSecondInIteration)
 
 		totalSamples := mode.estSamplesPerPixelRequired()
 		totalSamplesStr := "??"
 		eta := "??"
 		if totalSamples >= 0 {
 			totalSamplesStr = fmt.Sprintf("%d", totalSamples)
-			etaSeconds := float64((totalSamples-iteration)*totalPx) / samplesPerSecond
+			etaSeconds := float64((totalSamples-iteration)*totalPx) / smoothedSamplesPerSecond.value
 			eta = fmt.Sprintf("%v", time.Duration(etaSeconds)*time.Second)
 		}
 
 		log.Printf("Sample=%d/%s, Samples/sec=%.2e CV=%.4f ETA=%s\n",
-			iteration, totalSamplesStr, samplesPerSecond, cv, eta)
+			iteration, totalSamplesStr, samplesPerSecondInIteration, cv, eta)
 	}
 
 	log.Printf("TotalTime=%s", time.Now().Sub(startTime))
@@ -167,4 +172,13 @@ func (u *untilRelativeStdDevBelowThreshold) finishSample(relStdDev float64) {
 
 func (u *untilRelativeStdDevBelowThreshold) stop() bool {
 	return u.reducedCVCount >= 5 && u.currentCV < u.threshold
+}
+
+type expSmoothedVar struct {
+	alpha float64
+	value float64
+}
+
+func (v *expSmoothedVar) next(n float64) {
+	v.value = v.alpha*n + (1.0-v.alpha)*v.value
 }
