@@ -26,12 +26,15 @@ func tracePath(entities []Entity, r Ray) Colour {
 	}
 
 	// Calculate probability of emitting.
-	const pEmit = 0.5
+	pEmit := 0.1
+	if hitEntity.Material.Emittance != 0 {
+		pEmit = 1.0
+	}
 
 	// Handle emit case.
 	if rand.Float64() < pEmit {
 		return hitEntity.Material.Colour.
-			Scale(1.0 / pEmit * hitEntity.Material.Emittance)
+			Scale(hitEntity.Material.Emittance / pEmit)
 	}
 
 	// Find where the ray hit. Reduce the intersection distance by a small
@@ -54,7 +57,7 @@ func tracePath(entities []Entity, r Ray) Colour {
 	brdf := rnd.Dot(intersection.UnitNormal)
 
 	return tracePath(entities, Ray{Start: hitLoc, Dir: rnd}).
-		Scale(1.0 / (1 - pEmit) * brdf).
+		Scale(brdf / (1 - pEmit)).
 		Mul(hitEntity.Material.Colour)
 }
 
