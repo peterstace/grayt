@@ -148,14 +148,14 @@ type untilRelativeStdDevBelowThreshold struct {
 	previousCV       float64
 	reducedCVCount   int
 	completed        int
-	cvDeltaPerSample float64
+	cvDeltaPerSample expSmoothedVar
 }
 
 func (u *untilRelativeStdDevBelowThreshold) estSamplesPerPixelRequired() int {
 	if u.reducedCVCount < 5 {
 		return -1
 	}
-	more := (u.currentCV - u.threshold) / u.cvDeltaPerSample
+	more := (u.currentCV - u.threshold) / u.cvDeltaPerSample.value
 	return u.completed + int(more)
 }
 
@@ -167,7 +167,8 @@ func (u *untilRelativeStdDevBelowThreshold) finishSample(relStdDev float64) {
 		u.reducedCVCount = 0
 	}
 	u.completed++
-	u.cvDeltaPerSample = 0.9*u.cvDeltaPerSample + 0.1*(u.previousCV-u.currentCV)
+	u.cvDeltaPerSample.alpha = 0.5
+	u.cvDeltaPerSample.next(u.previousCV - u.currentCV)
 }
 
 func (u *untilRelativeStdDevBelowThreshold) stop() bool {
