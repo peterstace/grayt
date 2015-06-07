@@ -2,7 +2,7 @@ package grayt
 
 import "testing"
 
-func TestDistribution(t *testing.T) {
+func TestMean(t *testing.T) {
 	acc := Accumulator{acc: []Colour{
 		Colour{2, 4, 4},
 		Colour{4, 4, 10},
