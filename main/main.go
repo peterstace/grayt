@@ -56,7 +56,6 @@ func main() {
 	// Load scene. TODO: load from file.
 	scene := CornellBox()
 
-	// TODO: these should come from command line args.
 	acc := grayt.NewAccumulator(pxWide, pxHigh)
 
 	run(mode, scene, acc)
