@@ -22,15 +22,19 @@ func main() {
 		cv  float64
 	)
 
-	flag.StringVar(&out, "o", "", "output file (must end in .png)")
-	flag.IntVar(&spp, "s", 0, "samples per pixel stopping point")
-	flag.Float64Var(&cv, "cv-limit", 0.0, "neighbourhood CV (coefficient of variation) stopping point")
+	// Set up flags.
+	flag.StringVar(&out, "out", "",
+		"output file (must end in .png)")
+	flag.IntVar(&spp, "spp-limit", 0,
+		"samples per pixel stopping point")
+	flag.Float64Var(&cv, "cv-limit", 0.0,
+		"neighbourhood CV (coefficient of variation) stopping point")
 	flag.Parse()
 
+	// Validate and interpret flags.
 	if !strings.HasSuffix(out, ".png") {
 		log.Fatalf(`%q does not end in ".png"`, out)
 	}
-
 	if (spp == 0 && cv == 0) || (spp != 0 && cv != 0) {
 		log.Fatalf(`exactly 1 of s and d must be set`)
 	}
@@ -41,8 +45,10 @@ func main() {
 		mode = &untilRelativeStdDevBelowThreshold{threshold: cv}
 	}
 
+	// Load scene. TODO: load from file.
 	scene := CornellBox()
 
+	// TODO: these should come from command line args.
 	const (
 		pxWide  = 300
 		pxHigh  = 300
@@ -52,8 +58,10 @@ func main() {
 
 	run(mode, scene, acc)
 
+	// TODO: image exposure should come from the scene description.
 	img := acc.ToImage(1.0)
 
+	// Write image out to file.
 	f, err := os.Create(out)
 	if err != nil {
 		log.Fatal(err)
