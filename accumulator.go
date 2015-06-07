@@ -56,7 +56,7 @@ func (a Accumulator) ToImage(exposure float64) image.Image {
 	return img
 }
 
-func (a Accumulator) NeighbourRelativeStdDev() float64 {
+func (a Accumulator) NeighbourCoefficientOfVariation() float64 {
 	var mean float64
 	for x := 1; x < a.wide; x++ {
 		for y := 1; y < a.high; y++ {
@@ -75,9 +75,9 @@ func (a Accumulator) NeighbourRelativeStdDev() float64 {
 				continue
 			}
 
-			rsd := v.Pow(0.5).Div(m.Scale(-1))
+			cv := v.Pow(0.5).Div(m.Scale(-1))
 
-			mean += (rsd.R + rsd.G + rsd.B) / 3
+			mean += (cv.R + cv.G + cv.B) / 3
 		}
 	}
 	return mean / float64((a.wide-1)*(a.high-1))

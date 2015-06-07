@@ -17,27 +17,28 @@ import (
 func main() {
 
 	var (
-		out  string
-		spp  int
-		nrsd float64
+		out string
+		spp int
+		cv  float64
 	)
 
 	flag.StringVar(&out, "o", "", "output file (must end in .png)")
 	flag.IntVar(&spp, "s", 0, "samples per pixel stopping point")
-	flag.Float64Var(&nrsd, "d", 0.0, "neighbourhood relative std dev stopping point")
+	flag.Float64Var(&cv, "cv-limit", 0.0, "neighbourhood CV (coefficient of variation) stopping point")
 	flag.Parse()
 
 	if !strings.HasSuffix(out, ".png") {
 		log.Fatalf(`%q does not end in ".png"`, out)
 	}
-	if (spp == 0 && nrsd == 0) || (spp != 0 && nrsd != 0) {
+
+	if (spp == 0 && cv == 0) || (spp != 0 && cv != 0) {
 		log.Fatalf(`exactly 1 of s and d must be set`)
 	}
 	var mode mode
 	if spp != 0 {
 		mode = &fixedSamplesPerPixel{required: spp}
 	} else {
-		mode = &untilRelativeStdDevBelowThreshold{threshold: nrsd}
+		mode = &untilRelativeStdDevBelowThreshold{threshold: cv}
 	}
 
 	scene := CornellBox()
@@ -75,8 +76,8 @@ func run(mode mode, scene grayt.Scene, acc grayt.Accumulator) {
 
 		grayt.TracerImage(scene, acc)
 		iteration++
-		rsd := acc.NeighbourRelativeStdDev()
-		mode.finishSample(rsd)
+		cv := acc.NeighbourCoefficientOfVariation()
+		mode.finishSample(cv)
 
 		samplesPerSecond := float64(iteration*totalPx) / time.Now().Sub(startTime).Seconds()
 
@@ -89,8 +90,8 @@ func run(mode mode, scene grayt.Scene, acc grayt.Accumulator) {
 			eta = fmt.Sprintf("%v", time.Duration(etaSeconds)*time.Second)
 		}
 
-		log.Printf("Sample=%d/%s, Samples/sec=%.2e RSD=%.4f ETA=%s\n",
-			iteration, totalSamplesStr, samplesPerSecond, rsd, eta)
+		log.Printf("Sample=%d/%s, Samples/sec=%.2e CV=%.4f ETA=%s\n",
+			iteration, totalSamplesStr, samplesPerSecond, cv, eta)
 	}
 
 	log.Printf("TotalTime=%s", time.Now().Sub(startTime))
@@ -102,8 +103,8 @@ type mode interface {
 	estSamplesPerPixelRequired() int
 
 	// finishSample signals to the mode that a sample has been finished. The
-	// new relative std dev should be supplied.
-	finishSample(relativeStdDev float64)
+	// new coefficient of variation should be supplied.
+	finishSample(cv float64)
 
 	// stop indicates if the render is complete.
 	stop() bool
@@ -127,33 +128,33 @@ func (f *fixedSamplesPerPixel) stop() bool {
 }
 
 type untilRelativeStdDevBelowThreshold struct {
-	threshold         float64
-	currentRSD        float64
-	previousRSD       float64
-	reducedRSDCount   int
-	completed         int
-	rsdDeltaPerSample float64
+	threshold        float64
+	currentCV        float64
+	previousCV       float64
+	reducedCVCount   int
+	completed        int
+	cvDeltaPerSample float64
 }
 
 func (u *untilRelativeStdDevBelowThreshold) estSamplesPerPixelRequired() int {
-	if u.reducedRSDCount < 5 {
+	if u.reducedCVCount < 5 {
 		return -1
 	}
-	more := (u.currentRSD - u.threshold) / u.rsdDeltaPerSample
+	more := (u.currentCV - u.threshold) / u.cvDeltaPerSample
 	return u.completed + int(more)
 }
 
 func (u *untilRelativeStdDevBelowThreshold) finishSample(relStdDev float64) {
-	u.currentRSD, u.previousRSD = relStdDev, u.currentRSD
-	if u.currentRSD < u.previousRSD {
-		u.reducedRSDCount++
+	u.currentCV, u.previousCV = relStdDev, u.currentCV
+	if u.currentCV < u.previousCV {
+		u.reducedCVCount++
 	} else {
-		u.reducedRSDCount = 0
+		u.reducedCVCount = 0
 	}
 	u.completed++
-	u.rsdDeltaPerSample = 0.9*u.rsdDeltaPerSample + 0.1*(u.previousRSD-u.currentRSD)
+	u.cvDeltaPerSample = 0.9*u.cvDeltaPerSample + 0.1*(u.previousCV-u.currentCV)
 }
 
 func (u *untilRelativeStdDevBelowThreshold) stop() bool {
-	return u.reducedRSDCount >= 5 && u.currentRSD < u.threshold
+	return u.reducedCVCount >= 5 && u.currentCV < u.threshold
 }
