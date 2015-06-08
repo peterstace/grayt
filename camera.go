@@ -1,8 +1,15 @@
 package grayt
 
 import (
+	"errors"
 	"math"
 	"math/rand"
+)
+
+type Projection string
+
+const (
+	Rectilinear Projection = "Rectilinear"
 )
 
 // CameraConfig gives configuration options that are common to all camera
@@ -11,6 +18,7 @@ import (
 // configuration option is (compared to just passing in Vects and float64s to
 // the factory function).
 type CameraConfig struct {
+	Projection    Projection
 	Location      Vect
 	ViewDirection Vect
 	UpDirection   Vect
@@ -31,6 +39,15 @@ type Camera interface {
 	MakeRay(x, y float64) Ray
 }
 
+func NewCamera(conf CameraConfig) (Camera, error) {
+	switch conf.Projection {
+	case Rectilinear:
+		return newRectilinearCamera(conf), nil
+	default:
+		return nil, errors.New("unknown projection: " + string(conf.Projection))
+	}
+}
+
 type rectCamera struct {
 	screen, eye struct {
 		// X vectors go from the center of the screen or eye to the right of
@@ -42,7 +59,7 @@ type rectCamera struct {
 }
 
 // NewRectilinearCamera creates a rectilinear camera from a camera config.
-func NewRectilinearCamera(conf CameraConfig) Camera {
+func newRectilinearCamera(conf CameraConfig) Camera {
 
 	cam := &rectCamera{}
 

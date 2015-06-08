@@ -41,7 +41,8 @@ var (
 
 func cam() grayt.Camera {
 	const D = 1.3 // Estimated.
-	return grayt.NewRectilinearCamera(grayt.CameraConfig{
+	cam, err := grayt.NewCamera(grayt.CameraConfig{
+		Projection:    grayt.Rectilinear,
 		Location:      grayt.Vect{0.5, 0.5, D},
 		ViewDirection: grayt.Vect{0.0, 0.0, -1.0},
 		UpDirection:   up,
@@ -49,6 +50,10 @@ func cam() grayt.Camera {
 		FocalLength:   0.5 + D,
 		FocalRatio:    math.Inf(+1),
 	})
+	if err != nil {
+		panic(err)
+	}
+	return cam
 }
 
 func CornellBox() grayt.Scene {
