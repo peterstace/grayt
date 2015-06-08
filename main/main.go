@@ -84,11 +84,14 @@ func run(mode mode, scene grayt.Scene, acc grayt.Accumulator) {
 
 	smoothedSamplesPerSecond := expSmoothedVar{alpha: 0.1}
 
+	var world grayt.World
+	world.AddEntities(scene.Entities)
+
 	for !mode.stop() {
 
 		startIterationTime := time.Now()
 
-		grayt.TracerImage(scene, acc)
+		grayt.TracerImage(scene.Camera, world, acc)
 		iteration++
 		cv := acc.NeighbourCoefficientOfVariation()
 		mode.finishSample(cv)

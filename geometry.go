@@ -24,7 +24,7 @@ type Material struct {
 
 // Entity is a physical object whithin a scene.
 type Entity struct {
-	Surface  Surface
+	Surfaces []Surface
 	Material Material
 }
 

@@ -58,26 +58,22 @@ func cam() grayt.Camera {
 
 func CornellBox() grayt.Scene {
 	ee := []grayt.Entity{{
-		grayt.NewSphere(grayt.Vect{0.5, 1.0, -0.5}, 0.25),
+		[]grayt.Surface{grayt.NewSphere(grayt.Vect{0.5, 1.0, -0.5}, 0.25)},
 		grayt.Material{grayt.Colour{1, 1, 1}, 5},
 	}}
 	ee = append(ee, box()...)
-	for _, e := range tallBlock() {
-		ee = append(ee, grayt.Entity{e, white})
-	}
-	for _, e := range shortBlock() {
-		ee = append(ee, grayt.Entity{e, white})
-	}
+	ee = append(ee, grayt.Entity{tallBlock(), white})
+	ee = append(ee, grayt.Entity{shortBlock(), white})
 	return grayt.Scene{cam(), ee}
 }
 
 func box() []grayt.Entity {
 	return []grayt.Entity{
-		{grayt.NewPlane(up, zero), white},
-		{grayt.NewPlane(down, one), white},
-		{grayt.NewPlane(right, zero), red},
-		{grayt.NewPlane(left, one), green},
-		{grayt.NewPlane(back, one), white},
+		{[]grayt.Surface{grayt.NewPlane(up, zero)}, white},
+		{[]grayt.Surface{grayt.NewPlane(down, one)}, white},
+		{[]grayt.Surface{grayt.NewPlane(right, zero)}, red},
+		{[]grayt.Surface{grayt.NewPlane(left, one)}, green},
+		{[]grayt.Surface{grayt.NewPlane(back, one)}, white},
 	}
 }
 

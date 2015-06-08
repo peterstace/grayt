@@ -2,7 +2,7 @@ package grayt
 
 import "math/rand"
 
-func TracerImage(s Scene, acc Accumulator) {
+func TracerImage(c Camera, w World, acc Accumulator) {
 	pxPitch := 2.0 / float64(acc.wide)
 	for pxX := 0; pxX < acc.wide; pxX++ {
 		for pxY := 0; pxY < acc.high; pxY++ {
@@ -11,30 +11,30 @@ func TracerImage(s Scene, acc Accumulator) {
 			//}
 			x := (float64(pxX-acc.wide/2) + rand.Float64()) * pxPitch
 			y := (float64(pxY-acc.high/2) + rand.Float64()) * pxPitch * -1.0
-			r := s.Camera.MakeRay(x, y)
+			r := c.MakeRay(x, y)
 			r.Dir = r.Dir.Unit()
-			acc.add(pxX, pxY, tracePath(s.Entities, r))
+			acc.add(pxX, pxY, tracePath(w, r))
 		}
 	}
 }
 
-func tracePath(entities []Entity, r Ray) Colour {
+func tracePath(w World, r Ray) Colour {
 
-	intersection, hitEntity := closestHit(entities, r)
-	if hitEntity == nil {
+	intersection, material := w.closestHit(r)
+	if material == nil {
 		return Colour{0, 0, 0}
 	}
 
 	// Calculate probability of emitting.
 	pEmit := 0.1
-	if hitEntity.Material.Emittance != 0 {
+	if material.Emittance != 0 {
 		pEmit = 1.0
 	}
 
 	// Handle emit case.
 	if rand.Float64() < pEmit {
-		return hitEntity.Material.Colour.
-			Scale(hitEntity.Material.Emittance / pEmit)
+		return material.Colour.
+			Scale(material.Emittance / pEmit)
 	}
 
 	// Find where the ray hit. Reduce the intersection distance by a small
@@ -56,25 +56,7 @@ func tracePath(entities []Entity, r Ray) Colour {
 	// Apply the BRDF (bidirectional reflection distribution function).
 	brdf := rnd.Dot(intersection.UnitNormal)
 
-	return tracePath(entities, Ray{Start: hitLoc, Dir: rnd}).
+	return tracePath(w, Ray{Start: hitLoc, Dir: rnd}).
 		Scale(brdf / (1 - pEmit)).
-		Mul(hitEntity.Material.Colour)
-}
-
-func closestHit(entities []Entity, r Ray) (Intersection, *Entity) {
-	var closest struct {
-		intersection Intersection
-		entity       *Entity
-	}
-	for i := range entities {
-		intersection, hit := entities[i].Surface.Intersect(r)
-		if !hit {
-			continue
-		}
-		if closest.entity == nil || intersection.Distance < closest.intersection.Distance {
-			closest.intersection = intersection
-			closest.entity = &entities[i]
-		}
-	}
-	return closest.intersection, closest.entity
+		Mul(material.Colour)
 }
