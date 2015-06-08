@@ -18,7 +18,7 @@ type Surface interface {
 
 type Material struct {
 	Colour    Colour
-	Emittance float64 // XXX is this the right word?
+	Emittance float64
 	// Other properties such refractive index, reflectance, BRDF etc go here.
 }
 
