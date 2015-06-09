@@ -149,13 +149,12 @@ type untilRelativeStdDevBelowThreshold struct {
 	threshold        float64
 	currentCV        float64
 	previousCV       float64
-	reducedCVCount   int
 	completed        int
 	cvDeltaPerSample expSmoothedVar
 }
 
 func (u *untilRelativeStdDevBelowThreshold) estSamplesPerPixelRequired() int {
-	if u.reducedCVCount < 5 {
+	if u.cvDeltaPerSample.value < 0 {
 		return -1
 	}
 	more := (u.currentCV - u.threshold) / u.cvDeltaPerSample.value
@@ -164,18 +163,13 @@ func (u *untilRelativeStdDevBelowThreshold) estSamplesPerPixelRequired() int {
 
 func (u *untilRelativeStdDevBelowThreshold) finishSample(relStdDev float64) {
 	u.currentCV, u.previousCV = relStdDev, u.currentCV
-	if u.currentCV < u.previousCV {
-		u.reducedCVCount++
-	} else {
-		u.reducedCVCount = 0
-	}
 	u.completed++
-	u.cvDeltaPerSample.alpha = 0.5
+	u.cvDeltaPerSample.alpha = 0.3
 	u.cvDeltaPerSample.next(u.previousCV - u.currentCV)
 }
 
 func (u *untilRelativeStdDevBelowThreshold) stop() bool {
-	return u.reducedCVCount >= 5 && u.currentCV < u.threshold
+	return u.cvDeltaPerSample.value > 0 && u.currentCV < u.threshold
 }
 
 type expSmoothedVar struct {
@@ -184,5 +178,9 @@ type expSmoothedVar struct {
 }
 
 func (v *expSmoothedVar) next(n float64) {
-	v.value = v.alpha*n + (1.0-v.alpha)*v.value
+	if v.value == 0 {
+		v.value = n
+	} else {
+		v.value = v.alpha*n + (1.0-v.alpha)*v.value
+	}
 }
