@@ -2,30 +2,30 @@ package grayt
 
 import "math"
 
-func NewPlane(normal, anchor Vect) Surface {
+func NewPlane(n, x Vect) Surface {
 	switch {
-	case normal.Y == 0 && normal.Z == 0:
-		return &alignXPlane{x: anchor.X, d: math.Copysign(1, normal.X)}
-	case normal.Z == 0 && normal.X == 0:
-		return &alignYPlane{y: anchor.Y, d: math.Copysign(1, normal.Y)}
-	case normal.Y == 0 && normal.Y == 0:
-		return &alignZPlane{z: anchor.Z, d: math.Copysign(1, normal.Z)}
+	case n.Y == 0 && n.Z == 0:
+		return &alignXPlane{x: x.X, d: math.Copysign(1, n.X)}
+	case n.Z == 0 && n.X == 0:
+		return &alignYPlane{y: x.Y, d: math.Copysign(1, n.Y)}
+	case n.Y == 0 && n.Y == 0:
+		return &alignZPlane{z: x.Z, d: math.Copysign(1, n.Z)}
 	default:
 		return &plane{
-			unitNormal: normal.Unit(),
-			anchor:     anchor,
+			n: n.Unit(),
+			x: x,
 		}
 	}
 }
 
 type plane struct {
-	unitNormal Vect // Unit normal out of the plane.
-	anchor     Vect // Any point on the plane.
+	n Vect // Unit normal out of the plane.
+	x Vect // Any point on the plane.
 }
 
 func (p *plane) Intersect(r Ray) (Intersection, bool) {
-	t := p.unitNormal.Dot(p.anchor.Sub(r.Start)) / p.unitNormal.Dot(r.Dir)
-	return Intersection{p.unitNormal, t}, t > 0
+	t := p.n.Dot(p.x.Sub(r.Start)) / p.n.Dot(r.Dir)
+	return Intersection{p.n, t}, t > 0
 }
 
 type alignXPlane struct {
