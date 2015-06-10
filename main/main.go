@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"image/png"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -17,6 +19,7 @@ import (
 func main() {
 
 	var (
+		in             string
 		out            string
 		spp            int
 		cv             float64
@@ -24,6 +27,8 @@ func main() {
 	)
 
 	// Set up flags.
+	flag.StringVar(&in, "i", "",
+		"input file (must end in .json)")
 	flag.StringVar(&out, "o", "",
 		"output file (must end in .png)")
 	flag.IntVar(&spp, "spp", 0,
@@ -35,6 +40,10 @@ func main() {
 	flag.Parse()
 
 	// Validate and interpret flags.
+	if !strings.HasSuffix(in, ".json") {
+		flag.Usage()
+		log.Fatalf(`%q does not end in ".json"`, in)
+	}
 	if !strings.HasSuffix(out, ".png") {
 		flag.Usage()
 		log.Fatalf(`%q does not end in ".png"`, out)
@@ -53,12 +62,24 @@ func main() {
 		log.Fatal("width and height must be set")
 	}
 
-	// Load scene. TODO: load from file.
-	scene := CornellBox()
+	// Load scene.
+	buf, err := ioutil.ReadFile(in)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var scene grayt.Scene
+	if err := json.Unmarshal(buf, &scene); err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("%#v", scene)
+	//scene := CornellBox()
 
 	acc := grayt.NewAccumulator(pxWide, pxHigh)
 
-	run(mode, scene, acc)
+	err = run(mode, scene, acc)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// TODO: image exposure should come from the scene description.
 	img := acc.ToImage(1.0)
@@ -74,7 +95,7 @@ func main() {
 	}
 }
 
-func run(mode mode, scene grayt.Scene, acc grayt.Accumulator) {
+func run(mode mode, scene grayt.Scene, acc grayt.Accumulator) error {
 
 	wide, high := acc.Dimensions()
 	totalPx := wide * high
@@ -87,11 +108,16 @@ func run(mode mode, scene grayt.Scene, acc grayt.Accumulator) {
 	var world grayt.World
 	world.AddEntities(scene.Entities)
 
+	camera, err := grayt.NewCamera(scene.CameraConfig)
+	if err != nil {
+		return err
+	}
+
 	for !mode.stop() {
 
 		startIterationTime := time.Now()
 
-		grayt.TracerImage(scene.Camera, world, acc)
+		grayt.TracerImage(camera, world, acc)
 		iteration++
 		cv := acc.NeighbourCoefficientOfVariation()
 		mode.finishSample(cv)
@@ -113,6 +139,7 @@ func run(mode mode, scene grayt.Scene, acc grayt.Accumulator) {
 	}
 
 	log.Printf("TotalTime=%s", time.Now().Sub(startTime))
+	return nil
 }
 
 type mode interface {

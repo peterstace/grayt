@@ -2,6 +2,16 @@ package grayt
 
 import "math"
 
+type Plane struct {
+	N Vect
+	X Vect
+}
+
+func (p Plane) MakeSurfaces() []Surface {
+	return []Surface{NewPlane(p.N, p.X)} // XXX
+}
+
+// XXX Don't need this factory any more.
 func NewPlane(n, x Vect) Surface {
 	switch {
 	case n.Y == 0 && n.Z == 0:

@@ -1,0 +1,20 @@
+{
+	"CameraConfig": {
+		"projection": "Rectilinear",
+		"Location": [0.5,0.5,1.3],
+		"ViewDirection": [0,0,-1],
+		"UpDirection": [0,1,0],
+		"FieldOfView": 0.689,
+		"FocalLength": 1.8,
+		"FocalRatio": 10000.0
+	},
+	"entities": [
+		{
+			"colour": "#ffffff",
+			"emit": 5,
+			"surfaces": [
+				{"type": "plane", "x": [1,1,1], "n": [0,0,0]}
+			]
+		}
+	]
+}

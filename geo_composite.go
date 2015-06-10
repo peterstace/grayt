@@ -1,8 +1,12 @@
 package grayt
 
-func NewSquare(v1, v2, v3, v4 Vect) []Surface {
+type Square struct {
+	V1, V2, V3, V4 Vect
+}
+
+func (s Square) MakeSurfaces() []Surface {
 	return []Surface{
-		NewTriangle(v1, v2, v3),
-		NewTriangle(v3, v4, v1),
+		NewTriangle(s.V1, s.V2, s.V3),
+		NewTriangle(s.V3, s.V4, s.V1),
 	}
 }

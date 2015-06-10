@@ -11,8 +11,10 @@ type World struct {
 
 func (w *World) AddEntities(entities []Entity) {
 	for _, e := range entities {
-		for _, s := range e.Surfaces {
-			w.entities = append(w.entities, worldEntity{s, e.Material})
+		for _, f := range e.SurfaceFactories {
+			for _, s := range f.MakeSurfaces() {
+				w.entities = append(w.entities, worldEntity{s, e.Material})
+			}
 		}
 	}
 }

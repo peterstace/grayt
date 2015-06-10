@@ -2,6 +2,15 @@ package grayt
 
 import "math"
 
+type Sphere struct {
+	C Vect
+	R float64
+}
+
+func (s Sphere) MakeSurfaces() []Surface {
+	return []Surface{NewSphere(s.C, s.R)}
+}
+
 func NewSphere(centre Vect, radius float64) Surface {
 	return &sphere{
 		centre: centre,
