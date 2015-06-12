@@ -1,5 +1,21 @@
 package grayt
 
+import "encoding/json"
+
+const triangleT = "triangle"
+
+type Triangle struct {
+	V1, V2, V3 Vect
+}
+
+func (t Triangle) MarshalJSON() ([]byte, error) {
+	type alias Triangle
+	return json.Marshal(struct {
+		Type string
+		alias
+	}{triangleT, alias(t)})
+}
+
 func NewTriangle(cornerA, cornerB, cornerC Vect) Surface {
 	u := cornerB.Sub(cornerA)
 	v := cornerC.Sub(cornerA)

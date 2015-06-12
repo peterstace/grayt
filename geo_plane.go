@@ -1,10 +1,23 @@
 package grayt
 
-import "math"
+import (
+	"encoding/json"
+	"math"
+)
+
+const planeT = "plane"
 
 type Plane struct {
 	N Vect
 	X Vect
+}
+
+func (p Plane) MarshalJSON() ([]byte, error) {
+	type alias Plane
+	return json.Marshal(struct {
+		Type string
+		alias
+	}{planeT, alias(p)})
 }
 
 func (p Plane) MakeSurfaces() []Surface {

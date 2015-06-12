@@ -1,6 +1,10 @@
 package grayt
 
-import "math"
+import (
+	"encoding/json"
+	"fmt"
+	"math"
+)
 
 type Vect struct {
 	X, Y, Z float64
@@ -57,6 +61,25 @@ func (v Vect) Cross(u Vect) Vect {
 		Y: v.Z*u.X - v.X*u.Z,
 		Z: v.X*u.Y - v.Y*u.X,
 	}
+}
+
+func (v *Vect) UnmarshalJSON(p []byte) error {
+	var record []float64
+	if err := json.Unmarshal(p, &record); err != nil {
+		return err
+	}
+	if len(record) != 3 {
+		return fmt.Errorf("cannot marshal array of size %d into Go value of type grayt.Vect",
+			len(record))
+	}
+	v.X = record[0]
+	v.Y = record[1]
+	v.Z = record[2]
+	return nil
+}
+
+func (v Vect) MarshalJSON() ([]byte, error) {
+	return []byte(fmt.Sprintf("[%g,%g,%g]", v.X, v.Y, v.Z)), nil
 }
 
 type Ray struct {

@@ -8,12 +8,14 @@
 		"FocalLength": 1.8,
 		"FocalRatio": 10000.0
 	},
-	"entities": [
+	"Entities": [
 		{
-			"colour": "#ffffff",
-			"emit": 5,
-			"surfaces": [
-				{"type": "plane", "x": [1,1,1], "n": [0,0,0]}
+			"Material": {
+				"Colour": [1, 1, 1],
+				"Emittance": 5
+			},
+			"SurfaceFactories": [
+				{"Type": "Plane", "X": [0,-1,0], "N": [0,1,0]}
 			]
 		}
 	]

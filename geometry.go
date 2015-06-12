@@ -3,6 +3,8 @@ package grayt
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"log"
 )
 
 // Intersection between a surface and a ray.
@@ -42,30 +44,55 @@ type Entity struct {
 
 func (e *Entity) UnmarshalJSON(p []byte) error {
 	type record struct {
-		RawSurfaces []rawSurface
-		Material    Material
+		Material         Material
+		SurfaceFactories []json.RawMessage
 	}
 	rec := new(record)
 	if err := json.Unmarshal(p, &rec); err != nil {
 		return err
 	}
 	e.Material = rec.Material
-	for _, s := range rec.RawSurfaces {
-		switch s.Type {
-		case "Plane":
+	log.Print(len(rec.SurfaceFactories))
+
+	for _, raw := range rec.SurfaceFactories {
+		t, err := getType(raw)
+		if err != nil {
+			return err
+		}
+		switch t {
+		case "plane":
 			var obj Plane
-			if err := json.Unmarshal(s.Raw, &obj); err != nil {
+			if err := json.Unmarshal(raw, &obj); err != nil {
+				return err
+			}
+			e.SurfaceFactories = append(e.SurfaceFactories, obj)
+		case "sphere":
+			var obj Sphere
+			if err := json.Unmarshal(raw, &obj); err != nil {
+				return err
+			}
+			e.SurfaceFactories = append(e.SurfaceFactories, obj)
+		case "square":
+			var obj Square
+			if err := json.Unmarshal(raw, &obj); err != nil {
 				return err
 			}
 			e.SurfaceFactories = append(e.SurfaceFactories, obj)
 		default:
-			return errors.New("unknown type " + s.Type)
+			return errors.New("unknown type " + t)
 		}
 	}
+
 	return nil
 }
 
-type rawSurface struct {
-	Type string
-	Raw  json.RawMessage
+func getType(raw json.RawMessage) (string, error) {
+	record := struct{ Type string }{}
+	if err := json.Unmarshal(raw, &record); err != nil {
+		return "", err
+	}
+	if record.Type == "" {
+		return "", fmt.Errorf("'Type' field is missing in %q", raw)
+	}
+	return record.Type, nil
 }

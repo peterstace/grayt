@@ -1,10 +1,23 @@
 package grayt
 
-import "math"
+import (
+	"encoding/json"
+	"math"
+)
+
+const sphereT = "sphere"
 
 type Sphere struct {
 	C Vect
 	R float64
+}
+
+func (s Sphere) MarshalJSON() ([]byte, error) {
+	type alias Sphere
+	return json.Marshal(struct {
+		Type string
+		alias
+	}{sphereT, alias(s)})
 }
 
 func (s Sphere) MakeSurfaces() []Surface {

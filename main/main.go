@@ -26,6 +26,15 @@ func main() {
 		pxWide, pxHigh int
 	)
 
+	//s := CornellBox()
+	//b, err := json.Marshal(s)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//log.Print(string(b))
+
+	//return
+
 	// Set up flags.
 	flag.StringVar(&in, "i", "",
 		"input file (must end in .json)")
