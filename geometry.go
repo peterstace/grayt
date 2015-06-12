@@ -38,8 +38,8 @@ type Scene struct {
 
 // Entity is a physical object whithin a scene.
 type Entity struct {
-	SurfaceFactories []SurfaceFactory
 	Material         Material
+	SurfaceFactories []SurfaceFactory
 }
 
 func (e *Entity) UnmarshalJSON(p []byte) error {

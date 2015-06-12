@@ -54,22 +54,22 @@ func cam() grayt.CameraConfig {
 
 func CornellBox() grayt.Scene {
 	ee := []grayt.Entity{{
-		[]grayt.SurfaceFactory{grayt.Sphere{grayt.Vect{0.5, 1.0, -0.5}, 0.25}},
 		grayt.Material{grayt.Colour{1, 1, 1}, 5},
+		[]grayt.SurfaceFactory{grayt.Sphere{grayt.Vect{0.5, 1.0, -0.5}, 0.25}},
 	}}
 	ee = append(ee, box()...)
-	ee = append(ee, grayt.Entity{tallBlock(), white})
-	ee = append(ee, grayt.Entity{shortBlock(), white})
+	ee = append(ee, grayt.Entity{white, tallBlock()})
+	ee = append(ee, grayt.Entity{white, shortBlock()})
 	return grayt.Scene{cam(), ee}
 }
 
 func box() []grayt.Entity {
 	return []grayt.Entity{
-		{[]grayt.SurfaceFactory{grayt.Plane{up, zero}}, white},
-		{[]grayt.SurfaceFactory{grayt.Plane{down, one}}, white},
-		{[]grayt.SurfaceFactory{grayt.Plane{right, zero}}, red},
-		{[]grayt.SurfaceFactory{grayt.Plane{left, one}}, green},
-		{[]grayt.SurfaceFactory{grayt.Plane{back, one}}, white},
+		{white, []grayt.SurfaceFactory{grayt.Plane{up, zero}}},
+		{white, []grayt.SurfaceFactory{grayt.Plane{down, one}}},
+		{red, []grayt.SurfaceFactory{grayt.Plane{right, zero}}},
+		{green, []grayt.SurfaceFactory{grayt.Plane{left, one}}},
+		{white, []grayt.SurfaceFactory{grayt.Plane{back, one}}},
 	}
 }
 
