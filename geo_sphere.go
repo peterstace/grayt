@@ -21,14 +21,7 @@ func (s Sphere) MarshalJSON() ([]byte, error) {
 }
 
 func (s Sphere) MakeSurfaces() []Surface {
-	return []Surface{NewSphere(s.C, s.R)}
-}
-
-func NewSphere(centre Vect, radius float64) Surface {
-	return &sphere{
-		centre: centre,
-		radius: radius,
-	}
+	return []Surface{&sphere{centre: s.C, radius: s.R}}
 }
 
 type sphere struct {

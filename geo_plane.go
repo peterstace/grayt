@@ -21,23 +21,15 @@ func (p Plane) MarshalJSON() ([]byte, error) {
 }
 
 func (p Plane) MakeSurfaces() []Surface {
-	return []Surface{NewPlane(p.N, p.X)} // XXX
-}
-
-// XXX Don't need this factory any more.
-func NewPlane(n, x Vect) Surface {
 	switch {
-	case n.Y == 0 && n.Z == 0:
-		return &alignXPlane{x: x.X, d: math.Copysign(1, n.X)}
-	case n.Z == 0 && n.X == 0:
-		return &alignYPlane{y: x.Y, d: math.Copysign(1, n.Y)}
-	case n.Y == 0 && n.Y == 0:
-		return &alignZPlane{z: x.Z, d: math.Copysign(1, n.Z)}
+	case p.N.Y == 0 && p.N.Z == 0:
+		return []Surface{&alignXPlane{x: p.X.X, d: math.Copysign(1, p.N.X)}}
+	case p.N.Z == 0 && p.N.X == 0:
+		return []Surface{&alignYPlane{y: p.X.Y, d: math.Copysign(1, p.N.Y)}}
+	case p.N.Y == 0 && p.N.Y == 0:
+		return []Surface{&alignZPlane{z: p.X.Z, d: math.Copysign(1, p.N.Z)}}
 	default:
-		return &plane{
-			n: n.Unit(),
-			x: x,
-		}
+		return []Surface{&plane{n: p.N.Unit(), x: p.X}}
 	}
 }
 

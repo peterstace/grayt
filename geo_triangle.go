@@ -5,7 +5,7 @@ import "encoding/json"
 const triangleT = "triangle"
 
 type Triangle struct {
-	V1, V2, V3 Vect
+	A, B, C Vect
 }
 
 func (t Triangle) MarshalJSON() ([]byte, error) {
@@ -16,19 +16,18 @@ func (t Triangle) MarshalJSON() ([]byte, error) {
 	}{triangleT, alias(t)})
 }
 
-func NewTriangle(cornerA, cornerB, cornerC Vect) Surface {
-	u := cornerB.Sub(cornerA)
-	v := cornerC.Sub(cornerA)
-	t := &triangle{
-		a:        cornerA,
+func (t Triangle) MakeSurfaces() []Surface {
+	u := t.B.Sub(t.A)
+	v := t.C.Sub(t.A)
+	return []Surface{&triangle{
+		a:        t.A,
 		u:        u,
 		v:        v,
 		unitNorm: u.Cross(v).Unit(),
 		dotUV:    u.Dot(v),
 		dotUU:    u.Dot(u),
 		dotVV:    v.Dot(v),
-	}
-	return t
+	}}
 }
 
 type triangle struct {
