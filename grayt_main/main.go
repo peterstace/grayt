@@ -26,15 +26,6 @@ func main() {
 		pxWide, pxHigh int
 	)
 
-	//s := CornellBox()
-	//b, err := json.Marshal(s)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//log.Print(string(b))
-
-	//return
-
 	// Set up flags.
 	flag.StringVar(&in, "i", "",
 		"input file (must end in .json)")
@@ -80,8 +71,6 @@ func main() {
 	if err := json.Unmarshal(buf, &scene); err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("%#v", scene)
-	//scene := CornellBox()
 
 	acc := grayt.NewAccumulator(pxWide, pxHigh)
 

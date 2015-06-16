@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 )
 
 // Intersection between a surface and a ray.
@@ -52,7 +51,6 @@ func (e *Entity) UnmarshalJSON(p []byte) error {
 		return err
 	}
 	e.Material = rec.Material
-	log.Print(len(rec.SurfaceFactories))
 
 	for _, raw := range rec.SurfaceFactories {
 		t, err := getType(raw)
