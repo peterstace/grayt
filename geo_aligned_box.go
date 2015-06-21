@@ -34,60 +34,81 @@ type alignedBox struct {
 
 func (b *alignedBox) Intersect(r Ray) (Intersection, bool) {
 
-	//log.Print(b, r)
-
-	var norm Vect
-	tmin, tmax := math.Inf(+1), math.Inf(-1)
-
 	tx1 := (b.min.X - r.Start.X) / r.Dir.X
 	tx2 := (b.max.X - r.Start.X) / r.Dir.X
-	if tx1 < tmin {
-		tmin = tx1
-		norm = Vect{-1, 0, 0}
-	}
-	if tx2 < tmin {
-		tmin = tx2
-		norm = Vect{+1, 0, 0}
-	}
-	tmax = math.Max(tmax, math.Max(tx1, tx2))
-
 	ty1 := (b.min.Y - r.Start.Y) / r.Dir.Y
 	ty2 := (b.max.Y - r.Start.Y) / r.Dir.Y
-	if ty1 < tmin {
-		tmin = ty1
-		norm = Vect{0, -1, 0}
-	}
-	if ty2 < tmin {
-		tmin = ty2
-		norm = Vect{0, +1, 0}
-	}
-	tmax = math.Max(tmax, math.Max(ty1, ty2))
-
 	tz1 := (b.min.Z - r.Start.Z) / r.Dir.Z
 	tz2 := (b.max.Z - r.Start.Z) / r.Dir.Z
-	if tz1 < tmin {
-		tmin = tz1
-		norm = Vect{0, 0, -1}
-	}
-	if tz2 < tmin {
-		tmin = tz2
-		norm = Vect{0, 0, +1}
-	}
-	tmax = math.Max(tmax, math.Max(tz1, tz2))
 
-	//log.Print(tmin, tmax)
+	tmin, tmax := math.Inf(-1), math.Inf(+1)
+	var nMin Vect
+	var nMax Vect
 
-	var t float64
-	if tmin > tmax {
-		t = -1.0
-	} else if tmin < 0 {
-		t = tmax
+	if math.Min(tx1, tx2) > tmin {
+		if tx1 < tx2 {
+			tmin = tx1
+			nMin = Vect{-1, 0, 0}
+		} else {
+			tmin = tx2
+			nMin = Vect{1, 0, 0}
+		}
+	}
+	if math.Max(tx1, tx2) < tmax {
+		if tx1 > tx2 {
+			tmax = tx1
+			nMax = Vect{-1, 0, 0}
+		} else {
+			tmax = tx2
+			nMax = Vect{1, 0, 0}
+		}
+	}
+
+	if math.Min(ty1, ty2) > tmin {
+		if ty1 < ty2 && ty1 > 0 {
+			tmin = ty1
+			nMin = Vect{0, -1, 0}
+		} else {
+			tmin = ty2
+			nMin = Vect{0, 1, 0}
+		}
+	}
+	if math.Max(ty1, ty2) < tmax {
+		if ty1 > ty2 {
+			tmax = ty1
+			nMax = Vect{0, -1, 0}
+		} else {
+			tmax = ty2
+			nMax = Vect{0, 1, 0}
+		}
+	}
+
+	if math.Min(tz1, tz2) > tmin {
+		if tz1 < tz2 && tz1 > 0 {
+			tmin = tz1
+			nMin = Vect{0, 0, -1}
+		} else {
+			tmin = tz2
+			nMin = Vect{0, 0, 1}
+		}
+	}
+	if math.Max(tz1, tz2) < tmax {
+		if tz1 > tz2 {
+			tmax = tz1
+			nMax = Vect{0, 0, -1}
+		} else {
+			tmax = tz2
+			nMax = Vect{0, 0, 1}
+		}
+	}
+
+	if tmin > tmax || tmax < 0 {
+		return Intersection{}, false
+	}
+
+	if tmin > 0 {
+		return Intersection{Distance: tmin, UnitNormal: nMin}, true
 	} else {
-		t = tmin
+		return Intersection{Distance: tmax, UnitNormal: nMax}, true
 	}
-
-	return Intersection{
-		UnitNormal: norm,
-		Distance:   t,
-	}, t > 0
 }
