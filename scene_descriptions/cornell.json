@@ -11,7 +11,13 @@
 	"Entities": [
 		{
 			"Material": { "Colour": [ 1, 1, 1 ], "Emittance": 5 },
-			"SurfaceFactories": [ { "Type": "sphere", "C": [ 0.5, 1, -0.5 ], "R": 0.25 } ]
+			"SurfaceFactories": [
+				{
+					"Type": "aligned_box",
+					"Corner1": [ 0.25, 0.99, -0.25 ],
+					"Corner2": [ 0.75, 1.00, -0.75 ]
+				}
+			]
 		},
 		{
 			"Material": { "Colour": [ 1, 1, 1 ], "Emittance": 0 },
