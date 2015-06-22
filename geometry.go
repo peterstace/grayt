@@ -76,6 +76,12 @@ func (e *Entity) UnmarshalJSON(p []byte) error {
 				return err
 			}
 			e.SurfaceFactories = append(e.SurfaceFactories, obj)
+		case alignedBoxT:
+			var obj AlignedBox
+			if err := json.Unmarshal(raw, &obj); err != nil {
+				return err
+			}
+			e.SurfaceFactories = append(e.SurfaceFactories, obj)
 		default:
 			return errors.New("unknown type " + t)
 		}

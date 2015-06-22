@@ -51,6 +51,22 @@ func (v Vect) Sub(u Vect) Vect {
 	}
 }
 
+func (v Vect) Mul(u Vect) Vect {
+	return Vect{
+		X: v.X * u.X,
+		Y: v.Y * u.Y,
+		Z: v.Z * u.Z,
+	}
+}
+
+func (v Vect) Div(u Vect) Vect {
+	return Vect{
+		X: v.X / u.X,
+		Y: v.Y / u.Y,
+		Z: v.Z / u.Z,
+	}
+}
+
 func (v Vect) Dot(u Vect) float64 {
 	return v.X*u.X + v.Y*u.Y + v.Z*u.Z
 }
@@ -60,6 +76,22 @@ func (v Vect) Cross(u Vect) Vect {
 		X: v.Y*u.Z - v.Z*u.Y,
 		Y: v.Z*u.X - v.X*u.Z,
 		Z: v.X*u.Y - v.Y*u.X,
+	}
+}
+
+func (v Vect) Min(u Vect) Vect {
+	return Vect{
+		math.Min(v.X, u.X),
+		math.Min(v.Y, u.Y),
+		math.Min(v.Z, u.Z),
+	}
+}
+
+func (v Vect) Max(u Vect) Vect {
+	return Vect{
+		math.Max(v.X, u.X),
+		math.Max(v.Y, u.Y),
+		math.Max(v.Z, u.Z),
 	}
 }
 

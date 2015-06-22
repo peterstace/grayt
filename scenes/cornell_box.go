@@ -70,6 +70,7 @@ func box() []grayt.Entity {
 		{red, []grayt.SurfaceFactory{grayt.Plane{right, zero}}},
 		{green, []grayt.SurfaceFactory{grayt.Plane{left, one}}},
 		{white, []grayt.SurfaceFactory{grayt.Plane{back, one}}},
+		{white, []grayt.SurfaceFactory{grayt.AlignedBox{grayt.Vect{0.1, 0.0, -0.1}, grayt.Vect{0.9, 0.1, -0.9}}}},
 	}
 }
 

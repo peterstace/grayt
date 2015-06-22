@@ -49,7 +49,7 @@ func main() {
 		log.Fatalf(`%q does not end in ".png"`, out)
 	}
 	if (spp == 0 && cv == 0) || (spp != 0 && cv != 0) {
-		log.Fatalf(`exactly 1 of s and d must be set`)
+		log.Fatalf(`exactly 1 of spp and cv be set`)
 	}
 	var mode mode
 	if spp != 0 {

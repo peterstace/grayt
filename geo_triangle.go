@@ -40,7 +40,7 @@ func (t *triangle) Intersect(r Ray) (Intersection, bool) {
 
 	// Check if there's a hit with the plane.
 	h := t.unitNorm.Dot(t.a.Sub(r.Start)) / t.unitNorm.Dot(r.Dir)
-	if h < 0 {
+	if h <= 0 {
 		// Hit was behind the camera.
 		return Intersection{}, false
 	}
