@@ -102,7 +102,7 @@ func (b *alignedBox) Intersect(r Ray) (Intersection, bool) {
 		}
 	}
 
-	if tmin > tmax || tmax < 0 {
+	if tmin >= tmax || tmax <= 0 {
 		return Intersection{}, false
 	}
 
