@@ -1,25 +1,21 @@
 package main
 
 import (
-	"encoding/json"
 	"image/png"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
 	"time"
-
-	"github.com/peterstace/grayt"
-)
-import (
 	"flag"
 	"fmt"
+
+	"github.com/peterstace/grayt/graytlib"
+	"github.com/peterstace/grayt/graytmain/scenes"
 )
 
 func main() {
 
 	var (
-		in             string
 		out            string
 		spp            int
 		cv             float64
@@ -27,8 +23,6 @@ func main() {
 	)
 
 	// Set up flags.
-	flag.StringVar(&in, "i", "",
-		"input file (must end in .json)")
 	flag.StringVar(&out, "o", "",
 		"output file (must end in .png)")
 	flag.IntVar(&spp, "spp", 0,
@@ -40,10 +34,6 @@ func main() {
 	flag.Parse()
 
 	// Validate and interpret flags.
-	if !strings.HasSuffix(in, ".json") {
-		flag.Usage()
-		log.Fatalf(`%q does not end in ".json"`, in)
-	}
 	if !strings.HasSuffix(out, ".png") {
 		flag.Usage()
 		log.Fatalf(`%q does not end in ".png"`, out)
@@ -63,18 +53,11 @@ func main() {
 	}
 
 	// Load scene.
-	buf, err := ioutil.ReadFile(in)
-	if err != nil {
-		log.Fatal(err)
-	}
-	var scene grayt.Scene
-	if err := json.Unmarshal(buf, &scene); err != nil {
-		log.Fatal(err)
-	}
+	scene := scenes.CornellBox{}.Scene()
 
-	acc := grayt.NewAccumulator(pxWide, pxHigh)
+	acc := graytlib.NewAccumulator(pxWide, pxHigh)
 
-	err = run(mode, scene, acc)
+	err := run(mode, scene, acc)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -93,7 +76,7 @@ func main() {
 	}
 }
 
-func run(mode mode, scene grayt.Scene, acc grayt.Accumulator) error {
+func run(mode mode, scene graytlib.Scene, acc graytlib.Accumulator) error {
 
 	wide, high := acc.Dimensions()
 	totalPx := wide * high
@@ -103,10 +86,10 @@ func run(mode mode, scene grayt.Scene, acc grayt.Accumulator) error {
 
 	smoothedSamplesPerSecond := expSmoothedVar{alpha: 0.1}
 
-	var world grayt.World
+	var world graytlib.World
 	world.AddEntities(scene.Entities)
 
-	camera, err := grayt.NewCamera(scene.CameraConfig)
+	camera, err := graytlib.NewCamera(scene.CameraConfig)
 	if err != nil {
 		return err
 	}
@@ -115,7 +98,7 @@ func run(mode mode, scene grayt.Scene, acc grayt.Accumulator) error {
 
 		startIterationTime := time.Now()
 
-		grayt.TracerImage(camera, world, acc)
+		graytlib.TracerImage(camera, world, acc)
 		iteration++
 		cv := acc.NeighbourCoefficientOfVariation()
 		mode.finishSample(cv)
