@@ -1,4 +1,4 @@
-package grayt
+package graytlib
 
 import (
 	"errors"
