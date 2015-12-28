@@ -6,7 +6,7 @@ var SceneFactories = []SceneFactory{
 	CornellBox{},
 }
 
-type SceneFactory interface{
+type SceneFactory interface {
 	Name() string
 	Scene() graytlib.Scene
 }

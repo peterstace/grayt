@@ -1,13 +1,13 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"image/png"
 	"log"
 	"os"
 	"strings"
 	"time"
-	"flag"
-	"fmt"
 
 	"github.com/peterstace/grayt/graytlib"
 	"github.com/peterstace/grayt/graytmain/scenes"
