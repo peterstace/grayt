@@ -1,4 +1,4 @@
-package scenes
+package cornellbox
 
 import (
 	"math"
@@ -22,10 +22,6 @@ import (
 // SINE(0.5*T) = 0.5 / SQRT(0.5^2 + D^2)
 // T = 2*ARCSINE(0.5/SQRT(0.25 + D^2))
 
-type CornellBox struct{}
-
-func (c CornellBox) Name() string { return "Cornell Box" }
-
 var (
 	up    = graytlib.Vect{0.0, 1.0, 0.0}
 	down  = graytlib.Vect{0.0, -1.0, 0.0}
@@ -43,6 +39,17 @@ var (
 	blue  = graytlib.Material{graytlib.Colour{0, 0, 1}, 0.0}
 )
 
+func Scene() graytlib.Scene {
+	ee := []graytlib.Entity{{
+		graytlib.Material{graytlib.Colour{1, 1, 1}, 5},
+		[]graytlib.SurfaceFactory{graytlib.Sphere{graytlib.Vect{0.5, 1.0, -0.5}, 0.25}},
+	}}
+	ee = append(ee, box()...)
+	ee = append(ee, graytlib.Entity{white, tallBlock()})
+	ee = append(ee, graytlib.Entity{white, shortBlock()})
+	return graytlib.Scene{cam(), ee}
+}
+
 func cam() graytlib.CameraConfig {
 	const D = 1.3 // Estimated.
 	return graytlib.CameraConfig{
@@ -54,17 +61,6 @@ func cam() graytlib.CameraConfig {
 		FocalLength:   0.5 + D,
 		FocalRatio:    math.MaxFloat64, //math.Inf(1),
 	}
-}
-
-func (c CornellBox) Scene() graytlib.Scene {
-	ee := []graytlib.Entity{{
-		graytlib.Material{graytlib.Colour{1, 1, 1}, 5},
-		[]graytlib.SurfaceFactory{graytlib.Sphere{graytlib.Vect{0.5, 1.0, -0.5}, 0.25}},
-	}}
-	ee = append(ee, box()...)
-	ee = append(ee, graytlib.Entity{white, tallBlock()})
-	ee = append(ee, graytlib.Entity{white, shortBlock()})
-	return graytlib.Scene{cam(), ee}
 }
 
 func box() []graytlib.Entity {

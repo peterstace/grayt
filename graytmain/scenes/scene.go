@@ -1,12 +1,10 @@
 package scenes
 
-import "github.com/peterstace/grayt/graytlib"
+import (
+	"github.com/peterstace/grayt/graytlib"
+	"github.com/peterstace/grayt/graytmain/scenes/cornellbox"
+)
 
-var SceneFactories = []SceneFactory{
-	CornellBox{},
-}
-
-type SceneFactory interface {
-	Name() string
-	Scene() graytlib.Scene
+var RegisteredScenes = map[string]func() graytlib.Scene{
+	"CornellBox": cornellbox.Scene,
 }

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/peterstace/grayt/graytlib"
-	"github.com/peterstace/grayt/graytmain/scenes"
+	"github.com/peterstace/grayt/graytmain/scenes/cornellbox"
 )
 
 func main() {
@@ -52,8 +52,8 @@ func main() {
 		log.Fatal("width and height must be set")
 	}
 
-	// Load scene.
-	scene := scenes.CornellBox{}.Scene()
+	// Load scene. XXX should select command line arg.
+	scene := cornellbox.Scene()
 
 	acc := graytlib.NewAccumulator(pxWide, pxHigh)
 
