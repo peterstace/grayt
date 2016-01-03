@@ -74,16 +74,16 @@ func TestAlignedBoxIntersect(t *testing.T) {
 			n: Vect{0, 0, -1},
 		},
 	}
-	for _, test := range tests {
+	for i, test := range tests {
 		isect, hit := b.Intersect(test.r)
 		if !hit {
-			t.Errorf("didn't hit, %v", test)
+			t.Errorf("%d: didn't hit, %v", i, test)
 		}
 		if isect.UnitNormal != test.n {
-			t.Errorf("want %v, got %v", test.n, isect.UnitNormal)
+			t.Errorf("%d: want %v, got %v", i, test.n, isect.UnitNormal)
 		}
 		if isect.Distance != test.t {
-			t.Errorf("want %g, got %g", test.t, isect.Distance)
+			t.Errorf("%d: want %g, got %g", i, test.t, isect.Distance)
 		}
 	}
 }
