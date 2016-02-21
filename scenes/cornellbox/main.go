@@ -11,6 +11,7 @@ func main() {
 	r := grayt.NewRunner()
 	r.PxWide = 320
 	r.PxHigh = 320
+	r.Quality = 100
 	r.Run(scene())
 }
 
@@ -48,10 +49,15 @@ var (
 )
 
 func scene() grayt.Scene {
-	ee := []grayt.Entity{{
-		Material: grayt.Material{Colour: grayt.White, Emittance: 5},
-		Surface:  geometry.Sphere(grayt.Vect(0.5, 1.0, -0.5), 0.25),
-	}}
+	ee := []grayt.Entity{
+		{
+			Material: grayt.Material{Colour: grayt.White, Emittance: 5},
+			Surface: geometry.AlignedBox(
+				grayt.Vect(0.4, 1.0, -0.4),
+				grayt.Vect(0.6, 0.999, -0.6),
+			),
+		},
+	}
 	ee = append(ee, box()...)
 	for _, s := range tallBlock() {
 		ee = append(ee, grayt.Entity{Material: white, Surface: s})
@@ -95,13 +101,6 @@ func box() []grayt.Entity {
 		{
 			Material: white,
 			Surface:  geometry.Plane(back, one),
-		},
-		{
-			Material: white,
-			Surface: geometry.AlignedBox(
-				grayt.Vect(0.1, 0.0, -0.1),
-				grayt.Vect(0.9, 0.1, -0.9),
-			),
 		},
 	}
 }
