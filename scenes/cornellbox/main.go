@@ -37,10 +37,10 @@ var (
 )
 
 var (
-	white = grayt.Material{Color: grayt.White, Emmitance: 0.0}
-	green = grayt.Material{Color: grayt.Green, Emmitance: 0.0}
-	red   = grayt.Material{Color: grayt.Red, Emmitance: 0.0}
-	blue  = grayt.Material{Color: grayt.Blue, Emmitance: 0.0}
+	white = grayt.Material{Colour: grayt.White, Emittance: 0.0}
+	green = grayt.Material{Colour: grayt.Green, Emittance: 0.0}
+	red   = grayt.Material{Colour: grayt.Red, Emittance: 0.0}
+	blue  = grayt.Material{Colour: grayt.Blue, Emittance: 0.0}
 )
 
 func scene() grayt.Scene {
@@ -50,7 +50,7 @@ func scene() grayt.Scene {
 	}}
 	ee = append(ee, box()...)
 	ee = append(ee, grayt.Entity{Material: white, SurfaceFactories: tallBlock()})
-	ee = append(ee, grayt.Entity{Material: white, SurfaceFactorie: shortBlock()})
+	ee = append(ee, grayt.Entity{Material: white, SurfaceFactories: shortBlock()})
 	return grayt.Scene{CameraConfig: cam(), Entities: ee}
 }
 
@@ -69,12 +69,12 @@ func cam() grayt.CameraConfig {
 
 func box() []grayt.Entity {
 	return []grayt.Entity{
-		{Material: white, Entities: []grayt.SurfaceFactory{grayt.Plane{N: up, X: zero}}},
-		{Material: white, Entities: []grayt.SurfaceFactory{grayt.Plane{N: down, X: one}}},
-		{Material: red, Entities: []grayt.SurfaceFactory{grayt.Plane{N: right, X: zero}}},
-		{Material: green, Entities: []grayt.SurfaceFactory{grayt.Plane{N: left, X: one}}},
-		{Material: white, Entities: []grayt.SurfaceFactory{grayt.Plane{N: back, X: one}}},
-		{Material: white, Entities: []grayt.SurfaceFactory{grayt.AlignedBox{Corner1: grayt.Vect(0.1, 0.0, -0.1), Corner2: grayt.Vect(0.9, 0.1, -0.9)}}},
+		{Material: white, SurfaceFactories: []grayt.SurfaceFactory{grayt.Plane{N: up, X: zero}}},
+		{Material: white, SurfaceFactories: []grayt.SurfaceFactory{grayt.Plane{N: down, X: one}}},
+		{Material: red, SurfaceFactories: []grayt.SurfaceFactory{grayt.Plane{N: right, X: zero}}},
+		{Material: green, SurfaceFactories: []grayt.SurfaceFactory{grayt.Plane{N: left, X: one}}},
+		{Material: white, SurfaceFactories: []grayt.SurfaceFactory{grayt.Plane{N: back, X: one}}},
+		{Material: white, SurfaceFactories: []grayt.SurfaceFactory{grayt.AlignedBox{Corner1: grayt.Vect(0.1, 0.0, -0.1), Corner2: grayt.Vect(0.9, 0.1, -0.9)}}},
 	}
 }
 
