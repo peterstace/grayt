@@ -27,13 +27,10 @@ func (r *Runner) Run(scene Scene) {
 	var world World
 	world.AddEntities(scene.Entities)
 
-	camera, err := NewCamera(scene.CameraConfig)
-	r.checkErr(err)
-
 	acc := NewAccumulator(r.PxWide, r.PxHigh)
 	for i := 0; i < int(r.Quality); i++ {
 		log.Print(i)
-		TracerImage(camera, world, acc)
+		TracerImage(scene.Camera, world, acc)
 	}
 	img := acc.ToImage(1.0) // XXX should be configurable
 	f, err := os.Create(r.BaseName + ".png")

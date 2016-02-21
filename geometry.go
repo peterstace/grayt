@@ -25,8 +25,8 @@ type Material struct {
 }
 
 type Scene struct {
-	CameraConfig CameraConfig
-	Entities     []Entity
+	Camera   Camera
+	Entities []Entity
 }
 
 // Entity is a physical object whithin a scene.

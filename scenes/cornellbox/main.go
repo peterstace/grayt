@@ -54,20 +54,19 @@ func scene() grayt.Scene {
 	ee = append(ee, box()...)
 	ee = append(ee, grayt.Entity{Material: white, SurfaceFactories: tallBlock()})
 	ee = append(ee, grayt.Entity{Material: white, SurfaceFactories: shortBlock()})
-	return grayt.Scene{CameraConfig: cam(), Entities: ee}
+	return grayt.Scene{Camera: cam(), Entities: ee}
 }
 
-func cam() grayt.CameraConfig {
+func cam() grayt.Camera {
 	const D = 1.3 // Estimated.
-	return grayt.CameraConfig{
-		Projection:    grayt.Rectilinear,
+	return grayt.NewRectilinearCamera(grayt.CameraConfig{
 		Location:      grayt.Vect(0.5, 0.5, D),
 		ViewDirection: grayt.Vect(0.0, 0.0, -1.0),
 		UpDirection:   up,
 		FieldOfView:   2 * math.Asin(0.5/math.Sqrt(0.25+D*D)),
 		FocalLength:   0.5 + D,
 		FocalRatio:    math.MaxFloat64, //math.Inf(1),
-	}
+	})
 }
 
 func box() []grayt.Entity {
