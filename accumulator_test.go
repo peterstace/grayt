@@ -3,7 +3,7 @@ package grayt
 import "testing"
 
 func TestMean(t *testing.T) {
-	acc := Accumulator{acc: []Colour{
+	acc := accumulator{acc: []Colour{
 		Colour{2, 4, 4},
 		Colour{4, 4, 10},
 		Colour{7, 9, 10},

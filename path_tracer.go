@@ -2,7 +2,7 @@ package grayt
 
 import "math/rand"
 
-func TracerImage(c Camera, w *World, acc Accumulator) {
+func TracerImage(c Camera, w *World, acc accumulator) {
 	pxPitch := 2.0 / float64(acc.wide)
 	for pxX := 0; pxX < acc.wide; pxX++ {
 		for pxY := 0; pxY < acc.high; pxY++ {
