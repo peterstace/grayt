@@ -30,7 +30,7 @@ func (r *Runner) Run(scene Scene) {
 	camera, err := NewCamera(scene.CameraConfig)
 	r.checkErr(err)
 
-	acc := NewAccumulator(r.PxWide, r.PxWide)
+	acc := NewAccumulator(r.PxWide, r.PxHigh)
 	for i := 0; i < int(r.Quality); i++ {
 		log.Print(i)
 		TracerImage(camera, world, acc)

@@ -7,7 +7,10 @@ import (
 )
 
 func main() {
-	grayt.NewRunner().Run(scene())
+	r := grayt.NewRunner()
+	r.PxWide = 800
+	r.PxHigh = 800
+	r.Run(scene())
 }
 
 // Cornell Box
