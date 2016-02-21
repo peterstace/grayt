@@ -1,13 +1,17 @@
-package grayt
+package geometry
 
-import "math"
+import (
+	"math"
+
+	"github.com/peterstace/grayt"
+)
 
 type AlignedBox struct {
-	Corner1, Corner2 Vector
+	Corner1, Corner2 grayt.Vector
 }
 
-func (b AlignedBox) MakeSurfaces() []Surface {
-	return []Surface{
+func (b AlignedBox) MakeSurfaces() []grayt.Surface {
+	return []grayt.Surface{
 		&alignedBox{
 			min: b.Corner1.Min(b.Corner2),
 			max: b.Corner1.Max(b.Corner2),
@@ -16,10 +20,10 @@ func (b AlignedBox) MakeSurfaces() []Surface {
 }
 
 type alignedBox struct {
-	min, max Vector
+	min, max grayt.Vector
 }
 
-func (b *alignedBox) Intersect(r Ray) (Intersection, bool) {
+func (b *alignedBox) Intersect(r grayt.Ray) (grayt.Intersection, bool) {
 
 	tx1 := (b.min.X - r.Start.X) / r.Dir.X
 	tx2 := (b.max.X - r.Start.X) / r.Dir.X
@@ -29,73 +33,73 @@ func (b *alignedBox) Intersect(r Ray) (Intersection, bool) {
 	tz2 := (b.max.Z - r.Start.Z) / r.Dir.Z
 
 	tmin, tmax := math.Inf(-1), math.Inf(+1)
-	var nMin Vector
-	var nMax Vector
+	var nMin grayt.Vector
+	var nMax grayt.Vector
 
 	if math.Min(tx1, tx2) > tmin {
 		if tx1 < tx2 {
 			tmin = tx1
-			nMin = Vector{-1, 0, 0}
+			nMin = grayt.Vector{-1, 0, 0}
 		} else {
 			tmin = tx2
-			nMin = Vector{1, 0, 0}
+			nMin = grayt.Vector{1, 0, 0}
 		}
 	}
 	if math.Max(tx1, tx2) < tmax {
 		if tx1 > tx2 {
 			tmax = tx1
-			nMax = Vector{-1, 0, 0}
+			nMax = grayt.Vector{-1, 0, 0}
 		} else {
 			tmax = tx2
-			nMax = Vector{1, 0, 0}
+			nMax = grayt.Vector{1, 0, 0}
 		}
 	}
 
 	if math.Min(ty1, ty2) > tmin {
 		if ty1 < ty2 && ty1 > 0 {
 			tmin = ty1
-			nMin = Vector{0, -1, 0}
+			nMin = grayt.Vector{0, -1, 0}
 		} else {
 			tmin = ty2
-			nMin = Vector{0, 1, 0}
+			nMin = grayt.Vector{0, 1, 0}
 		}
 	}
 	if math.Max(ty1, ty2) < tmax {
 		if ty1 > ty2 {
 			tmax = ty1
-			nMax = Vector{0, -1, 0}
+			nMax = grayt.Vector{0, -1, 0}
 		} else {
 			tmax = ty2
-			nMax = Vector{0, 1, 0}
+			nMax = grayt.Vector{0, 1, 0}
 		}
 	}
 
 	if math.Min(tz1, tz2) > tmin {
 		if tz1 < tz2 && tz1 > 0 {
 			tmin = tz1
-			nMin = Vector{0, 0, -1}
+			nMin = grayt.Vector{0, 0, -1}
 		} else {
 			tmin = tz2
-			nMin = Vector{0, 0, 1}
+			nMin = grayt.Vector{0, 0, 1}
 		}
 	}
 	if math.Max(tz1, tz2) < tmax {
 		if tz1 > tz2 {
 			tmax = tz1
-			nMax = Vector{0, 0, -1}
+			nMax = grayt.Vector{0, 0, -1}
 		} else {
 			tmax = tz2
-			nMax = Vector{0, 0, 1}
+			nMax = grayt.Vector{0, 0, 1}
 		}
 	}
 
 	if tmin > tmax || tmax <= 0 {
-		return Intersection{}, false
+		return grayt.Intersection{}, false
 	}
 
 	if tmin > 0 {
-		return Intersection{Distance: tmin, UnitNormal: nMin}, true
+		return grayt.Intersection{Distance: tmin, UnitNormal: nMin}, true
 	} else {
-		return Intersection{Distance: tmax, UnitNormal: nMax}, true
+		return grayt.Intersection{Distance: tmax, UnitNormal: nMax}, true
 	}
 }

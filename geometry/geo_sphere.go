@@ -1,22 +1,26 @@
-package grayt
+package geometry
 
-import "math"
+import (
+	"math"
+
+	"github.com/peterstace/grayt"
+)
 
 type Sphere struct {
-	C Vector
+	C grayt.Vector
 	R float64
 }
 
-func (s Sphere) MakeSurfaces() []Surface {
-	return []Surface{&sphere{centre: s.C, radius: s.R}}
+func (s Sphere) MakeSurfaces() []grayt.Surface {
+	return []grayt.Surface{&sphere{centre: s.C, radius: s.R}}
 }
 
 type sphere struct {
-	centre Vector
+	centre grayt.Vector
 	radius float64
 }
 
-func (s *sphere) Intersect(r Ray) (Intersection, bool) {
+func (s *sphere) Intersect(r grayt.Ray) (grayt.Intersection, bool) {
 
 	// Get coeficients to a.x^2 + b.x + c = 0
 	emc := r.Start.Sub(s.centre)
@@ -27,7 +31,7 @@ func (s *sphere) Intersect(r Ray) (Intersection, bool) {
 	// Find discrimenant b*b - 4*a*c
 	disc := b*b - 4*a*c
 	if disc < 0 {
-		return Intersection{}, false
+		return grayt.Intersection{}, false
 	}
 
 	// Find x1 and x2 using a numerically stable algorithm.
@@ -47,5 +51,5 @@ func (s *sphere) Intersect(r Ray) (Intersection, bool) {
 		t = math.Max(x1, x2)
 	}
 
-	return Intersection{r.At(t).Sub(s.centre).Unit(), t}, t > 0
+	return grayt.Intersection{r.At(t).Sub(s.centre).Unit(), t}, t > 0
 }
