@@ -14,10 +14,6 @@ type Surface interface {
 	Intersect(Ray) (Intersection, bool)
 }
 
-type SurfaceFactory interface {
-	MakeSurfaces() []Surface
-}
-
 type Material struct {
 	Colour    Colour
 	Emittance float64
@@ -31,6 +27,6 @@ type Scene struct {
 
 // Entity is a physical object whithin a scene.
 type Entity struct {
-	Material         Material
-	SurfaceFactories []SurfaceFactory
+	Material Material
+	Surface  Surface
 }

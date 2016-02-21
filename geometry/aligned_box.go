@@ -6,16 +6,10 @@ import (
 	"github.com/peterstace/grayt"
 )
 
-type AlignedBox struct {
-	Corner1, Corner2 grayt.Vector
-}
-
-func (b AlignedBox) MakeSurfaces() []grayt.Surface {
-	return []grayt.Surface{
-		&alignedBox{
-			min: b.Corner1.Min(b.Corner2),
-			max: b.Corner1.Max(b.Corner2),
-		},
+func AlignedBox(corner1, corner2 grayt.Vector) grayt.Surface {
+	return &alignedBox{
+		min: corner1.Min(corner2),
+		max: corner1.Max(corner2),
 	}
 }
 
@@ -39,57 +33,57 @@ func (b *alignedBox) Intersect(r grayt.Ray) (grayt.Intersection, bool) {
 	if math.Min(tx1, tx2) > tmin {
 		if tx1 < tx2 {
 			tmin = tx1
-			nMin = grayt.Vector{-1, 0, 0}
+			nMin = grayt.Vect(-1, 0, 0)
 		} else {
 			tmin = tx2
-			nMin = grayt.Vector{1, 0, 0}
+			nMin = grayt.Vect(1, 0, 0)
 		}
 	}
 	if math.Max(tx1, tx2) < tmax {
 		if tx1 > tx2 {
 			tmax = tx1
-			nMax = grayt.Vector{-1, 0, 0}
+			nMax = grayt.Vect(-1, 0, 0)
 		} else {
 			tmax = tx2
-			nMax = grayt.Vector{1, 0, 0}
+			nMax = grayt.Vect(1, 0, 0)
 		}
 	}
 
 	if math.Min(ty1, ty2) > tmin {
 		if ty1 < ty2 && ty1 > 0 {
 			tmin = ty1
-			nMin = grayt.Vector{0, -1, 0}
+			nMin = grayt.Vect(0, -1, 0)
 		} else {
 			tmin = ty2
-			nMin = grayt.Vector{0, 1, 0}
+			nMin = grayt.Vect(0, 1, 0)
 		}
 	}
 	if math.Max(ty1, ty2) < tmax {
 		if ty1 > ty2 {
 			tmax = ty1
-			nMax = grayt.Vector{0, -1, 0}
+			nMax = grayt.Vect(0, -1, 0)
 		} else {
 			tmax = ty2
-			nMax = grayt.Vector{0, 1, 0}
+			nMax = grayt.Vect(0, 1, 0)
 		}
 	}
 
 	if math.Min(tz1, tz2) > tmin {
 		if tz1 < tz2 && tz1 > 0 {
 			tmin = tz1
-			nMin = grayt.Vector{0, 0, -1}
+			nMin = grayt.Vect(0, 0, -1)
 		} else {
 			tmin = tz2
-			nMin = grayt.Vector{0, 0, 1}
+			nMin = grayt.Vect(0, 0, 1)
 		}
 	}
 	if math.Max(tz1, tz2) < tmax {
 		if tz1 > tz2 {
 			tmax = tz1
-			nMax = grayt.Vector{0, 0, -1}
+			nMax = grayt.Vect(0, 0, -1)
 		} else {
 			tmax = tz2
-			nMax = grayt.Vector{0, 0, 1}
+			nMax = grayt.Vect(0, 0, 1)
 		}
 	}
 

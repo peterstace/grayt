@@ -24,8 +24,7 @@ func NewRunner() *Runner {
 
 func (r *Runner) Run(scene Scene) {
 
-	var world World
-	world.AddEntities(scene.Entities)
+	world := NewWorld(scene.Entities)
 
 	acc := NewAccumulator(r.PxWide, r.PxHigh)
 	for i := 0; i < int(r.Quality); i++ {

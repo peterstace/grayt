@@ -2,22 +2,18 @@ package geometry
 
 import "github.com/peterstace/grayt"
 
-type Triangle struct {
-	A, B, C grayt.Vector
-}
-
-func (t Triangle) MakeSurfaces() []grayt.Surface {
-	u := t.B.Sub(t.A)
-	v := t.C.Sub(t.A)
-	return []grayt.Surface{&triangle{
-		a:        t.A,
+func Triangle(a, b, c grayt.Vector) grayt.Surface {
+	u := b.Sub(a)
+	v := c.Sub(a)
+	return &triangle{
+		a:        a,
 		u:        u,
 		v:        v,
 		unitNorm: u.Cross(v).Unit(),
 		dotUV:    u.Dot(v),
 		dotUU:    u.Dot(u),
 		dotVV:    v.Dot(v),
-	}}
+	}
 }
 
 type triangle struct {
@@ -58,5 +54,5 @@ func (t *triangle) Intersect(r grayt.Ray) (grayt.Intersection, bool) {
 	if alpha < 0 || beta < 0 || alpha+beta > 1 {
 		return grayt.Intersection{}, false
 	}
-	return grayt.Intersection{t.unitNorm, h}, true
+	return grayt.Intersection{UnitNormal: t.unitNorm, Distance: h}, true
 }

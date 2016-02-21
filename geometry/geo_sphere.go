@@ -6,13 +6,8 @@ import (
 	"github.com/peterstace/grayt"
 )
 
-type Sphere struct {
-	C grayt.Vector
-	R float64
-}
-
-func (s Sphere) MakeSurfaces() []grayt.Surface {
-	return []grayt.Surface{&sphere{centre: s.C, radius: s.R}}
+func Sphere(centre grayt.Vector, radius float64) grayt.Surface {
+	return &sphere{centre, radius}
 }
 
 type sphere struct {
@@ -51,5 +46,8 @@ func (s *sphere) Intersect(r grayt.Ray) (grayt.Intersection, bool) {
 		t = math.Max(x1, x2)
 	}
 
-	return grayt.Intersection{r.At(t).Sub(s.centre).Unit(), t}, t > 0
+	return grayt.Intersection{
+		UnitNormal: r.At(t).Sub(s.centre).Unit(),
+		Distance:   t,
+	}, t > 0
 }
