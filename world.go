@@ -1,4 +1,4 @@
-package graytlib
+package grayt
 
 type worldEntity struct {
 	Surface  Surface

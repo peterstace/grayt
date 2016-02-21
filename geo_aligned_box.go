@@ -1,4 +1,4 @@
-package graytlib
+package grayt
 
 import (
 	"encoding/json"
