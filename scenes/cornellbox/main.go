@@ -65,7 +65,7 @@ func cam() grayt.Camera {
 		UpDirection:   up,
 		FieldOfView:   2 * math.Asin(0.5/math.Sqrt(0.25+D*D)),
 		FocalLength:   0.5 + D,
-		FocalRatio:    math.MaxFloat64, //math.Inf(1),
+		FocalRatio:    math.Inf(+1),
 	})
 }
 
