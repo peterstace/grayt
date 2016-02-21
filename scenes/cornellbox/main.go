@@ -27,26 +27,26 @@ func main() {
 // T = 2*ARCSINE(0.5/SQRT(0.25 + D^2))
 
 var (
-	up    = grayt.Vect{0.0, 1.0, 0.0}
-	down  = grayt.Vect{0.0, -1.0, 0.0}
-	left  = grayt.Vect{-1.0, 0.0, 0.0}
-	right = grayt.Vect{1.0, 0.0, 0.0}
-	back  = grayt.Vect{0.0, 0.0, 1.0}
-	zero  = grayt.Vect{0.0, 0.0, 0.0}
-	one   = grayt.Vect{1.0, 1.0, -1.0}
+	up    = grayt.Vect(0.0, 1.0, 0.0)
+	down  = grayt.Vect(0.0, -1.0, 0.0)
+	left  = grayt.Vect(-1.0, 0.0, 0.0)
+	right = grayt.Vect(1.0, 0.0, 0.0)
+	back  = grayt.Vect(0.0, 0.0, 1.0)
+	zero  = grayt.Vect(0.0, 0.0, 0.0)
+	one   = grayt.Vect(1.0, 1.0, -1.0)
 )
 
 var (
-	white = grayt.Material{grayt.Colour{1, 1, 1}, 0.0}
-	green = grayt.Material{grayt.Colour{0, 1, 0}, 0.0}
-	red   = grayt.Material{grayt.Colour{1, 0, 0}, 0.0}
-	blue  = grayt.Material{grayt.Colour{0, 0, 1}, 0.0}
+	white = grayt.Material{Color: grayt.Colour{1, 1, 1}, Emmitance: 0.0}
+	green = grayt.Material{Color: grayt.Colour{0, 1, 0}, Emmitance: 0.0}
+	red   = grayt.Material{Color: grayt.Colour{1, 0, 0}, Emmitance: 0.0}
+	blue  = grayt.Material{Color: grayt.Colour{0, 0, 1}, Emmitance: 0.0}
 )
 
 func scene() grayt.Scene {
 	ee := []grayt.Entity{{
 		grayt.Material{grayt.Colour{1, 1, 1}, 5},
-		[]grayt.SurfaceFactory{grayt.Sphere{grayt.Vect{0.5, 1.0, -0.5}, 0.25}},
+		[]grayt.SurfaceFactory{grayt.Sphere{grayt.Vect(0.5, 1.0, -0.5), 0.25}},
 	}}
 	ee = append(ee, box()...)
 	ee = append(ee, grayt.Entity{white, tallBlock()})
@@ -58,8 +58,8 @@ func cam() grayt.CameraConfig {
 	const D = 1.3 // Estimated.
 	return grayt.CameraConfig{
 		Projection:    grayt.Rectilinear,
-		Location:      grayt.Vect{0.5, 0.5, D},
-		ViewDirection: grayt.Vect{0.0, 0.0, -1.0},
+		Location:      grayt.Vect(0.5, 0.5, D),
+		ViewDirection: grayt.Vect(0.0, 0.0, -1.0),
 		UpDirection:   up,
 		FieldOfView:   2 * math.Asin(0.5/math.Sqrt(0.25+D*D)),
 		FocalLength:   0.5 + D,
@@ -74,21 +74,21 @@ func box() []grayt.Entity {
 		{red, []grayt.SurfaceFactory{grayt.Plane{right, zero}}},
 		{green, []grayt.SurfaceFactory{grayt.Plane{left, one}}},
 		{white, []grayt.SurfaceFactory{grayt.Plane{back, one}}},
-		{white, []grayt.SurfaceFactory{grayt.AlignedBox{grayt.Vect{0.1, 0.0, -0.1}, grayt.Vect{0.9, 0.1, -0.9}}}},
+		{white, []grayt.SurfaceFactory{grayt.AlignedBox{grayt.Vect(0.1, 0.0, -0.1), grayt.Vect(0.9, 0.1, -0.9)}}},
 	}
 }
 
 func shortBlock() []grayt.SurfaceFactory {
 	var (
 		// Left/Right, Top/Bottom, Front/Back.
-		LBF = grayt.Vect{0.76, 0.00, -0.12}
-		LBB = grayt.Vect{0.85, 0.00, -0.41}
-		RBF = grayt.Vect{0.47, 0.00, -0.21}
-		RBB = grayt.Vect{0.56, 0.00, -0.49}
-		LTF = grayt.Vect{0.76, 0.30, -0.12}
-		LTB = grayt.Vect{0.85, 0.30, -0.41}
-		RTF = grayt.Vect{0.47, 0.30, -0.21}
-		RTB = grayt.Vect{0.56, 0.30, -0.49}
+		LBF = grayt.Vect(0.76, 0.00, -0.12)
+		LBB = grayt.Vect(0.85, 0.00, -0.41)
+		RBF = grayt.Vect(0.47, 0.00, -0.21)
+		RBB = grayt.Vect(0.56, 0.00, -0.49)
+		LTF = grayt.Vect(0.76, 0.30, -0.12)
+		LTB = grayt.Vect(0.85, 0.30, -0.41)
+		RTF = grayt.Vect(0.47, 0.30, -0.21)
+		RTB = grayt.Vect(0.56, 0.30, -0.49)
 	)
 	return []grayt.SurfaceFactory{
 		grayt.Square{LTF, LTB, RTB, RTF},
@@ -102,14 +102,14 @@ func shortBlock() []grayt.SurfaceFactory {
 func tallBlock() []grayt.SurfaceFactory {
 	var (
 		// Left/Right, Top/Bottom, Front/Back.
-		LBF = grayt.Vect{0.52, 0.00, -0.54}
-		LBB = grayt.Vect{0.43, 0.00, -0.83}
-		RBF = grayt.Vect{0.23, 0.00, -0.45}
-		RBB = grayt.Vect{0.14, 0.00, -0.74}
-		LTF = grayt.Vect{0.52, 0.60, -0.54}
-		LTB = grayt.Vect{0.43, 0.60, -0.83}
-		RTF = grayt.Vect{0.23, 0.60, -0.45}
-		RTB = grayt.Vect{0.14, 0.60, -0.74}
+		LBF = grayt.Vect(0.52, 0.00, -0.54)
+		LBB = grayt.Vect(0.43, 0.00, -0.83)
+		RBF = grayt.Vect(0.23, 0.00, -0.45)
+		RBB = grayt.Vect(0.14, 0.00, -0.74)
+		LTF = grayt.Vect(0.52, 0.60, -0.54)
+		LTB = grayt.Vect(0.43, 0.60, -0.83)
+		RTF = grayt.Vect(0.23, 0.60, -0.45)
+		RTB = grayt.Vect(0.14, 0.60, -0.74)
 	)
 	return []grayt.SurfaceFactory{
 		grayt.Square{LTF, LTB, RTB, RTF},

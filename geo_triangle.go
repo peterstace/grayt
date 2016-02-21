@@ -1,19 +1,7 @@
 package grayt
 
-import "encoding/json"
-
-const triangleT = "triangle"
-
 type Triangle struct {
-	A, B, C Vect
-}
-
-func (t Triangle) MarshalJSON() ([]byte, error) {
-	type alias Triangle
-	return json.Marshal(struct {
-		Type string
-		alias
-	}{triangleT, alias(t)})
+	A, B, C Vector
 }
 
 func (t Triangle) MakeSurfaces() []Surface {
@@ -31,8 +19,8 @@ func (t Triangle) MakeSurfaces() []Surface {
 }
 
 type triangle struct {
-	a, u, v             Vect // Corner A, A to B, and A to C.
-	unitNorm            Vect
+	a, u, v             Vector // Corner A, A to B, and A to C.
+	unitNorm            Vector
 	dotUV, dotUU, dotVV float64 // Precomputed dot products.
 }
 

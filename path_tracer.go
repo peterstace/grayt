@@ -43,14 +43,14 @@ func tracePath(w World, r Ray) Colour {
 
 	// Orient the unit normal towards the ray origin.
 	if intersection.UnitNormal.Dot(r.Dir) > 0 {
-		intersection.UnitNormal = intersection.UnitNormal.Extended(-1.0)
+		intersection.UnitNormal = intersection.UnitNormal.Scale(-1.0)
 	}
 
 	// Create a random vector on the hemisphere towards the normal.
-	rnd := Vect{rand.NormFloat64(), rand.NormFloat64(), rand.NormFloat64()}
+	rnd := Vector{rand.NormFloat64(), rand.NormFloat64(), rand.NormFloat64()}
 	rnd = rnd.Unit()
 	if rnd.Dot(intersection.UnitNormal) < 0 {
-		rnd = rnd.Extended(-1.0)
+		rnd = rnd.Scale(-1.0)
 	}
 
 	// Apply the BRDF (bidirectional reflection distribution function).

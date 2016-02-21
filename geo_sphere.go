@@ -1,23 +1,10 @@
 package grayt
 
-import (
-	"encoding/json"
-	"math"
-)
-
-const sphereT = "sphere"
+import "math"
 
 type Sphere struct {
-	C Vect
+	C Vector
 	R float64
-}
-
-func (s Sphere) MarshalJSON() ([]byte, error) {
-	type alias Sphere
-	return json.Marshal(struct {
-		Type string
-		alias
-	}{sphereT, alias(s)})
 }
 
 func (s Sphere) MakeSurfaces() []Surface {
@@ -25,7 +12,7 @@ func (s Sphere) MakeSurfaces() []Surface {
 }
 
 type sphere struct {
-	centre Vect
+	centre Vector
 	radius float64
 }
 
@@ -33,9 +20,9 @@ func (s *sphere) Intersect(r Ray) (Intersection, bool) {
 
 	// Get coeficients to a.x^2 + b.x + c = 0
 	emc := r.Start.Sub(s.centre)
-	a := r.Dir.Length2()
+	a := r.Dir.LengthSq()
 	b := 2 * emc.Dot(r.Dir)
-	c := emc.Length2() - s.radius*s.radius
+	c := emc.LengthSq() - s.radius*s.radius
 
 	// Find discrimenant b*b - 4*a*c
 	disc := b*b - 4*a*c

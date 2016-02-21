@@ -1,8 +1,6 @@
 package grayt
 
 import (
-	"encoding/json"
-	"fmt"
 	"image/color"
 	"math"
 )
@@ -66,25 +64,6 @@ func (c Colour) ToNRGBA() color.NRGBA {
 		B: float64ToUint8(c.B),
 		A: 0xff,
 	}
-}
-
-func (c *Colour) UnmarshalJSON(p []byte) error {
-	var record []float64
-	if err := json.Unmarshal(p, &record); err != nil {
-		return err
-	}
-	if len(record) != 3 {
-		return fmt.Errorf("cannot marshal array of size %d into Go value of type grayt.Colour",
-			len(record))
-	}
-	c.R = record[0]
-	c.G = record[1]
-	c.B = record[2]
-	return nil
-}
-
-func (c Colour) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf("[%g,%g,%g]", c.R, c.G, c.B)), nil
 }
 
 func float64ToUint8(f float64) uint8 {
