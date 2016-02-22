@@ -29,7 +29,7 @@ func (r *Runner) Run(scene Scene) {
 	acc := newAccumulator(r.PxWide, r.PxHigh)
 	for i := 0; i < int(r.Quality); i++ {
 		log.Print(i)
-		TracerImage(scene.Camera, world, acc)
+		TraceImage(scene.Camera, world, acc)
 	}
 	img := acc.toImage(1.0) // XXX should be configurable
 	f, err := os.Create(r.BaseName + ".png")
