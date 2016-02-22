@@ -12,6 +12,7 @@ func main() {
 	r.PxWide = 320
 	r.PxHigh = 320
 	r.Quality = 100
+	r.BaseName = "CornellBox"
 	r.Run(scene())
 }
 
