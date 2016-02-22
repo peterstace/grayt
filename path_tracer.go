@@ -2,7 +2,7 @@ package grayt
 
 import "math/rand"
 
-func TracerImage(c Camera, w *World, acc accumulator) {
+func TraceImage(c Camera, w *world, acc accumulator) {
 	pxPitch := 2.0 / float64(acc.wide)
 	for pxX := 0; pxX < acc.wide; pxX++ {
 		for pxY := 0; pxY < acc.high; pxY++ {
@@ -18,7 +18,7 @@ func TracerImage(c Camera, w *World, acc accumulator) {
 	}
 }
 
-func tracePath(w *World, r Ray) Colour {
+func tracePath(w *world, r Ray) Colour {
 
 	intersection, material := w.closestHit(r)
 	if material == nil {

@@ -1,14 +1,14 @@
 package grayt
 
-type World struct {
+type world struct {
 	entities []Entity
 }
 
-func NewWorld(entities []Entity) *World {
-	return &World{entities}
+func newWorld(entities []Entity) *world {
+	return &world{entities}
 }
 
-func (w *World) closestHit(r Ray) (Intersection, *Material) {
+func (w *world) closestHit(r Ray) (Intersection, *Material) {
 	var closest struct {
 		Intersection Intersection
 		Material     *Material
