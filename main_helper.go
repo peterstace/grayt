@@ -23,16 +23,8 @@ func NewRunner() *Runner {
 	}
 }
 
-func (r *Runner) Run(scene Scene) {
-
-	world := newWorld(scene.Entities)
-
-	acc := newAccumulator(r.PxWide, r.PxHigh)
-	for i := 0; i < r.Quality; i++ {
-		log.Print(i)
-		TraceImage(scene.Camera, world, acc)
-	}
-	img := acc.toImage(1.0) // XXX should be configurable
+func (r *Runner) Run(s Scene) {
+	img := TraceImage(r.PxWide, r.PxHigh, s, r.Quality)
 	f, err := os.Create(r.outputFilename())
 	r.checkErr(err)
 	defer f.Close()

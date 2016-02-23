@@ -1,21 +1,29 @@
 package grayt
 
-import "math/rand"
+import (
+	"image"
+	"log"
+	"math/rand"
+)
 
-func TraceImage(c Camera, w *world, acc accumulator) {
-	pxPitch := 2.0 / float64(acc.wide)
-	for pxX := 0; pxX < acc.wide; pxX++ {
-		for pxY := 0; pxY < acc.high; pxY++ {
-			//if pxX != 140 || pxY != 40 {
-			//	continue
-			//}
-			x := (float64(pxX-acc.wide/2) + rand.Float64()) * pxPitch
-			y := (float64(pxY-acc.high/2) + rand.Float64()) * pxPitch * -1.0
-			r := c.MakeRay(x, y)
-			r.Dir = r.Dir.Unit()
-			acc.add(pxX, pxY, tracePath(w, r))
+func TraceImage(pxHigh, pxWide int, s Scene, quality int) image.Image {
+
+	w := newWorld(s.Entities)
+	acc := newAccumulator(pxHigh, pxWide)
+	pxPitch := 2.0 / float64(pxWide)
+	for i := 0; i < quality; i++ {
+		log.Println(i)
+		for pxX := 0; pxX < pxWide; pxX++ {
+			for pxY := 0; pxY < pxHigh; pxY++ {
+				x := (float64(pxX-pxWide/2) + rand.Float64()) * pxPitch
+				y := (float64(pxY-pxHigh/2) + rand.Float64()) * pxPitch * -1.0
+				r := s.Camera.MakeRay(x, y)
+				r.Dir = r.Dir.Unit()
+				acc.add(pxX, pxY, tracePath(w, r))
+			}
 		}
 	}
+	return acc.toImage(1.0)
 }
 
 func tracePath(w *world, r Ray) Colour {

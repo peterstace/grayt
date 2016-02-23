@@ -34,10 +34,6 @@ func (a accumulator) mean() float64 {
 	return sum / float64(len(a.acc)) / 3.0
 }
 
-func (a accumulator) dimensions() (pxHigh, pxWide int) {
-	return a.wide, a.high
-}
-
 // ToImage converts the accumulator into an image. Exposure controls how bright
 // the arithmetic mean brightness in the image is. A value of 1.0 results in a
 // mean brightness half way between black and white.
