@@ -39,20 +39,20 @@ func (s *strategy) traceImage(pxHigh, pxWide int, scene Scene, quality int) imag
 			var samplesDelta int
 			samplesDelta, samples = newSamples-samples, newSamples
 			throughput := float64(samplesDelta) / nowDelta.Seconds()
-			const alpha = 0.01
+			const alpha = 0.1
 			throughputSmoothed = throughputSmoothed*(1.0-alpha) + throughput*alpha
 
-			elapsed := time.Now().Sub(start)
-			elapsed = time.Nanosecond * time.Duration(elapsed.Nanoseconds()/1e7*1e7)
-
-			fmt.Printf("\x1b[1G\x1b[2K %10s %10f", elapsed, throughputSmoothed)
+			stats{
+				elapsed:    time.Nanosecond * time.Duration(time.Now().Sub(start).Nanoseconds()/1e7*1e7),
+				throughput: throughputSmoothed,
+			}.display()
 
 			if final {
 				fmt.Printf("\nDone.\n")
 				done <- struct{}{}
 				return
 			}
-			time.Sleep(10 * time.Millisecond)
+			time.Sleep(100 * time.Millisecond)
 		}
 	}()
 
@@ -74,4 +74,15 @@ func (s *strategy) traceImage(pxHigh, pxWide int, scene Scene, quality int) imag
 	<-done
 
 	return acc.toImage(1.0)
+}
+
+type stats struct {
+	elapsed    time.Duration
+	throughput float64
+}
+
+func (s stats) display() {
+	fmt.Print("\x1b[1G") // Move to column 1.
+	fmt.Print("\x1b[2K") // Clear line.
+	fmt.Printf("%v %v", s.elapsed, s.throughput)
 }
