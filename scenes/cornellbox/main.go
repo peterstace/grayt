@@ -11,7 +11,7 @@ func main() {
 	r := grayt.NewRunner()
 	r.PxWide = 160
 	r.PxHigh = 160
-	r.Quality = 3200
+	r.Quality = 100
 	r.BaseName = "CornellBox"
 	r.Run(scene())
 }

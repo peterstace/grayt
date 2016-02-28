@@ -1,8 +1,8 @@
 package grayt
 
 import (
+	"fmt"
 	"image"
-	"log"
 	"math/rand"
 	"time"
 )
@@ -39,15 +39,16 @@ func (s *strategy) traceImage(pxHigh, pxWide int, scene Scene, quality int) imag
 			var samplesDelta int
 			samplesDelta, samples = newSamples-samples, newSamples
 			throughput := float64(samplesDelta) / nowDelta.Seconds()
-			const alpha = 0.001
+			const alpha = 0.01
 			throughputSmoothed = throughputSmoothed*(1.0-alpha) + throughput*alpha
 
 			elapsed := time.Now().Sub(start)
 			elapsed = time.Nanosecond * time.Duration(elapsed.Nanoseconds()/1e7*1e7)
 
-			log.Printf("%10s %10f\n", elapsed, throughputSmoothed)
+			fmt.Printf("\x1b[1G\x1b[2K %10s %10f", elapsed, throughputSmoothed)
+
 			if final {
-				log.Print("Done.")
+				fmt.Printf("\nDone.\n")
 				done <- struct{}{}
 				return
 			}
