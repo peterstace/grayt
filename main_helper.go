@@ -24,7 +24,8 @@ func NewRunner() *Runner {
 }
 
 func (r *Runner) Run(s Scene) {
-	img := TraceImage(r.PxWide, r.PxHigh, s, r.Quality)
+	strat := strategy{}
+	img := strat.traceImage(r.PxWide, r.PxHigh, s, r.Quality)
 	f, err := os.Create(r.outputFilename())
 	r.checkErr(err)
 	defer f.Close()
