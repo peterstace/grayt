@@ -12,24 +12,46 @@ type strategy struct {
 
 func (s *strategy) traceImage(pxHigh, pxWide int, scene Scene, quality int) image.Image {
 
+	start := time.Now()
+
 	acc := newAccumulator(pxHigh, pxWide)
 
 	done := make(chan struct{})
 	go func() {
+
 		final := false
+
+		var throughputSmoothed float64
+		samples := 0
+		now := time.Now()
+
 		for {
 			select {
 			case <-done:
 				final = true
 			default:
 			}
-			log.Printf("%4.1f%%\n", float64(acc.getTotal())/float64(quality*pxWide*pxHigh)*100)
+
+			var nowDelta time.Duration
+			newNow := time.Now()
+			nowDelta, now = newNow.Sub(now), newNow
+			newSamples := acc.getTotal()
+			var samplesDelta int
+			samplesDelta, samples = newSamples-samples, newSamples
+			throughput := float64(samplesDelta) / nowDelta.Seconds()
+			const alpha = 0.001
+			throughputSmoothed = throughputSmoothed*(1.0-alpha) + throughput*alpha
+
+			elapsed := time.Now().Sub(start)
+			elapsed = time.Nanosecond * time.Duration(elapsed.Nanoseconds()/1e7*1e7)
+
+			log.Printf("%10s %10f\n", elapsed, throughputSmoothed)
 			if final {
 				log.Print("Done.")
 				done <- struct{}{}
 				return
 			}
-			time.Sleep(time.Second)
+			time.Sleep(10 * time.Millisecond)
 		}
 	}()
 
