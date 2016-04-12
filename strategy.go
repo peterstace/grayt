@@ -84,5 +84,42 @@ type stats struct {
 func (s stats) display() {
 	fmt.Print("\x1b[1G") // Move to column 1.
 	fmt.Print("\x1b[2K") // Clear line.
-	fmt.Printf("%v %v", s.elapsed, s.throughput)
+	fmt.Printf(
+		"Duration: %s Throughput: %s samples/sec",
+		displayDuration(s.elapsed), displayFloat64(s.throughput),
+	)
+}
+
+func displayFloat64(f float64) string {
+
+	var thousands int
+
+	for f >= 1000 {
+		f /= 1000
+		thousands++
+	}
+
+	suffix := [...]byte{' ', 'K', 'M', 'T', 'P', 'Y'}[thousands]
+
+	if f < 10 {
+		// 9.999K
+		return fmt.Sprintf("%.3f%c", f, suffix)
+	} else if f < 100 {
+		// 99.99K
+		return fmt.Sprintf("%.2f%c", f, suffix)
+	} else if f < 1000 {
+		// 999.9K
+		return fmt.Sprintf("%.1f%c", f, suffix)
+	}
+	return fmt.Sprintf("%f", f)
+}
+
+func displayDuration(d time.Duration) string {
+	h := d / time.Hour
+	m := (d - h*time.Hour) / time.Minute
+	s := (d - h*time.Hour - m*time.Minute) / time.Second
+	return fmt.Sprintf(
+		"%d%d:%d%d:%d%d",
+		h/10, h%10, m/10, m%10, s/10, s%10,
+	)
 }
