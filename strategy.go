@@ -99,7 +99,7 @@ func displayFloat64(f float64) string {
 		thousands++
 	}
 
-	suffix := [...]byte{' ', 'K', 'M', 'T', 'P', 'Y'}[thousands]
+	suffix := [...]byte{' ', 'k', 'M', 'T', 'P', 'E'}[thousands]
 
 	if f < 10 {
 		// 9.999K
