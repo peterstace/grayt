@@ -21,14 +21,17 @@ func (s *strategy) traceImage(pxHigh, pxWide int, scene Scene, quality int) imag
 	go func() {
 		total := uint64(pxWide * pxHigh * quality)
 		for {
+			var exit bool
 			select {
 			case <-done:
-				cli.update(atomic.LoadUint64(&completed), total)
+				exit = true
+			case <-time.After(100 * time.Millisecond):
+			}
+			cli.update(atomic.LoadUint64(&completed), total)
+			if exit {
 				cli.done()
 				done <- struct{}{}
 				return
-			case <-time.After(100 * time.Millisecond):
-				cli.update(atomic.LoadUint64(&completed), total)
 			}
 		}
 	}()
