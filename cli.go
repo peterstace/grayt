@@ -5,10 +5,12 @@ import (
 	"time"
 )
 
+const cliUpdatePeriod = 100 * time.Millisecond
+
 type cli struct {
 	firstDisplay bool
 
-	start time.Time
+	elapsed time.Duration
 
 	lastUpdate    time.Time
 	lastCompleted uint64
@@ -18,12 +20,15 @@ type cli struct {
 
 func newCLI() *cli {
 	now := time.Now()
-	return &cli{true, now, now, 0, 0.0}
+	return &cli{true, 0, now, 0, 0.0}
 }
 
 func (c *cli) update(completed, total uint64) {
 
 	now := time.Now()
+	if now.Sub(c.lastUpdate) < 2*cliUpdatePeriod {
+		c.elapsed += now.Sub(c.lastUpdate)
+	}
 
 	// Calculate progress.
 	progress := float64(completed) / float64(total) * 100
@@ -57,7 +62,7 @@ func (c *cli) update(completed, total uint64) {
 			"Progress:   %.2f%%\n"+
 			"Throughput: %s samples/sec\n"+
 			"ETA:        %s\n",
-		displayDuration(now.Sub(c.start)),
+		displayDuration(c.elapsed),
 		progress, displayFloat64(c.throughputSmoothed),
 		displayDuration(etaDuration),
 	)

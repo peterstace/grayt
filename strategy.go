@@ -28,7 +28,7 @@ func (s *strategy) traceImage(pxHigh, pxWide int, scene Scene, quality int) imag
 			select {
 			case <-done:
 				exit = true
-			case <-time.After(100 * time.Millisecond):
+			case <-time.After(cliUpdatePeriod):
 			}
 			cli.update(atomic.LoadUint64(&completed), total)
 			if exit {
