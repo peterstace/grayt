@@ -90,36 +90,4 @@ func (s stats) display() {
 	)
 }
 
-func displayFloat64(f float64) string {
-
-	var thousands int
-
-	for f >= 1000 {
-		f /= 1000
-		thousands++
-	}
-
-	suffix := [...]byte{' ', 'k', 'M', 'T', 'P', 'E'}[thousands]
-
-	if f < 10 {
-		// 9.999K
-		return fmt.Sprintf("%.3f%c", f, suffix)
-	} else if f < 100 {
-		// 99.99K
-		return fmt.Sprintf("%.2f%c", f, suffix)
-	} else if f < 1000 {
-		// 999.9K
-		return fmt.Sprintf("%.1f%c", f, suffix)
-	}
-	return fmt.Sprintf("%f", f)
-}
-
-func displayDuration(d time.Duration) string {
-	h := d / time.Hour
-	m := (d - h*time.Hour) / time.Minute
-	s := (d - h*time.Hour - m*time.Minute) / time.Second
-	return fmt.Sprintf(
-		"%d%d:%d%d:%d%d",
-		h/10, h%10, m/10, m%10, s/10, s%10,
-	)
-}
+// TODO: Also output some kind of meta file about the image that was generated?
