@@ -1,9 +1,9 @@
 package grayt
 
 import (
-	"fmt"
 	"image"
 	"math/rand"
+	"sync/atomic"
 	"time"
 )
 
@@ -12,47 +12,24 @@ type strategy struct {
 
 func (s *strategy) traceImage(pxHigh, pxWide int, scene Scene, quality int) image.Image {
 
-	start := time.Now()
-
 	acc := newAccumulator(pxHigh, pxWide)
 
+	var completed uint64 // MUST only be used atomically.
+
+	cli := newCLI()
 	done := make(chan struct{})
 	go func() {
-
-		final := false
-
-		var throughputSmoothed float64
-		samples := 0
-		now := time.Now()
-
+		total := uint64(pxWide * pxHigh * quality)
 		for {
 			select {
 			case <-done:
-				final = true
-			default:
-			}
-
-			var nowDelta time.Duration
-			newNow := time.Now()
-			nowDelta, now = newNow.Sub(now), newNow
-			newSamples := acc.getTotal()
-			var samplesDelta int
-			samplesDelta, samples = newSamples-samples, newSamples
-			throughput := float64(samplesDelta) / nowDelta.Seconds()
-			const alpha = 0.1
-			throughputSmoothed = throughputSmoothed*(1.0-alpha) + throughput*alpha
-
-			stats{
-				elapsed:    time.Nanosecond * time.Duration(time.Now().Sub(start).Nanoseconds()/1e7*1e7),
-				throughput: throughputSmoothed,
-			}.display()
-
-			if final {
-				fmt.Printf("\nDone.\n")
+				cli.update(atomic.LoadUint64(&completed), total)
+				cli.done()
 				done <- struct{}{}
 				return
+			case <-time.After(100 * time.Millisecond):
+				cli.update(atomic.LoadUint64(&completed), total)
 			}
-			time.Sleep(100 * time.Millisecond)
 		}
 	}()
 
@@ -66,28 +43,14 @@ func (s *strategy) traceImage(pxHigh, pxWide int, scene Scene, quality int) imag
 				r := scene.Camera.MakeRay(x, y)
 				r.Dir = r.Dir.Unit()
 				acc.add(pxX, pxY, tracePath(w, r))
+				atomic.AddUint64(&completed, 1)
 			}
 		}
 	}
-
 	done <- struct{}{}
 	<-done
 
 	return acc.toImage(1.0)
-}
-
-type stats struct {
-	elapsed    time.Duration
-	throughput float64
-}
-
-func (s stats) display() {
-	fmt.Print("\x1b[1G") // Move to column 1.
-	fmt.Print("\x1b[2K") // Clear line.
-	fmt.Printf(
-		"Duration: %s Throughput: %s samples/sec",
-		displayDuration(s.elapsed), displayFloat64(s.throughput),
-	)
 }
 
 // TODO: Also output some kind of meta file about the image that was generated?

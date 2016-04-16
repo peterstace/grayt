@@ -5,6 +5,57 @@ import (
 	"time"
 )
 
+type cli struct {
+	start time.Time
+
+	lastUpdate    time.Time
+	lastCompleted uint64
+
+	throughputSmoothed float64 // Completed per second.
+}
+
+func newCLI() *cli {
+	now := time.Now()
+	return &cli{now, now, 0, 0.0}
+}
+
+func (c *cli) update(completed, total uint64) {
+
+	now := time.Now()
+
+	// Calculate progress.
+	progress := float64(completed) / float64(total) * 100
+
+	// Calculate throughput.
+	nowDelta := now.Sub(c.lastUpdate)
+	completedDelta := completed - c.lastCompleted
+	throughput := float64(completedDelta) / nowDelta.Seconds()
+	const alpha = 0.001
+	if c.throughputSmoothed == 0.0 {
+		c.throughputSmoothed = throughput
+	} else {
+		c.throughputSmoothed = c.throughputSmoothed*(1.0-alpha) + throughput*alpha
+	}
+
+	// TODO: Time elapsed.
+	// TODO: Estimated time remaining.
+
+	// Display the output.
+	fmt.Print("\x1b[1G") // Move to column 1.
+	fmt.Print("\x1b[2K") // Clear line.
+	fmt.Printf(
+		"Progress:%6.2f%% Throughput: %s samples/sec",
+		progress, displayFloat64(c.throughputSmoothed),
+	)
+
+	c.lastUpdate = now
+	c.lastCompleted = completed
+}
+
+func (c cli) done() {
+	fmt.Printf("\nDone.\n")
+}
+
 func displayFloat64(f float64) string {
 
 	var thousands int
