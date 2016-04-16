@@ -37,15 +37,17 @@ func (c *cli) update(completed, total uint64) {
 		c.throughputSmoothed = c.throughputSmoothed*(1.0-alpha) + throughput*alpha
 	}
 
-	// TODO: Time elapsed.
-	// TODO: Estimated time remaining.
+	// Calculate ETA.
+	remaining := total - completed
+	etaSec := float64(remaining) / c.throughputSmoothed
+	etaDuration := time.Duration(etaSec*1e9) * time.Nanosecond
 
 	// Display the output.
 	fmt.Print("\x1b[1G") // Move to column 1.
 	fmt.Print("\x1b[2K") // Clear line.
 	fmt.Printf(
-		"Elapsed: %s Progress:%6.2f%% Throughput: %s samples/sec",
-		displayDuration(now.Sub(c.start)), progress, displayFloat64(c.throughputSmoothed),
+		"Elapsed: %s Progress:%6.2f%% Throughput: %s samples/sec ETA: %s",
+		displayDuration(now.Sub(c.start)), progress, displayFloat64(c.throughputSmoothed), displayDuration(etaDuration),
 	)
 
 	c.lastUpdate = now
