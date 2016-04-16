@@ -6,6 +6,8 @@ import (
 )
 
 type cli struct {
+	firstDisplay bool
+
 	start time.Time
 
 	lastUpdate    time.Time
@@ -16,7 +18,7 @@ type cli struct {
 
 func newCLI() *cli {
 	now := time.Now()
-	return &cli{now, now, 0, 0.0}
+	return &cli{true, now, now, 0, 0.0}
 }
 
 func (c *cli) update(completed, total uint64) {
@@ -43,12 +45,21 @@ func (c *cli) update(completed, total uint64) {
 	etaDuration := time.Duration(etaSec*1e9) * time.Nanosecond
 
 	// Display the output.
-	fmt.Print("\x1b[1G") // Move to column 1.
-	fmt.Print("\x1b[2K") // Clear line.
+	if !c.firstDisplay {
+		fmt.Print("\x1b[1G") // Move to column 1.
+		for i := 0; i < 4; i++ {
+			fmt.Print("\x1b[1A") // Move up.
+			fmt.Print("\x1b[2K") // Clear line.
+		}
+	}
 	fmt.Printf(
-		"Elapsed: %s Progress:%6.2f%% Throughput: %s samples/sec ETA: %s",
+		"Elapsed:    %s\n"+
+			"Progress:   %.2f%%\n"+
+			"Throughput: %s samples/sec\n"+
+			"ETA:        %s\n",
 		displayDuration(now.Sub(c.start)), progress, displayFloat64(c.throughputSmoothed), displayDuration(etaDuration),
 	)
+	c.firstDisplay = false
 
 	c.lastUpdate = now
 	c.lastCompleted = completed
