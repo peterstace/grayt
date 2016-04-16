@@ -44,8 +44,8 @@ func (c *cli) update(completed, total uint64) {
 	fmt.Print("\x1b[1G") // Move to column 1.
 	fmt.Print("\x1b[2K") // Clear line.
 	fmt.Printf(
-		"Progress:%6.2f%% Throughput: %s samples/sec",
-		progress, displayFloat64(c.throughputSmoothed),
+		"Elapsed: %s Progress:%6.2f%% Throughput: %s samples/sec",
+		displayDuration(now.Sub(c.start)), progress, displayFloat64(c.throughputSmoothed),
 	)
 
 	c.lastUpdate = now
