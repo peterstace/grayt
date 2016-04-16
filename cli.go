@@ -57,7 +57,9 @@ func (c *cli) update(completed, total uint64) {
 			"Progress:   %.2f%%\n"+
 			"Throughput: %s samples/sec\n"+
 			"ETA:        %s\n",
-		displayDuration(now.Sub(c.start)), progress, displayFloat64(c.throughputSmoothed), displayDuration(etaDuration),
+		displayDuration(now.Sub(c.start)),
+		progress, displayFloat64(c.throughputSmoothed),
+		displayDuration(etaDuration),
 	)
 	c.firstDisplay = false
 
