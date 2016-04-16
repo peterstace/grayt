@@ -14,8 +14,11 @@ func (s *strategy) traceImage(pxHigh, pxWide int, scene Scene, quality int) imag
 
 	acc := newAccumulator(pxHigh, pxWide)
 
-	var completed uint64 // MUST only be used atomically.
+	// MUST only be used atomically, since it's shared by 2 goroutines - the
+	// tracing goroutine and the CLI goroutine.
+	var completed uint64
 
+	// Update the CLI (in a separate goroutine).
 	cli := newCLI()
 	done := make(chan struct{})
 	go func() {
@@ -36,6 +39,7 @@ func (s *strategy) traceImage(pxHigh, pxWide int, scene Scene, quality int) imag
 		}
 	}()
 
+	// Trace the image.
 	w := newWorld(scene.Entities)
 	pxPitch := 2.0 / float64(pxWide)
 	for i := 0; i < quality; i++ {
@@ -50,6 +54,8 @@ func (s *strategy) traceImage(pxHigh, pxWide int, scene Scene, quality int) imag
 			}
 		}
 	}
+
+	// Tell the CLI to finish, then wait for its reply.
 	done <- struct{}{}
 	<-done
 
