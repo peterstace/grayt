@@ -9,9 +9,9 @@ import (
 type strategy struct {
 }
 
-func (s *strategy) traceImage(pxHigh, pxWide int, scene Scene, quality int) image.Image {
+func (s *strategy) traceImage(pxWide, pxHigh int, scene Scene, quality int) image.Image {
 
-	acc := newAccumulator(pxHigh, pxWide)
+	acc := newAccumulator(pxWide, pxHigh)
 
 	// MUST only be used atomically, since it's shared by 2 goroutines - the
 	// tracing goroutine and the CLI goroutine.

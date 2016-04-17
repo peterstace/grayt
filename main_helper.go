@@ -4,8 +4,14 @@ import (
 	"fmt"
 	"image/png"
 	"log"
+	"math/rand"
 	"os"
+	"time"
 )
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 // Runner is a convenience struct to help run grayt from a main() function.
 type Runner struct {
