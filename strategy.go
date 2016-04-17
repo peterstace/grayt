@@ -42,9 +42,9 @@ func (s *strategy) traceImage(pxHigh, pxWide int, scene Scene, quality int) imag
 	// Trace the image.
 	w := newWorld(scene.Entities)
 	pxPitch := 2.0 / float64(pxWide)
-	for i := 0; i < quality; i++ {
-		for pxX := 0; pxX < pxWide; pxX++ {
-			for pxY := 0; pxY < pxHigh; pxY++ {
+	for pxX := 0; pxX < pxWide; pxX++ {
+		for pxY := 0; pxY < pxHigh; pxY++ {
+			for i := 0; i < quality; i++ {
 				x := (float64(pxX-pxWide/2) + rand.Float64()) * pxPitch
 				y := (float64(pxY-pxHigh/2) + rand.Float64()) * pxPitch * -1.0
 				r := scene.Camera.MakeRay(x, y)
