@@ -2,6 +2,7 @@ package grayt
 
 import (
 	"fmt"
+	"sync/atomic"
 	"time"
 )
 
@@ -16,22 +17,50 @@ type cli struct {
 	lastCompleted uint64
 
 	throughputSmoothed float64 // Completed per second.
+
+	total     uint64
+	completed *uint64 // MUST only be read from atomically.
+
+	done chan struct{}
 }
 
-func newCLI() *cli {
+func newCLI(total uint64, completed *uint64) *cli {
 	now := time.Now()
-	return &cli{true, 0, now, 0, 0.0}
+	c := &cli{true, 0, now, 0, 0.0, total, completed, make(chan struct{})}
+	go func() {
+		for {
+			var exit bool
+			select {
+			case <-c.done:
+				exit = true
+			case <-time.After(cliUpdatePeriod):
+			}
+			c.update()
+			if exit {
+				c.done <- struct{}{}
+				return
+			}
+		}
+	}()
+	return c
 }
 
-func (c *cli) update(completed, total uint64) {
+func (c *cli) finish() {
+	c.done <- struct{}{}
+	<-c.done
+}
+
+func (c *cli) update() {
 
 	now := time.Now()
 	if now.Sub(c.lastUpdate) < 2*cliUpdatePeriod {
 		c.elapsed += now.Sub(c.lastUpdate)
 	}
 
+	completed := atomic.LoadUint64(c.completed)
+
 	// Calculate progress.
-	progress := float64(completed) / float64(total) * 100
+	progress := float64(completed) / float64(c.total) * 100
 
 	// Calculate throughput.
 	nowDelta := now.Sub(c.lastUpdate)
@@ -45,7 +74,7 @@ func (c *cli) update(completed, total uint64) {
 	}
 
 	// Calculate ETA.
-	remaining := total - completed
+	remaining := c.total - completed
 	etaSec := float64(remaining) / c.throughputSmoothed
 	etaDuration := time.Duration(etaSec*1e9) * time.Nanosecond
 
@@ -70,10 +99,6 @@ func (c *cli) update(completed, total uint64) {
 
 	c.lastUpdate = now
 	c.lastCompleted = completed
-}
-
-func (c cli) done() {
-	fmt.Printf("\nDone.\n")
 }
 
 func displayFloat64(f float64) string {

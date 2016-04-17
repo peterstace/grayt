@@ -4,7 +4,6 @@ import (
 	"image"
 	"math/rand"
 	"sync/atomic"
-	"time"
 )
 
 type strategy struct {
@@ -18,26 +17,7 @@ func (s *strategy) traceImage(pxHigh, pxWide int, scene Scene, quality int) imag
 	// tracing goroutine and the CLI goroutine.
 	var completed uint64
 
-	// Update the CLI (in a separate goroutine).
-	cli := newCLI()
-	done := make(chan struct{})
-	go func() {
-		total := uint64(pxWide * pxHigh * quality)
-		for {
-			var exit bool
-			select {
-			case <-done:
-				exit = true
-			case <-time.After(cliUpdatePeriod):
-			}
-			cli.update(atomic.LoadUint64(&completed), total)
-			if exit {
-				cli.done()
-				done <- struct{}{}
-				return
-			}
-		}
-	}()
+	cli := newCLI(uint64(pxWide*pxHigh*quality), &completed)
 
 	// Trace the image.
 	w := newWorld(scene.Entities)
@@ -55,9 +35,7 @@ func (s *strategy) traceImage(pxHigh, pxWide int, scene Scene, quality int) imag
 		}
 	}
 
-	// Tell the CLI to finish, then wait for its reply.
-	done <- struct{}{}
-	<-done
+	cli.finish()
 
 	return acc.toImage(1.0)
 }
