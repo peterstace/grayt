@@ -30,6 +30,7 @@ func NewRunner() *Runner {
 }
 
 func (r *Runner) Run(s Scene) {
+	fmt.Println(r.outputFilename())
 	strat := strategy{}
 	img := strat.traceImage(r.PxWide, r.PxHigh, s, r.Quality)
 	f, err := os.Create(r.outputFilename())
