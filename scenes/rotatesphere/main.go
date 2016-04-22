@@ -15,9 +15,9 @@ func main() {
 	flag.Parse()
 
 	r := grayt.NewRunner()
-	r.PxWide = 256
-	r.PxHigh = 192
-	r.Quality = 32
+	r.PxWide = 512
+	r.PxHigh = r.PxHigh * 3 / 4
+	r.Quality = 1 << 10
 	r.BaseName = fmt.Sprintf("RotateSphere_%03d_%03d", *i, *n)
 	r.Run(scene(float64(*i) / float64(*n)))
 }

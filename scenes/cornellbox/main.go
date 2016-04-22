@@ -9,9 +9,9 @@ import (
 
 func main() {
 	r := grayt.NewRunner()
-	r.PxWide = 128
-	r.PxHigh = 128
-	r.Quality = 128
+	r.PxWide = 640
+	r.PxHigh = 640
+	r.Quality = 204800
 	r.BaseName = "CornellBox"
 	r.Run(scene())
 }
