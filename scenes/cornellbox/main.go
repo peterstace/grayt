@@ -4,7 +4,6 @@ import (
 	"math"
 
 	"github.com/peterstace/grayt"
-	"github.com/peterstace/grayt/geometry"
 )
 
 func main() {
@@ -53,7 +52,7 @@ func scene() grayt.Scene {
 	ee := []grayt.Entity{
 		{
 			Material: grayt.Material{Colour: grayt.White, Emittance: 5},
-			Surface: geometry.AlignedBox(
+			Surface: grayt.AlignedBox(
 				grayt.Vect(0.4, 1.0, -0.4),
 				grayt.Vect(0.6, 0.999, -0.6),
 			),
@@ -85,23 +84,23 @@ func box() []grayt.Entity {
 	return []grayt.Entity{
 		{
 			Material: white,
-			Surface:  geometry.Plane(up, zero),
+			Surface:  grayt.Plane(up, zero),
 		},
 		{
 			Material: white,
-			Surface:  geometry.Plane(down, one),
+			Surface:  grayt.Plane(down, one),
 		},
 		{
 			Material: red,
-			Surface:  geometry.Plane(right, zero),
+			Surface:  grayt.Plane(right, zero),
 		},
 		{
 			Material: green,
-			Surface:  geometry.Plane(left, one),
+			Surface:  grayt.Plane(left, one),
 		},
 		{
 			Material: white,
-			Surface:  geometry.Plane(back, one),
+			Surface:  grayt.Plane(back, one),
 		},
 	}
 }
@@ -119,11 +118,11 @@ func shortBlock() []grayt.Surface {
 		RTB = grayt.Vect(0.56, 0.30, -0.49)
 	)
 	var ss []grayt.Surface
-	ss = append(ss, geometry.Square(LTF, LTB, RTB, RTF)...)
-	ss = append(ss, geometry.Square(LBF, RBF, RTF, LTF)...)
-	ss = append(ss, geometry.Square(LBB, RBB, RTB, LTB)...)
-	ss = append(ss, geometry.Square(LBF, LBB, LTB, LTF)...)
-	ss = append(ss, geometry.Square(RBF, RBB, RTB, RTF)...)
+	ss = append(ss, grayt.Square(LTF, LTB, RTB, RTF)...)
+	ss = append(ss, grayt.Square(LBF, RBF, RTF, LTF)...)
+	ss = append(ss, grayt.Square(LBB, RBB, RTB, LTB)...)
+	ss = append(ss, grayt.Square(LBF, LBB, LTB, LTF)...)
+	ss = append(ss, grayt.Square(RBF, RBB, RTB, RTF)...)
 	return ss
 }
 
@@ -140,10 +139,10 @@ func tallBlock() []grayt.Surface {
 		RTB = grayt.Vect(0.14, 0.60, -0.74)
 	)
 	var ss []grayt.Surface
-	ss = append(ss, geometry.Square(LTF, LTB, RTB, RTF)...)
-	ss = append(ss, geometry.Square(LBF, RBF, RTF, LTF)...)
-	ss = append(ss, geometry.Square(LBB, RBB, RTB, LTB)...)
-	ss = append(ss, geometry.Square(LBF, LBB, LTB, LTF)...)
-	ss = append(ss, geometry.Square(RBF, RBB, RTB, RTF)...)
+	ss = append(ss, grayt.Square(LTF, LTB, RTB, RTF)...)
+	ss = append(ss, grayt.Square(LBF, RBF, RTF, LTF)...)
+	ss = append(ss, grayt.Square(LBB, RBB, RTB, LTB)...)
+	ss = append(ss, grayt.Square(LBF, LBB, LTB, LTF)...)
+	ss = append(ss, grayt.Square(RBF, RBB, RTB, RTF)...)
 	return ss
 }

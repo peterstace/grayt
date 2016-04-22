@@ -1,8 +1,6 @@
-package geometry
+package grayt
 
-import "github.com/peterstace/grayt"
-
-func Triangle(a, b, c grayt.Vector) grayt.Surface {
+func Triangle(a, b, c Vector) Surface {
 	u := b.Sub(a)
 	v := c.Sub(a)
 	return &triangle{
@@ -17,18 +15,18 @@ func Triangle(a, b, c grayt.Vector) grayt.Surface {
 }
 
 type triangle struct {
-	a, u, v             grayt.Vector // Corner A, A to B, and A to C.
-	unitNorm            grayt.Vector
+	a, u, v             Vector // Corner A, A to B, and A to C.
+	unitNorm            Vector
 	dotUV, dotUU, dotVV float64 // Precomputed dot products.
 }
 
-func (t *triangle) Intersect(r grayt.Ray) (grayt.Intersection, bool) {
+func (t *triangle) Intersect(r Ray) (Intersection, bool) {
 
 	// Check if there's a hit with the plane.
 	h := t.unitNorm.Dot(t.a.Sub(r.Start)) / t.unitNorm.Dot(r.Dir)
 	if h <= 0 {
 		// Hit was behind the camera.
-		return grayt.Intersection{}, false
+		return Intersection{}, false
 	}
 
 	// Find out if the plane hit was inside the triangle. We need to solve the
@@ -52,7 +50,7 @@ func (t *triangle) Intersect(r grayt.Ray) (grayt.Intersection, bool) {
 	beta /= denom
 
 	if alpha < 0 || beta < 0 || alpha+beta > 1 {
-		return grayt.Intersection{}, false
+		return Intersection{}, false
 	}
-	return grayt.Intersection{UnitNormal: t.unitNorm, Distance: h}, true
+	return Intersection{UnitNormal: t.unitNorm, Distance: h}, true
 }

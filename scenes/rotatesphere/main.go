@@ -6,7 +6,6 @@ import (
 	"math"
 
 	"github.com/peterstace/grayt"
-	"github.com/peterstace/grayt/geometry"
 )
 
 func main() {
@@ -53,27 +52,27 @@ func scene(progress float64) grayt.Scene {
 	progress *= 2.0 * math.Pi
 
 	surfaces := []grayt.Surface{
-		geometry.AlignedBox(
+		grayt.AlignedBox(
 			grayt.Vect(-4, 0, -3),
 			grayt.Vect(3, 1, -4),
 		),
-		geometry.AlignedBox(
+		grayt.AlignedBox(
 			grayt.Vect(-3, 0, 3),
 			grayt.Vect(4, 1, 4),
 		),
-		geometry.AlignedBox(
+		grayt.AlignedBox(
 			grayt.Vect(-3, 0, 4),
 			grayt.Vect(-4, 1, -3),
 		),
-		geometry.AlignedBox(
+		grayt.AlignedBox(
 			grayt.Vect(3, 0, -4),
 			grayt.Vect(4, 1, 3),
 		),
-		geometry.Plane(
+		grayt.Plane(
 			grayt.Vect(0, 1, 0),
 			grayt.Vect(0, 0, 0),
 		),
-		geometry.Sphere(
+		grayt.Sphere(
 			grayt.Vect(
 				math.Sin(progress-math.Pi/2)-1,
 				1,
@@ -81,7 +80,7 @@ func scene(progress float64) grayt.Scene {
 			),
 			1,
 		),
-		geometry.Sphere(
+		grayt.Sphere(
 			grayt.Vect(
 				math.Sin(progress-math.Pi/2)+1,
 				1,
@@ -89,7 +88,7 @@ func scene(progress float64) grayt.Scene {
 			),
 			1,
 		),
-		//geometry.Sphere(
+		//grayt.Sphere(
 		//	grayt.Vect(-2, 1, 0),
 		//	1,
 		//),
@@ -103,7 +102,7 @@ func scene(progress float64) grayt.Scene {
 		})
 	}
 	entities = append(entities, grayt.Entity{
-		Surface:  geometry.Sphere(grayt.Vect(0, 10, 0), 3),
+		Surface:  grayt.Sphere(grayt.Vect(0, 10, 0), 3),
 		Material: grayt.Material{Colour: grayt.White, Emittance: 5},
 	})
 
