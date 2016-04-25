@@ -8,9 +8,9 @@ import (
 
 func main() {
 	r := grayt.NewRunner()
-	r.PxWide = 640
-	r.PxHigh = 640
-	r.Quality = 204800
+	r.PxWide = 200
+	r.PxHigh = 200
+	r.Quality = 100
 	r.BaseName = "CornellBox"
 	r.Run(scene())
 }
@@ -84,23 +84,23 @@ func box() []grayt.Entity {
 	return []grayt.Entity{
 		{
 			Material: white,
-			Surface:  grayt.Plane(up, zero),
+			Surface:  grayt.YPlane().Translate(0, 0, 0),
 		},
 		{
 			Material: white,
-			Surface:  grayt.Plane(down, one),
+			Surface:  grayt.YPlane().Translate(0, 1, 0),
 		},
 		{
 			Material: red,
-			Surface:  grayt.Plane(right, zero),
+			Surface:  grayt.XPlane().Translate(0, 0, 0),
 		},
 		{
 			Material: green,
-			Surface:  grayt.Plane(left, one),
+			Surface:  grayt.XPlane().Translate(1, 0, 0),
 		},
 		{
 			Material: white,
-			Surface:  grayt.Plane(back, one),
+			Surface:  grayt.ZPlane().Translate(0, 0, -1),
 		},
 	}
 }

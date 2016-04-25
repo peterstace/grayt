@@ -54,3 +54,9 @@ func (t *triangle) Intersect(r Ray) (Intersection, bool) {
 	}
 	return Intersection{UnitNormal: t.unitNorm, Distance: h}, true
 }
+
+func (t *triangle) Translate(x, y, z float64) Surface {
+	v := Vect(x, y, z).Add(t.a)
+	*t = *Triangle(v, v.Add(t.u), v.Add(t.v)).(*triangle)
+	return t
+}

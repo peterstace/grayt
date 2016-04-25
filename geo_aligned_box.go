@@ -93,3 +93,9 @@ func (b *alignedBox) Intersect(r Ray) (Intersection, bool) {
 		return Intersection{Distance: tmax, UnitNormal: nMax}, true
 	}
 }
+
+func (b *alignedBox) Translate(x, y, z float64) Surface {
+	b.min = b.min.Add(Vect(x, y, z))
+	b.max = b.max.Add(Vect(x, y, z))
+	return b
+}

@@ -14,8 +14,8 @@ func main() {
 	flag.Parse()
 
 	r := grayt.NewRunner()
-	r.PxWide = 512
-	r.PxHigh = r.PxHigh * 3 / 4
+	r.PxWide = 200
+	r.PxHigh = r.PxWide * 3 / 4
 	r.Quality = 1 << 10
 	r.BaseName = fmt.Sprintf("RotateSphere_%03d_%03d", *i, *n)
 	r.Run(scene(float64(*i) / float64(*n)))
@@ -68,30 +68,17 @@ func scene(progress float64) grayt.Scene {
 			grayt.Vect(3, 0, -4),
 			grayt.Vect(4, 1, 3),
 		),
-		grayt.Plane(
-			grayt.Vect(0, 1, 0),
-			grayt.Vect(0, 0, 0),
-		),
-		grayt.Sphere(
-			grayt.Vect(
-				math.Sin(progress-math.Pi/2)-1,
-				1,
-				-math.Sin(progress),
-			),
+		grayt.YPlane(),
+		grayt.Sphere(1).Translate(
+			math.Sin(progress-math.Pi/2)-1,
 			1,
+			-math.Sin(progress),
 		),
-		grayt.Sphere(
-			grayt.Vect(
-				math.Sin(progress-math.Pi/2)+1,
-				1,
-				math.Sin(progress),
-			),
+		grayt.Sphere(1).Translate(
+			math.Sin(progress-math.Pi/2)+1,
 			1,
+			math.Sin(progress),
 		),
-		//grayt.Sphere(
-		//	grayt.Vect(-2, 1, 0),
-		//	1,
-		//),
 	}
 
 	var entities []grayt.Entity
@@ -102,7 +89,7 @@ func scene(progress float64) grayt.Scene {
 		})
 	}
 	entities = append(entities, grayt.Entity{
-		Surface:  grayt.Sphere(grayt.Vect(0, 10, 0), 3),
+		Surface:  grayt.Sphere(3).Translate(0, 10, 0),
 		Material: grayt.Material{Colour: grayt.White, Emittance: 5},
 	})
 

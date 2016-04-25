@@ -12,6 +12,9 @@ type Surface interface {
 	// Intersect finds the intersection (if it exists) between a ray and the
 	// surface.
 	Intersect(Ray) (Intersection, bool)
+
+	// Translates position of the surface.
+	Translate(x, y, z float64) Surface
 }
 
 type Material struct {

@@ -2,8 +2,8 @@ package grayt
 
 import "math"
 
-func Sphere(centre Vector, radius float64) Surface {
-	return &sphere{centre, radius}
+func Sphere(r float64) Surface {
+	return &sphere{Vector{}, r}
 }
 
 type sphere struct {
@@ -46,4 +46,9 @@ func (s *sphere) Intersect(r Ray) (Intersection, bool) {
 		UnitNormal: r.At(t).Sub(s.centre).Unit(),
 		Distance:   t,
 	}, t > 0
+}
+
+func (s *sphere) Translate(x, y, z float64) Surface {
+	s.centre = s.centre.Add(Vect(x, y, z))
+	return s
 }
