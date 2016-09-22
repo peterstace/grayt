@@ -2,17 +2,7 @@ package scene
 
 import "math"
 
-/*
-	The following types describe a scene.
-*/
-
-type Triangle struct {
-	A, B, C   Vector
-	Colour    Colour
-	Emittance float64
-}
-
-type Camera struct {
+type CameraDescription struct {
 	Location      Vector
 	ViewDirection Vector
 	UpDirection   Vector
