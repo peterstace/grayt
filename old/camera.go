@@ -5,20 +5,6 @@ import (
 	"math/rand"
 )
 
-// CameraConfig gives configuration options that are common to all camera
-// types. This struct is a parameter to the camera factory functions, primarily
-// so in the calling context, it's clear (from the name) what each
-// configuration option is (compared to just passing in Vects and float64s to
-// the factory function).
-type CameraConfig struct {
-	Location      Vector
-	ViewDirection Vector
-	UpDirection   Vector
-	FieldOfView   float64
-	FocalLength   float64 // Distance to the focus plane.
-	FocalRatio    float64
-}
-
 // Camera implementations produce rays from their eye location through a
 // virtual screen. Each implementation may have different screen geometry.
 type Camera interface {
