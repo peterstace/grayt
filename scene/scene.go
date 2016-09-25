@@ -1,11 +1,12 @@
 package scene
 
 import (
+	"encoding/binary"
 	"io"
 	"math"
 )
 
-type CameraDescription struct {
+type Camera struct {
 	Location      Vector
 	ViewDirection Vector
 	UpDirection   Vector
@@ -14,8 +15,8 @@ type CameraDescription struct {
 	FocalRatio    float64 // Ratio between the focal length and the diameter of the eye.
 }
 
-func DefaultCamera() CameraDescription {
-	return CameraDescription{
+func DefaultCamera() Camera {
+	return Camera{
 		Location:      Vector{},
 		ViewDirection: Vect(0, 0, -1),
 		UpDirection:   Vect(0, 1, 0),
@@ -24,6 +25,8 @@ func DefaultCamera() CameraDescription {
 		FocalRatio:    math.Inf(+1),
 	}
 }
+
+type Colour [3]uint16
 
 type Triangle struct {
 	A, B, C   Vector
@@ -43,12 +46,12 @@ type Scene struct {
 	Triangles []Triangle
 }
 
-func (s Scene) WriteTo(w io.Writer) (n int64, err error) {
-	// TODO
-	return 0, nil
+func (s Scene) WriteTo(w io.Writer) error {
+	return binary.Write(w, binary.BigEndian, s)
 }
 
 func ReadFrom(r io.Reader) (Scene, error) {
-	// TODO
-	return Scene{}, nil
+	var s Scene
+	err := binary.Read(r, binary.BigEndian, &s)
+	return s, err
 }
