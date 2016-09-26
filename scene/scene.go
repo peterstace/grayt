@@ -26,7 +26,7 @@ func DefaultCamera() Camera {
 	}
 }
 
-type Colour [3]uint16
+type Colour [3]float64
 
 type Triangle struct {
 	A, B, C   Vector
@@ -47,11 +47,31 @@ type Scene struct {
 }
 
 func (s Scene) WriteTo(w io.Writer) error {
-	return binary.Write(w, binary.BigEndian, s)
+	if err := binary.Write(w, binary.BigEndian, s.Camera); err != nil {
+		return err
+	}
+	for _, tri := range s.Triangles {
+		if err := binary.Write(w, binary.BigEndian, tri); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func ReadFrom(r io.Reader) (Scene, error) {
 	var s Scene
-	err := binary.Read(r, binary.BigEndian, &s)
-	return s, err
+	if err := binary.Read(r, binary.BigEndian, &s.Camera); err != nil {
+		return Scene{}, err
+	}
+	var tri Triangle
+	for {
+		switch err := binary.Read(r, binary.BigEndian, &tri); err {
+		case io.EOF:
+			return s, nil
+		case nil:
+			s.Triangles = append(s.Triangles, tri)
+		default:
+			return Scene{}, err
+		}
+	}
 }

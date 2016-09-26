@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 
@@ -9,7 +10,18 @@ import (
 
 func main() {
 
-	f, err := os.Open("foo.bin")
+	inputFlag := flag.String("f", "", "input file")
+	outputFlag := flag.String("o", "", "output file")
+	flag.Parse()
+
+	if *inputFlag == "" {
+		log.Fatal("Input file not specified")
+	}
+	if *outputFlag == "" {
+		log.Fatal("Output file not specified.")
+	}
+
+	f, err := os.Open(*inputFlag)
 	if err != nil {
 		log.Fatal(err)
 	}

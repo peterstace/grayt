@@ -10,13 +10,15 @@ import (
 func main() {
 	s := scene.Scene{
 		Camera: scene.DefaultCamera(),
-		Triangles: []scene.Triangle{{
-			A:         scene.Vector{},
-			B:         scene.Vector{},
-			C:         scene.Vector{},
-			Colour:    [3]uint16{0, 0, 0},
-			Emittance: 1.0,
-		}},
+		Triangles: []scene.Triangle{
+			{
+				A:         scene.Vector{X: -0.5, Y: -0.5, Z: -5.0},
+				B:         scene.Vector{X: 0.5, Y: -0.5, Z: -5.0},
+				C:         scene.Vector{X: 0.5, Y: 0.5, Z: -5.0},
+				Colour:    [3]float64{1, 1, 1},
+				Emittance: 1.0,
+			},
+		},
 	}
 
 	f, err := os.Create("foo.bin")
