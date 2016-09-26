@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"image/png"
 	"log"
 	"os"
 
@@ -21,12 +22,22 @@ func main() {
 		log.Fatal("Output file not specified.")
 	}
 
-	f, err := os.Open(*inputFlag)
+	inFile, err := os.Open(*inputFlag)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	s, err := scene.ReadFrom(f)
+	s, err := scene.ReadFrom(inFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	img := traceImage(s)
+	outFile, err := os.Create(*outputFlag)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = png.Encode(outFile, img)
 	if err != nil {
 		log.Fatal(err)
 	}
