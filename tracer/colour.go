@@ -1,4 +1,4 @@
-package grayt
+package main
 
 import (
 	"image/color"
@@ -6,66 +6,66 @@ import (
 )
 
 var (
-	White = Colour{1, 1, 1}
-	Red   = Colour{1, 0, 0}
-	Green = Colour{0, 1, 0}
-	Blue  = Colour{0, 0, 1}
-	Black = Colour{0, 0, 0}
+	White = colour{1, 1, 1}
+	Red   = colour{1, 0, 0}
+	Green = colour{0, 1, 0}
+	Blue  = colour{0, 0, 1}
+	Black = colour{0, 0, 0}
 )
 
-type Colour struct {
+type colour struct {
 	R, G, B float64
 }
 
-func (c Colour) Add(rhs Colour) Colour {
-	return Colour{
+func (c colour) Add(rhs colour) colour {
+	return colour{
 		c.R + rhs.R,
 		c.G + rhs.G,
 		c.B + rhs.B,
 	}
 }
 
-func (c Colour) Scale(f float64) Colour {
-	return Colour{
+func (c colour) Scale(f float64) colour {
+	return colour{
 		c.R * f,
 		c.G * f,
 		c.B * f,
 	}
 }
 
-func (c Colour) Pow(exp float64) Colour {
-	return Colour{
+func (c colour) Pow(exp float64) colour {
+	return colour{
 		math.Pow(c.R, exp),
 		math.Pow(c.G, exp),
 		math.Pow(c.B, exp),
 	}
 }
 
-func (c Colour) Mul(r Colour) Colour {
-	return Colour{
+func (c colour) Mul(r colour) colour {
+	return colour{
 		c.R * r.R,
 		c.G * r.G,
 		c.B * r.B,
 	}
 }
 
-func (c Colour) Div(r Colour) Colour {
-	return Colour{
+func (c colour) Div(r colour) colour {
+	return colour{
 		c.R / r.R,
 		c.G / r.G,
 		c.B / r.B,
 	}
 }
 
-func (c Colour) Square() Colour {
-	return Colour{
+func (c colour) Square() colour {
+	return colour{
 		c.R * c.R,
 		c.G * c.G,
 		c.B * c.B,
 	}
 }
 
-func (c Colour) ToNRGBA() color.NRGBA {
+func (c colour) ToNRGBA() color.NRGBA {
 	return color.NRGBA{
 		R: float64ToUint8(c.R),
 		G: float64ToUint8(c.G),

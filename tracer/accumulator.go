@@ -1,10 +1,10 @@
-package grayt
+package main
 
 import "image"
 
 type accumulator struct {
 	count int
-	acc   []Colour
+	acc   []colour
 	wide  int
 	high  int
 }
@@ -12,19 +12,19 @@ type accumulator struct {
 func newAccumulator(wide, high int) *accumulator {
 	return &accumulator{
 		count: 0,
-		acc:   make([]Colour, wide*high),
+		acc:   make([]colour, wide*high),
 		wide:  wide,
 		high:  high,
 	}
 }
 
-func (a *accumulator) add(x, y int, c Colour) {
+func (a *accumulator) add(x, y int, c colour) {
 	a.count++
 	i := y*a.wide + x
 	a.acc[i] = a.acc[i].Add(c)
 }
 
-func (a *accumulator) get(x, y int) Colour {
+func (a *accumulator) get(x, y int) colour {
 	i := y*a.wide + x
 	return a.acc[i]
 }
