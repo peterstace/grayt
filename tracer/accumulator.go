@@ -29,9 +29,10 @@ func (a *accumulator) get(x, y int) colour {
 	return a.acc[i]
 }
 
-func (a *accumulator) getTotal() int {
-	return a.count
-}
+// TODO: Possible to delete this?
+//func (a *accumulator) getTotal() int {
+//return a.count
+//}
 
 func (a *accumulator) mean() float64 {
 	var sum float64

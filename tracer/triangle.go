@@ -1,9 +1,18 @@
-package grayt
+package main
 
-func Triangle(a, b, c Vector) Surface {
-	u := b.Sub(a)
-	v := c.Sub(a)
-	return &triangle{
+type intersection struct {
+	unitNormal vector
+	distance   float64
+}
+
+type triangle struct {
+	a, u, v             vector // Corner A, A to B, and A to C.
+	unitNorm            vector
+	dotUV, dotUU, dotVV float64 // Precomputed dot products.
+}
+
+func newTriangle(a, b, c vector) triangle {
+	return triangle{
 		a:        a,
 		u:        u,
 		v:        v,
@@ -14,13 +23,7 @@ func Triangle(a, b, c Vector) Surface {
 	}
 }
 
-type triangle struct {
-	a, u, v             Vector // Corner A, A to B, and A to C.
-	unitNorm            Vector
-	dotUV, dotUU, dotVV float64 // Precomputed dot products.
-}
-
-func (t *triangle) Intersect(r Ray) (Intersection, bool) {
+func (t *triangle) intersect(r ray) (intersection, bool) {
 
 	// Check if there's a hit with the plane.
 	h := t.unitNorm.Dot(t.a.Sub(r.Start)) / t.unitNorm.Dot(r.Dir)
@@ -53,10 +56,4 @@ func (t *triangle) Intersect(r Ray) (Intersection, bool) {
 		return Intersection{}, false
 	}
 	return Intersection{UnitNormal: t.unitNorm, Distance: h}, true
-}
-
-func (t *triangle) Translate(x, y, z float64) Surface {
-	v := Vect(x, y, z).Add(t.a)
-	*t = *Triangle(v, v.Add(t.u), v.Add(t.v)).(*triangle)
-	return t
 }
