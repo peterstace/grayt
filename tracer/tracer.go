@@ -3,39 +3,36 @@ package main
 import (
 	"image"
 	"math/rand"
-
-	"github.com/peterstace/grayt/scene"
 )
 
-func traceImage(pxWide, pxHigh int, scene scene.Scene) image.Image {
+func traceImage(pxWide, pxHigh int, accel accelerationStructure, cam camera) image.Image {
 
-	acc := newAccumulator(pxWide, pxHigh)
+	accum := newAccumulator(pxWide, pxHigh)
+
+	const quality = 10
 
 	// Trace the image.
-	w := newWorld(scene.Entities)
 	pxPitch := 2.0 / float64(pxWide)
 	for pxX := 0; pxX < pxWide; pxX++ {
 		for pxY := 0; pxY < pxHigh; pxY++ {
 			for i := 0; i < quality; i++ {
 				x := (float64(pxX-pxWide/2) + rand.Float64()) * pxPitch
 				y := (float64(pxY-pxHigh/2) + rand.Float64()) * pxPitch * -1.0
-				r := scene.Camera.MakeRay(x, y)
-				r.Dir = r.Dir.Unit()
-				acc.add(pxX, pxY, tracePath(w, r))
+				r := cam.makeRay(x, y)
+				r.dir = r.dir.unit()
+				accum.add(pxX, pxY, tracePath(accel, r))
 			}
 		}
 	}
 
-	cli.finish()
-
-	return acc.toImage(1.0)
+	return accum.toImage(1.0)
 }
 
-func tracePath(w *world, r Ray) Colour {
+func tracePath(accel accelerationStructure, r ray) colour {
 
-	intersection, material := w.closestHit(r)
-	if material == nil {
-		return Colour{0, 0, 0}
+	intersection, hit := accel.closestHit(r)
+	if !hit {
+		return colour{0, 0, 0}
 	}
 
 	// Calculate probability of emitting.
@@ -46,7 +43,7 @@ func tracePath(w *world, r Ray) Colour {
 
 	// Handle emit case.
 	if rand.Float64() < pEmit {
-		return material.Colour.
+		return material.colour.
 			Scale(material.Emittance / pEmit)
 	}
 

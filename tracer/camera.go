@@ -13,42 +13,41 @@ type camera struct {
 		// the screen or eye.  Y vectors go from the center of the screen or
 		// eye towards the top of the screen or eye.  Loc is the location of
 		// the center of the screen or eye.
-		loc, x, y Vector
+		loc, x, y vector
 	}
 }
 
-// NewRectilinearCamera creates a rectilinear camera from a camera config.
-func NewRectilinearCamera(conf scene.Camera) camera {
+func newCamera(conf scene.Camera) camera {
 
-	cam := &camera{}
+	cam := camera{}
 
-	conf.UpDirection = conf.UpDirection.Unit()
-	conf.ViewDirection = conf.ViewDirection.Unit()
+	upDirection := convertVector(conf.UpDirection).unit()
+	viewDirection := convertVector(conf.ViewDirection).unit()
 
-	cam.screen.x = conf.ViewDirection.Cross(conf.UpDirection)
-	cam.screen.y = cam.screen.x.Cross(conf.ViewDirection)
+	cam.screen.x = viewDirection.cross(upDirection)
+	cam.screen.y = cam.screen.x.cross(viewDirection)
 
-	cam.eye.x = cam.screen.x.Scale(conf.FocalLength / conf.FocalRatio)
-	cam.eye.y = cam.screen.y.Scale(conf.FocalLength / conf.FocalRatio)
-	cam.eye.loc = conf.Location
+	cam.eye.x = cam.screen.x.scale(conf.FocalLength / conf.FocalRatio)
+	cam.eye.y = cam.screen.y.scale(conf.FocalLength / conf.FocalRatio)
+	cam.eye.loc = convertVector(conf.Location)
 
-	halfScreenWidth := math.Tan(conf.FieldOfView/2) * conf.FocalLength
-	cam.screen.x = cam.screen.x.Scale(halfScreenWidth)
-	cam.screen.y = cam.screen.y.Scale(halfScreenWidth)
-	cam.screen.loc = cam.eye.loc.Add(conf.ViewDirection.Scale(conf.FocalLength))
+	halfScreenWidth := math.Tan(conf.FieldOfViewInDegrees*math.Pi/180/2) * conf.FocalLength
+	cam.screen.x = cam.screen.x.scale(halfScreenWidth)
+	cam.screen.y = cam.screen.y.scale(halfScreenWidth)
+	cam.screen.loc = cam.eye.loc.add(viewDirection.scale(conf.FocalLength))
 
 	return cam
 }
 
-func (c *camera) MakeRay(x, y float64) Ray {
+func (c *camera) makeRay(x, y float64) ray {
 	start := c.eye.loc.
-		Add(c.eye.x.Scale(2*rand.Float64() - 1.0)).
-		Add(c.eye.y.Scale(2*rand.Float64() - 1.0))
+		add(c.eye.x.scale(2*rand.Float64() - 1.0)).
+		add(c.eye.y.scale(2*rand.Float64() - 1.0))
 	end := c.screen.loc.
-		Add(c.screen.x.Scale(x)).
-		Add(c.screen.y.Scale(y))
-	return Ray{
-		Start: start,
-		Dir:   end.Sub(start),
+		add(c.screen.x.scale(x)).
+		add(c.screen.y.scale(y))
+	return ray{
+		start: start,
+		dir:   end.sub(start),
 	}
 }

@@ -1,107 +1,108 @@
 package main
 
-import "math"
+import (
+	"math"
 
-type Vector struct {
-	X, Y, Z float64
+	"github.com/peterstace/grayt/scene"
+)
+
+type vector struct {
+	x, y, z float64
 }
 
-// Vect creates a new vector with elements x, y, and z. This is a convenience
-// function to help users of the grayt package create Vectors in a shorthand
-// form.
-func Vect(x, y, z float64) Vector {
-	return Vector{x, y, z}
+func convertVector(v scene.Vector) vector {
+	return vector{v.X, v.Y, v.Z}
 }
 
-func (v Vector) Length() float64 {
-	return math.Sqrt(v.X*v.X + v.Y*v.Y + v.Z*v.Z)
+func (v vector) length() float64 {
+	return math.Sqrt(v.x*v.x + v.y*v.y + v.z*v.z)
 }
 
-func (v Vector) LengthSq() float64 {
-	return v.X*v.X + v.Y*v.Y + v.Z*v.Z
+func (v vector) lengthSq() float64 {
+	return v.x*v.x + v.y*v.y + v.z*v.z
 }
 
-func (v Vector) Unit() Vector {
-	length := math.Sqrt(v.X*v.X + v.Y*v.Y + v.Z*v.Z)
-	return Vector{
-		X: v.X / length,
-		Y: v.Y / length,
-		Z: v.Z / length,
+func (v vector) unit() vector {
+	length := math.Sqrt(v.x*v.x + v.y*v.y + v.z*v.z)
+	return vector{
+		x: v.x / length,
+		y: v.y / length,
+		z: v.z / length,
 	}
 }
 
-func (v Vector) Scale(mul float64) Vector {
-	return Vector{
-		X: v.X * mul,
-		Y: v.Y * mul,
-		Z: v.Z * mul,
+func (v vector) scale(mul float64) vector {
+	return vector{
+		x: v.x * mul,
+		y: v.y * mul,
+		z: v.z * mul,
 	}
 }
 
-func (v Vector) Add(u Vector) Vector {
-	return Vector{
-		X: v.X + u.X,
-		Y: v.Y + u.Y,
-		Z: v.Z + u.Z,
+func (v vector) add(u vector) vector {
+	return vector{
+		x: v.x + u.x,
+		y: v.y + u.y,
+		z: v.z + u.z,
 	}
 }
 
-func (v Vector) Sub(u Vector) Vector {
-	return Vector{
-		X: v.X - u.X,
-		Y: v.Y - u.Y,
-		Z: v.Z - u.Z,
+func (v vector) sub(u vector) vector {
+	return vector{
+		x: v.x - u.x,
+		y: v.y - u.y,
+		z: v.z - u.z,
 	}
 }
 
-func (v Vector) Mul(u Vector) Vector {
-	return Vector{
-		X: v.X * u.X,
-		Y: v.Y * u.Y,
-		Z: v.Z * u.Z,
+func (v vector) mul(u vector) vector {
+	return vector{
+		x: v.x * u.x,
+		y: v.y * u.y,
+		z: v.z * u.z,
 	}
 }
 
-func (v Vector) Div(u Vector) Vector {
-	return Vector{
-		X: v.X / u.X,
-		Y: v.Y / u.Y,
-		Z: v.Z / u.Z,
+func (v vector) div(u vector) vector {
+	return vector{
+		x: v.x / u.x,
+		y: v.y / u.y,
+		z: v.z / u.z,
 	}
 }
 
-func (v Vector) Dot(u Vector) float64 {
-	return v.X*u.X + v.Y*u.Y + v.Z*u.Z
+func (v vector) dot(u vector) float64 {
+	return v.x*u.x + v.y*u.y + v.z*u.z
 }
 
-func (v Vector) Cross(u Vector) Vector {
-	return Vector{
-		X: v.Y*u.Z - v.Z*u.Y,
-		Y: v.Z*u.X - v.X*u.Z,
-		Z: v.X*u.Y - v.Y*u.X,
+func (v vector) cross(u vector) vector {
+	return vector{
+		x: v.y*u.z - v.z*u.y,
+		y: v.z*u.x - v.x*u.z,
+		z: v.x*u.y - v.y*u.x,
 	}
 }
 
-func (v Vector) Min(u Vector) Vector {
-	return Vector{
-		math.Min(v.X, u.X),
-		math.Min(v.Y, u.Y),
-		math.Min(v.Z, u.Z),
+func (v vector) min(u vector) vector {
+	return vector{
+		math.Min(v.x, u.x),
+		math.Min(v.y, u.y),
+		math.Min(v.z, u.z),
 	}
 }
 
-func (v Vector) Max(u Vector) Vector {
-	return Vector{
-		math.Max(v.X, u.X),
-		math.Max(v.Y, u.Y),
-		math.Max(v.Z, u.Z),
+func (v vector) max(u vector) vector {
+	return vector{
+		math.Max(v.x, u.x),
+		math.Max(v.y, u.y),
+		math.Max(v.z, u.z),
 	}
 }
 
-type Ray struct {
-	Start, Dir Vector
+type ray struct {
+	start, dir vector
 }
 
-func (r Ray) At(t float64) Vector {
-	return r.Start.Add(r.Dir.Scale(t))
+func (r ray) at(t float64) vector {
+	return r.start.add(r.dir.scale(t))
 }

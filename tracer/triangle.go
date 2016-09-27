@@ -1,5 +1,7 @@
 package main
 
+import "github.com/peterstace/grayt/scene"
+
 type intersection struct {
 	unitNormal vector
 	distance   float64
@@ -21,6 +23,17 @@ func newTriangle(a, b, c vector) triangle {
 		dotUU:    u.Dot(u),
 		dotVV:    v.Dot(v),
 	}
+}
+
+func convertTriangles(ts []scene.Triangle) []triangle {
+	tris := make([]triangle, 0, len(s.Triangles))
+	for _, t := range s.Triangles {
+		cornerA := vector{t.A.X, t.A.Y, t.A.Z}
+		cornerB := vector{t.B.X, t.B.Y, t.B.Z}
+		cornerC := vector{t.C.X, t.C.Y, t.C.Z}
+		tris = append(tris, newTriangle(cornerA, cornerB, cornerC))
+	}
+	return tris
 }
 
 func (t *triangle) intersect(r ray) (intersection, bool) {

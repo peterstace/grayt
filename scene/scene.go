@@ -7,22 +7,22 @@ import (
 )
 
 type Camera struct {
-	Location      Vector
-	ViewDirection Vector
-	UpDirection   Vector
-	FieldOfView   float64 // In degrees.
-	FocalLength   float64 // Distance to the focus plane.
-	FocalRatio    float64 // Ratio between the focal length and the diameter of the eye.
+	Location             Vector
+	ViewDirection        Vector
+	UpDirection          Vector
+	FieldOfViewInDegrees float64
+	FocalLength          float64 // Distance to the focus plane.
+	FocalRatio           float64 // Ratio between the focal length and the diameter of the eye.
 }
 
 func DefaultCamera() Camera {
 	return Camera{
-		Location:      Vector{},
-		ViewDirection: Vect(0, 0, -1),
-		UpDirection:   Vect(0, 1, 0),
-		FieldOfView:   100,
-		FocalLength:   10,
-		FocalRatio:    math.Inf(+1),
+		Location:             Vector{},
+		ViewDirection:        Vect(0, 0, -1),
+		UpDirection:          Vect(0, 1, 0),
+		FieldOfViewInDegrees: 100,
+		FocalLength:          10,
+		FocalRatio:           math.Inf(+1),
 	}
 }
 
