@@ -21,7 +21,7 @@ func newAccumulator(wide, high int) *accumulator {
 func (a *accumulator) add(x, y int, c colour) {
 	a.count++
 	i := y*a.wide + x
-	a.acc[i] = a.acc[i].Add(c)
+	a.acc[i] = a.acc[i].add(c)
 }
 
 func (a *accumulator) get(x, y int) colour {
@@ -52,9 +52,9 @@ func (a *accumulator) toImage(exposure float64) image.Image {
 	for x := 0; x < a.wide; x++ {
 		for y := 0; y < a.high; y++ {
 			img.Set(x, y, a.get(x, y).
-				Scale(0.5*exposure/mean).
-				Pow(1.0/gamma).
-				ToNRGBA())
+				scale(0.5*exposure/mean).
+				pow(1.0/gamma).
+				toNRGBA())
 		}
 	}
 	return img

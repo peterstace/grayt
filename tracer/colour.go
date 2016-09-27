@@ -3,6 +3,8 @@ package main
 import (
 	"image/color"
 	"math"
+
+	"github.com/peterstace/grayt/scene"
 )
 
 var (
@@ -17,7 +19,11 @@ type colour struct {
 	R, G, B float64
 }
 
-func (c colour) Add(rhs colour) colour {
+func convertColour(c scene.Colour) colour {
+	return colour{c[0], c[1], c[2]}
+}
+
+func (c colour) add(rhs colour) colour {
 	return colour{
 		c.R + rhs.R,
 		c.G + rhs.G,
@@ -25,7 +31,7 @@ func (c colour) Add(rhs colour) colour {
 	}
 }
 
-func (c colour) Scale(f float64) colour {
+func (c colour) scale(f float64) colour {
 	return colour{
 		c.R * f,
 		c.G * f,
@@ -33,7 +39,7 @@ func (c colour) Scale(f float64) colour {
 	}
 }
 
-func (c colour) Pow(exp float64) colour {
+func (c colour) pow(exp float64) colour {
 	return colour{
 		math.Pow(c.R, exp),
 		math.Pow(c.G, exp),
@@ -41,7 +47,7 @@ func (c colour) Pow(exp float64) colour {
 	}
 }
 
-func (c colour) Mul(r colour) colour {
+func (c colour) mul(r colour) colour {
 	return colour{
 		c.R * r.R,
 		c.G * r.G,
@@ -49,7 +55,7 @@ func (c colour) Mul(r colour) colour {
 	}
 }
 
-func (c colour) Div(r colour) colour {
+func (c colour) div(r colour) colour {
 	return colour{
 		c.R / r.R,
 		c.G / r.G,
@@ -57,7 +63,7 @@ func (c colour) Div(r colour) colour {
 	}
 }
 
-func (c colour) Square() colour {
+func (c colour) square() colour {
 	return colour{
 		c.R * c.R,
 		c.G * c.G,
@@ -65,7 +71,7 @@ func (c colour) Square() colour {
 	}
 }
 
-func (c colour) ToNRGBA() color.NRGBA {
+func (c colour) toNRGBA() color.NRGBA {
 	return color.NRGBA{
 		R: float64ToUint8(c.R),
 		G: float64ToUint8(c.G),

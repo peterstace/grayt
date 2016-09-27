@@ -37,36 +37,36 @@ func tracePath(accel accelerationStructure, r ray) colour {
 
 	// Calculate probability of emitting.
 	pEmit := 0.1
-	if material.Emittance != 0 {
+	if intersection.emittance != 0 {
 		pEmit = 1.0
 	}
 
 	// Handle emit case.
 	if rand.Float64() < pEmit {
-		return material.colour.
-			Scale(material.Emittance / pEmit)
+		return intersection.colour.
+			scale(intersection.emittance / pEmit)
 	}
 
 	// Find where the ray hit. Reduce the intersection distance by a small
 	// amount so that reflected rays don't intersect with it immediately.
-	hitLoc := r.At(addULPs(intersection.Distance, -50))
+	hitLoc := r.at(addULPs(intersection.distance, -50))
 
 	// Orient the unit normal towards the ray origin.
-	if intersection.UnitNormal.Dot(r.Dir) > 0 {
-		intersection.UnitNormal = intersection.UnitNormal.Scale(-1.0)
+	if intersection.unitNormal.dot(r.dir) > 0 {
+		intersection.unitNormal = intersection.unitNormal.scale(-1.0)
 	}
 
 	// Create a random vector on the hemisphere towards the normal.
-	rnd := Vector{rand.NormFloat64(), rand.NormFloat64(), rand.NormFloat64()}
-	rnd = rnd.Unit()
-	if rnd.Dot(intersection.UnitNormal) < 0 {
-		rnd = rnd.Scale(-1.0)
+	rnd := vector{rand.NormFloat64(), rand.NormFloat64(), rand.NormFloat64()}
+	rnd = rnd.unit()
+	if rnd.dot(intersection.unitNormal) < 0 {
+		rnd = rnd.scale(-1.0)
 	}
 
 	// Apply the BRDF (bidirectional reflection distribution function).
-	brdf := rnd.Dot(intersection.UnitNormal)
+	brdf := rnd.dot(intersection.unitNormal)
 
-	return tracePath(w, Ray{Start: hitLoc, Dir: rnd}).
-		Scale(brdf / (1 - pEmit)).
-		Mul(material.Colour)
+	return tracePath(accel, ray{start: hitLoc, dir: rnd}).
+		scale(brdf / (1 - pEmit)).
+		mul(intersection.colour)
 }
