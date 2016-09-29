@@ -2,6 +2,7 @@ package scene
 
 import (
 	"encoding/binary"
+	"fmt"
 	"io"
 	"math"
 )
@@ -13,6 +14,11 @@ type Camera struct {
 	FieldOfViewInDegrees float64
 	FocalLength          float64 // Distance to the focus plane.
 	FocalRatio           float64 // Ratio between the focal length and the diameter of the eye.
+}
+
+func (c Camera) String() string {
+	return fmt.Sprintf("Location=%v ViewDir=%v UpDir=%v FOV=%v FocalLength=%v FocalRation=%v",
+		c.Location, c.ViewDirection, c.UpDirection, c.FieldOfViewInDegrees, c.FocalLength, c.FocalRatio)
 }
 
 func DefaultCamera() Camera {
@@ -33,6 +39,12 @@ type Triangle struct {
 	Colour    Colour
 	Emittance float64
 }
+
+func (t Triangle) String() string {
+	return fmt.Sprintf("A=%v B=%v C=%v Colour=%v Emittance=%v",
+		t.A, t.B, t.C, t.Colour, t.Emittance)
+}
+
 type Vector struct {
 	X, Y, Z float64
 }

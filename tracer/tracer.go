@@ -9,7 +9,7 @@ func traceImage(pxWide, pxHigh int, accel accelerationStructure, cam camera) ima
 
 	accum := newAccumulator(pxWide, pxHigh)
 
-	const quality = 10
+	const quality = 100
 
 	// Trace the image.
 	pxPitch := 2.0 / float64(pxWide)

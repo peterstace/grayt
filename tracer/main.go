@@ -32,6 +32,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	log.Printf("%v", s.Camera)
+	for _, t := range s.Triangles {
+		log.Printf("%v", t)
+	}
+
 	tris := convertTriangles(s.Triangles)
 	accel := newAccelerationStructure(tris)
 	cam := newCamera(s.Camera)
@@ -45,6 +50,4 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	log.Print(s)
 }
