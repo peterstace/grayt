@@ -55,9 +55,10 @@ func cam() scene.Camera {
 }
 
 func tris() []scene.Triangle {
+	const size = 0.4
 	ts := alignedBox(
-		scene.Vect(0.4, 1.0, -0.4),
-		scene.Vect(0.6, 0.999, -0.6),
+		scene.Vect(size, 1.0, -size),
+		scene.Vect(1.0-size, 0.999, -1.0+size),
 		5.0,
 		white,
 	)

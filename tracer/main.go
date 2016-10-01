@@ -40,7 +40,7 @@ func main() {
 	tris := convertTriangles(s.Triangles)
 	accel := newAccelerationStructure(tris)
 	cam := newCamera(s.Camera)
-	img := traceImage(640, 480, accel, cam)
+	img := traceImage(640, 640, accel, cam)
 
 	outFile, err := os.Create(*outputFlag)
 	if err != nil {
