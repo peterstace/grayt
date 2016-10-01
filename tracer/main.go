@@ -9,20 +9,32 @@ import (
 	"github.com/peterstace/grayt/scene"
 )
 
+type flags struct {
+	input  *string
+	output *string
+	pxWide *int
+	pxHigh *int
+}
+
+func getFlags() flags {
+	f := flags{
+		input:  flag.String("f", "", "Input file"),
+		output: flag.String("o", "", "Output file"),
+		pxWide: flag.Int("w", 640, "Width (pixels)"),
+		pxHigh: flag.Int("h", 480, "Height (pixels)"),
+	}
+	flag.Parse()
+	if *f.input == "" || *f.output == "" || *f.pxWide <= 0 || *f.pxHigh <= 0 {
+		flag.Usage()
+	}
+	return f
+}
+
 func main() {
 
-	inputFlag := flag.String("f", "", "input file")
-	outputFlag := flag.String("o", "", "output file")
-	flag.Parse()
+	f := getFlags()
 
-	if *inputFlag == "" {
-		log.Fatal("Input file not specified")
-	}
-	if *outputFlag == "" {
-		log.Fatal("Output file not specified.")
-	}
-
-	inFile, err := os.Open(*inputFlag)
+	inFile, err := os.Open(*f.input)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -40,9 +52,9 @@ func main() {
 	tris := convertTriangles(s.Triangles)
 	accel := newAccelerationStructure(tris)
 	cam := newCamera(s.Camera)
-	img := traceImage(640, 640, accel, cam)
+	img := traceImage(*f.pxWide, *f.pxHigh, accel, cam)
 
-	outFile, err := os.Create(*outputFlag)
+	outFile, err := os.Create(*f.output)
 	if err != nil {
 		log.Fatal(err)
 	}
