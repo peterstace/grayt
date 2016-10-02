@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"flag"
+	"fmt"
 	"image/png"
 	"log"
 	"os"
@@ -24,8 +26,23 @@ func getFlags() flags {
 		pxHigh: flag.Int("h", 480, "Height (pixels)"),
 	}
 	flag.Parse()
-	if *f.input == "" || *f.output == "" || *f.pxWide <= 0 || *f.pxHigh <= 0 {
+	var err error
+	if *f.input == "" {
+		err = errors.New("no input file specified")
+	}
+	if *f.output == "" {
+		err = errors.New("no output file specified")
+	}
+	if *f.pxWide <= 0 {
+		err = errors.New("px wide must be positive")
+	}
+	if *f.pxHigh <= 0 {
+		err = errors.New("px high must be positive")
+	}
+	if err != nil {
+		fmt.Printf("Error while parsing flags: %s.\n", err)
 		flag.Usage()
+		os.Exit(1)
 	}
 	return f
 }
@@ -42,11 +59,6 @@ func main() {
 	s, err := scene.ReadFrom(inFile)
 	if err != nil {
 		log.Fatal(err)
-	}
-
-	log.Printf("%v", s.Camera)
-	for _, t := range s.Triangles {
-		log.Printf("%v", t)
 	}
 
 	tris := convertTriangles(s.Triangles)
