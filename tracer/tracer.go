@@ -3,9 +3,10 @@ package main
 import (
 	"image"
 	"math/rand"
+	"sync/atomic"
 )
 
-func traceImage(pxWide, pxHigh int, accel accelerationStructure, cam camera) image.Image {
+func traceImage(pxWide, pxHigh int, accel accelerationStructure, cam camera, completed *uint64) image.Image {
 
 	accum := newAccumulator(pxWide, pxHigh)
 
@@ -21,6 +22,8 @@ func traceImage(pxWide, pxHigh int, accel accelerationStructure, cam camera) ima
 				r := cam.makeRay(x, y)
 				r.dir = r.dir.unit()
 				accum.add(pxX, pxY, tracePath(accel, r))
+				atomic.AddUint64(completed, 1)
+
 			}
 		}
 	}

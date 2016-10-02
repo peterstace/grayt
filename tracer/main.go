@@ -4,9 +4,12 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"image"
 	"image/png"
 	"log"
 	"os"
+	"sync/atomic"
+	"time"
 
 	"github.com/peterstace/grayt/scene"
 )
@@ -49,6 +52,8 @@ func getFlags() flags {
 
 func main() {
 
+	// (\) [XXX.XX%] [99.99Z samples/sec], ETA
+
 	f := getFlags()
 
 	inFile, err := os.Open(*f.input)
@@ -64,14 +69,32 @@ func main() {
 	tris := convertTriangles(s.Triangles)
 	accel := newAccelerationStructure(tris)
 	cam := newCamera(s.Camera)
-	img := traceImage(*f.pxWide, *f.pxHigh, accel, cam)
+	img := make(chan image.Image)
+	completed := new(uint64)
+	go func() {
+		img <- traceImage(*f.pxWide, *f.pxHigh, accel, cam, completed)
+	}()
 
-	outFile, err := os.Create(*f.output)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = png.Encode(outFile, img)
-	if err != nil {
-		log.Fatal(err)
+	const quality = 100
+	total := *f.pxWide * *f.pxHigh * quality
+	cli := newCLI(total)
+
+	for {
+		select {
+		case <-time.After(time.Second):
+			cli.update(int(atomic.LoadUint64(completed)))
+		case img := <-img:
+			cli.update(int(atomic.LoadUint64(completed)))
+			cli.finished()
+			outFile, err := os.Create(*f.output)
+			if err != nil {
+				log.Fatal(err)
+			}
+			err = png.Encode(outFile, img)
+			if err != nil {
+				log.Fatal(err)
+			}
+			os.Exit(0)
+		}
 	}
 }
