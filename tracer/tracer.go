@@ -6,11 +6,9 @@ import (
 	"sync/atomic"
 )
 
-func traceImage(pxWide, pxHigh int, accel accelerationStructure, cam camera, completed *uint64) image.Image {
+func traceImage(pxWide, pxHigh int, accel accelerationStructure, cam camera, quality int, completed *uint64) image.Image {
 
 	accum := newAccumulator(pxWide, pxHigh)
-
-	const quality = 100
 
 	// Trace the image.
 	pxPitch := 2.0 / float64(pxWide)
