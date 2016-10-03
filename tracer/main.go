@@ -83,10 +83,9 @@ func main() {
 
 	for {
 		select {
-		case <-time.After(time.Second):
+		case <-time.After(100 * time.Millisecond):
 			cli.update(int(atomic.LoadUint64(completed)))
 		case img := <-img:
-			cli.update(int(atomic.LoadUint64(completed)))
 			cli.finished()
 			outFile, err := os.Create(*f.output)
 			if err != nil {
