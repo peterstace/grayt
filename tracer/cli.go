@@ -33,11 +33,7 @@ func (c *cli) update(done int) {
 	now := time.Now()
 	speed := float64(doneDelta) / now.Sub(c.lastUpdate).Seconds()
 	const alpha = 0.01
-	//if c.smoothedSpeed == 0.0 {
-	//c.smoothedSpeed = speed
-	//} else {
 	c.smoothedSpeed = alpha*speed + (1-alpha)*c.smoothedSpeed
-	//}
 	c.lastUpdate = now
 
 	eta := time.Duration(float64(c.total-done)/c.smoothedSpeed) * time.Second
