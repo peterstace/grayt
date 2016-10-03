@@ -1,4 +1,4 @@
-package grayt
+package main
 
 import "math"
 

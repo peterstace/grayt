@@ -1,10 +1,10 @@
-package grayt
+package main
 
 import "image"
 
 type accumulator struct {
 	count int
-	acc   []Colour
+	acc   []colour
 	wide  int
 	high  int
 }
@@ -12,26 +12,27 @@ type accumulator struct {
 func newAccumulator(wide, high int) *accumulator {
 	return &accumulator{
 		count: 0,
-		acc:   make([]Colour, wide*high),
+		acc:   make([]colour, wide*high),
 		wide:  wide,
 		high:  high,
 	}
 }
 
-func (a *accumulator) add(x, y int, c Colour) {
+func (a *accumulator) add(x, y int, c colour) {
 	a.count++
 	i := y*a.wide + x
-	a.acc[i] = a.acc[i].Add(c)
+	a.acc[i] = a.acc[i].add(c)
 }
 
-func (a *accumulator) get(x, y int) Colour {
+func (a *accumulator) get(x, y int) colour {
 	i := y*a.wide + x
 	return a.acc[i]
 }
 
-func (a *accumulator) getTotal() int {
-	return a.count
-}
+// TODO: Possible to delete this?
+//func (a *accumulator) getTotal() int {
+//return a.count
+//}
 
 func (a *accumulator) mean() float64 {
 	var sum float64
@@ -51,9 +52,9 @@ func (a *accumulator) toImage(exposure float64) image.Image {
 	for x := 0; x < a.wide; x++ {
 		for y := 0; y < a.high; y++ {
 			img.Set(x, y, a.get(x, y).
-				Scale(0.5*exposure/mean).
-				Pow(1.0/gamma).
-				ToNRGBA())
+				scale(0.5*exposure/mean).
+				pow(1.0/gamma).
+				toNRGBA())
 		}
 	}
 	return img
