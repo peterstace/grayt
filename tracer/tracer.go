@@ -12,9 +12,9 @@ func traceImage(pxWide, pxHigh int, accel accelerationStructure, cam camera, qua
 
 	// Trace the image.
 	pxPitch := 2.0 / float64(pxWide)
-	for pxX := 0; pxX < pxWide; pxX++ {
-		for pxY := 0; pxY < pxHigh; pxY++ {
-			for i := 0; i < quality; i++ {
+	for i := 0; i < quality; i++ {
+		for pxX := 0; pxX < pxWide; pxX++ {
+			for pxY := 0; pxY < pxHigh; pxY++ {
 				x := (float64(pxX-pxWide/2) + rand.Float64()) * pxPitch
 				y := (float64(pxY-pxHigh/2) + rand.Float64()) * pxPitch * -1.0
 				r := cam.makeRay(x, y)
