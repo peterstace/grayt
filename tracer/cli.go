@@ -31,9 +31,17 @@ func (c *cli) update(done int) {
 	doneDelta := done - c.lastDone
 	c.lastDone = done
 	now := time.Now()
-	speed := float64(doneDelta) / now.Sub(c.lastUpdate).Seconds()
-	const alpha = 0.01
-	c.smoothedSpeed = alpha*speed + (1-alpha)*c.smoothedSpeed
+	elapsed := now.Sub(c.start)
+
+	if now.Sub(c.start) > time.Second {
+		speed := float64(doneDelta) / now.Sub(c.lastUpdate).Seconds()
+		const alpha = 0.001
+		c.smoothedSpeed = alpha*speed + (1-alpha)*c.smoothedSpeed
+	} else {
+		elapsedInSeconds := float64(elapsed) / float64(time.Second)
+		c.smoothedSpeed = float64(done) / elapsedInSeconds
+	}
+
 	c.lastUpdate = now
 
 	eta := time.Duration(float64(c.total-done)/c.smoothedSpeed) * time.Second
