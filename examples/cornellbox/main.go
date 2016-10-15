@@ -1,52 +1,39 @@
 package main
 
 import (
-	"log"
 	"math"
-	"os"
-	"path/filepath"
 
-	"github.com/peterstace/grayt/scene"
+	. "github.com/peterstace/grayt/grayt"
 )
 
 func main() {
-
-	s := scene.Scene{
+	Run("cornellbox", Scene{
 		Camera:    cam(),
 		Triangles: tris(),
-	}
-
-	f, err := os.Create(filepath.Base(os.Args[0]) + ".bin")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := s.WriteTo(f); err != nil {
-		log.Fatal(err)
-	}
+	})
 }
 
 var (
-	up    = scene.Vect(0.0, 1.0, 0.0)
-	down  = scene.Vect(0.0, -1.0, 0.0)
-	left  = scene.Vect(-1.0, 0.0, 0.0)
-	right = scene.Vect(1.0, 0.0, 0.0)
-	back  = scene.Vect(0.0, 0.0, 1.0)
-	zero  = scene.Vect(0.0, 0.0, 0.0)
-	one   = scene.Vect(1.0, 1.0, -1.0)
+	up    = Vect(0.0, 1.0, 0.0)
+	down  = Vect(0.0, -1.0, 0.0)
+	left  = Vect(-1.0, 0.0, 0.0)
+	right = Vect(1.0, 0.0, 0.0)
+	back  = Vect(0.0, 0.0, 1.0)
+	zero  = Vect(0.0, 0.0, 0.0)
+	one   = Vect(1.0, 1.0, -1.0)
 )
 
 var (
-	white = scene.Colour{1, 1, 1}
-	green = scene.Colour{0, 1, 0}
-	red   = scene.Colour{1, 0, 0}
+	white = Colour{1, 1, 1}
+	green = Colour{0, 1, 0}
+	red   = Colour{1, 0, 0}
 )
 
-func cam() scene.Camera {
+func cam() Camera {
 	const D = 1.3 // Estimated.
-	return scene.Camera{
-		Location:             scene.Vect(0.5, 0.5, D),
-		ViewDirection:        scene.Vect(0.0, 0.0, -1.0),
+	return Camera{
+		Location:             Vect(0.5, 0.5, D),
+		ViewDirection:        Vect(0.0, 0.0, -1.0),
 		UpDirection:          up,
 		FieldOfViewInDegrees: 2 * math.Asin(0.5/math.Sqrt(0.25+D*D)) * 180 / math.Pi,
 		FocalLength:          0.5 + D,
@@ -54,11 +41,11 @@ func cam() scene.Camera {
 	}
 }
 
-func tris() []scene.Triangle {
+func tris() []Triangle {
 	const size = 0.9
 	ts := alignedBox(
-		scene.Vect(size, 1.0, -size),
-		scene.Vect(1.0-size, 0.999, -1.0+size),
+		Vect(size, 1.0, -size),
+		Vect(1.0-size, 0.999, -1.0+size),
 		5.0,
 		white,
 	)
@@ -68,16 +55,16 @@ func tris() []scene.Triangle {
 	return ts
 }
 
-func alignedBox(a, b scene.Vector, emittance float64, colour scene.Colour) []scene.Triangle {
+func alignedBox(a, b Vector, emittance float64, colour Colour) []Triangle {
 
-	a1 := scene.Vector{X: b.X, Y: a.Y, Z: a.Z}
-	a2 := scene.Vector{X: a.X, Y: b.Y, Z: a.Z}
-	a3 := scene.Vector{X: a.X, Y: a.Y, Z: b.Z}
-	b1 := scene.Vector{X: a.X, Y: b.Y, Z: b.Z}
-	b2 := scene.Vector{X: b.X, Y: a.Y, Z: b.Z}
-	b3 := scene.Vector{X: b.X, Y: b.Y, Z: a.Z}
+	a1 := Vect(b.X, a.Y, a.Z)
+	a2 := Vect(a.X, b.Y, a.Z)
+	a3 := Vect(a.X, a.Y, b.Z)
+	b1 := Vect(a.X, b.Y, b.Z)
+	b2 := Vect(b.X, a.Y, b.Z)
+	b3 := Vect(b.X, b.Y, a.Z)
 
-	ts := []scene.Triangle{
+	ts := []Triangle{
 
 		{A: a, B: a1, C: a2},
 		{A: a, B: a2, C: a3},
@@ -104,63 +91,63 @@ func alignedBox(a, b scene.Vector, emittance float64, colour scene.Colour) []sce
 	return ts
 }
 
-func square(a, b, c, d scene.Vector, emittance float64, colour scene.Colour) []scene.Triangle {
-	return []scene.Triangle{
+func square(a, b, c, d Vector, emittance float64, colour Colour) []Triangle {
+	return []Triangle{
 		{A: a, B: b, C: c, Emittance: emittance, Colour: colour},
 		{A: c, B: d, C: a, Emittance: emittance, Colour: colour},
 	}
 }
 
-func alignedSquare(a, b scene.Vector, emittance float64, colour scene.Colour) []scene.Triangle {
-	var c, d scene.Vector
+func alignedSquare(a, b Vector, emittance float64, colour Colour) []Triangle {
+	var c, d Vector
 	switch {
 	case a.X == b.X:
-		c = scene.Vector{X: a.X, Y: a.Y, Z: b.Z}
-		d = scene.Vector{X: a.X, Y: b.Y, Z: a.Z}
+		c = Vector{X: a.X, Y: a.Y, Z: b.Z}
+		d = Vector{X: a.X, Y: b.Y, Z: a.Z}
 	case a.Y == b.Y:
-		c = scene.Vector{X: a.X, Y: a.Y, Z: b.Z}
-		d = scene.Vector{X: b.X, Y: a.Y, Z: a.Z}
+		c = Vector{X: a.X, Y: a.Y, Z: b.Z}
+		d = Vector{X: b.X, Y: a.Y, Z: a.Z}
 	case a.Z == b.Z:
-		c = scene.Vector{X: a.X, Y: b.Y, Z: a.Z}
-		d = scene.Vector{X: b.X, Y: a.Y, Z: a.Z}
+		c = Vector{X: a.X, Y: b.Y, Z: a.Z}
+		d = Vector{X: b.X, Y: a.Y, Z: a.Z}
 	default:
 		panic("a and b line in a common aligned plane")
 
 	}
-	return []scene.Triangle{
+	return []Triangle{
 		{A: a, B: c, C: d, Colour: colour, Emittance: emittance},
 		{A: b, B: c, C: d, Colour: colour, Emittance: emittance},
 	}
 }
 
-func box() []scene.Triangle {
-	var ts []scene.Triangle
+func box() []Triangle {
+	var ts []Triangle
 	ts = append(ts,
-		alignedSquare(scene.Vect(0, 0, 0), scene.Vect(1, 0, -1), 0, white)...)
+		alignedSquare(Vect(0, 0, 0), Vect(1, 0, -1), 0, white)...)
 	ts = append(ts,
-		alignedSquare(scene.Vect(0, 1, 0), scene.Vect(1, 1, -1), 0, white)...)
+		alignedSquare(Vect(0, 1, 0), Vect(1, 1, -1), 0, white)...)
 	ts = append(ts,
-		alignedSquare(scene.Vect(0, 0, 0), scene.Vect(0, 1, -1), 0, red)...)
+		alignedSquare(Vect(0, 0, 0), Vect(0, 1, -1), 0, red)...)
 	ts = append(ts,
-		alignedSquare(scene.Vect(1, 0, 0), scene.Vect(1, 1, -1), 0, green)...)
+		alignedSquare(Vect(1, 0, 0), Vect(1, 1, -1), 0, green)...)
 	ts = append(ts,
-		alignedSquare(scene.Vect(0, 0, -1), scene.Vect(1, 1, -1), 0, white)...)
+		alignedSquare(Vect(0, 0, -1), Vect(1, 1, -1), 0, white)...)
 	return ts
 }
 
-func shortBlock() []scene.Triangle {
+func shortBlock() []Triangle {
 	var (
 		// Left/Right, Top/Bottom, Front/Back.
-		LBF = scene.Vect(0.76, 0.00, -0.12)
-		LBB = scene.Vect(0.85, 0.00, -0.41)
-		RBF = scene.Vect(0.47, 0.00, -0.21)
-		RBB = scene.Vect(0.56, 0.00, -0.49)
-		LTF = scene.Vect(0.76, 0.30, -0.12)
-		LTB = scene.Vect(0.85, 0.30, -0.41)
-		RTF = scene.Vect(0.47, 0.30, -0.21)
-		RTB = scene.Vect(0.56, 0.30, -0.49)
+		LBF = Vect(0.76, 0.00, -0.12)
+		LBB = Vect(0.85, 0.00, -0.41)
+		RBF = Vect(0.47, 0.00, -0.21)
+		RBB = Vect(0.56, 0.00, -0.49)
+		LTF = Vect(0.76, 0.30, -0.12)
+		LTB = Vect(0.85, 0.30, -0.41)
+		RTF = Vect(0.47, 0.30, -0.21)
+		RTB = Vect(0.56, 0.30, -0.49)
 	)
-	var ts []scene.Triangle
+	var ts []Triangle
 	ts = append(ts, square(LTF, LTB, RTB, RTF, 0, white)...)
 	ts = append(ts, square(LBF, RBF, RTF, LTF, 0, white)...)
 	ts = append(ts, square(LBB, RBB, RTB, LTB, 0, white)...)
@@ -169,19 +156,19 @@ func shortBlock() []scene.Triangle {
 	return ts
 }
 
-func tallBlock() []scene.Triangle {
+func tallBlock() []Triangle {
 	var (
 		// Left/Right, Top/Bottom, Front/Back.
-		LBF = scene.Vect(0.52, 0.00, -0.54)
-		LBB = scene.Vect(0.43, 0.00, -0.83)
-		RBF = scene.Vect(0.23, 0.00, -0.45)
-		RBB = scene.Vect(0.14, 0.00, -0.74)
-		LTF = scene.Vect(0.52, 0.60, -0.54)
-		LTB = scene.Vect(0.43, 0.60, -0.83)
-		RTF = scene.Vect(0.23, 0.60, -0.45)
-		RTB = scene.Vect(0.14, 0.60, -0.74)
+		LBF = Vect(0.52, 0.00, -0.54)
+		LBB = Vect(0.43, 0.00, -0.83)
+		RBF = Vect(0.23, 0.00, -0.45)
+		RBB = Vect(0.14, 0.00, -0.74)
+		LTF = Vect(0.52, 0.60, -0.54)
+		LTB = Vect(0.43, 0.60, -0.83)
+		RTF = Vect(0.23, 0.60, -0.45)
+		RTB = Vect(0.14, 0.60, -0.74)
 	)
-	var ts []scene.Triangle
+	var ts []Triangle
 	ts = append(ts, square(LTF, LTB, RTB, RTF, 0, white)...)
 	ts = append(ts, square(LBF, RBF, RTF, LTF, 0, white)...)
 	ts = append(ts, square(LBB, RBB, RTB, LTB, 0, white)...)

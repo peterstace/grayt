@@ -1,4 +1,4 @@
-package main
+package grayt
 
 import (
 	"image"
@@ -29,11 +29,11 @@ func traceImage(pxWide, pxHigh int, accel accelerationStructure, cam camera, qua
 	return accum.toImage(1.0)
 }
 
-func tracePath(accel accelerationStructure, r ray) colour {
+func tracePath(accel accelerationStructure, r ray) Colour {
 
 	intersection, hit := accel.closestHit(r)
 	if !hit {
-		return colour{0, 0, 0}
+		return Colour{0, 0, 0}
 	}
 
 	// Calculate probability of emitting.
@@ -58,7 +58,7 @@ func tracePath(accel accelerationStructure, r ray) colour {
 	}
 
 	// Create a random vector on the hemisphere towards the normal.
-	rnd := vector{rand.NormFloat64(), rand.NormFloat64(), rand.NormFloat64()}
+	rnd := Vector{rand.NormFloat64(), rand.NormFloat64(), rand.NormFloat64()}
 	rnd = rnd.unit()
 	if rnd.dot(intersection.unitNormal) < 0 {
 		rnd = rnd.scale(-1.0)

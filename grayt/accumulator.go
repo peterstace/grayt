@@ -1,10 +1,10 @@
-package main
+package grayt
 
 import "image"
 
 type accumulator struct {
 	count int
-	acc   []colour
+	acc   []Colour
 	wide  int
 	high  int
 }
@@ -12,27 +12,22 @@ type accumulator struct {
 func newAccumulator(wide, high int) *accumulator {
 	return &accumulator{
 		count: 0,
-		acc:   make([]colour, wide*high),
+		acc:   make([]Colour, wide*high),
 		wide:  wide,
 		high:  high,
 	}
 }
 
-func (a *accumulator) add(x, y int, c colour) {
+func (a *accumulator) add(x, y int, c Colour) {
 	a.count++
 	i := y*a.wide + x
 	a.acc[i] = a.acc[i].add(c)
 }
 
-func (a *accumulator) get(x, y int) colour {
+func (a *accumulator) get(x, y int) Colour {
 	i := y*a.wide + x
 	return a.acc[i]
 }
-
-// TODO: Possible to delete this?
-//func (a *accumulator) getTotal() int {
-//return a.count
-//}
 
 func (a *accumulator) mean() float64 {
 	var sum float64

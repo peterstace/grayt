@@ -1,4 +1,4 @@
-package main
+package grayt
 
 func newAccelerationStructure(ts []triangle) accelerationStructure {
 	return accelerationStructure{ts}

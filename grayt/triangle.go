@@ -1,25 +1,23 @@
-package main
-
-import "github.com/peterstace/grayt/scene"
+package grayt
 
 type intersection struct {
-	unitNormal vector
+	unitNormal Vector
 	distance   float64
 
-	colour    colour
+	colour    Colour
 	emittance float64
 }
 
 type triangle struct {
-	a, u, v             vector // Corner A, A to B, and A to C.
-	unitNorm            vector
+	a, u, v             Vector // Corner A, A to B, and A to C.
+	unitNorm            Vector
 	dotUV, dotUU, dotVV float64 // Precomputed dot products.
 
-	colour    colour
+	colour    Colour
 	emittance float64
 }
 
-func newTriangle(a, b, c vector, colour colour, emittance float64) triangle {
+func newTriangle(a, b, c Vector, colour Colour, emittance float64) triangle {
 	u := b.sub(a)
 	v := c.sub(a)
 	return triangle{
@@ -36,14 +34,14 @@ func newTriangle(a, b, c vector, colour colour, emittance float64) triangle {
 	}
 }
 
-func convertTriangles(ts []scene.Triangle) []triangle {
+func convertTriangles(ts []Triangle) []triangle {
 	tris := make([]triangle, 0, len(ts))
 	for _, t := range ts {
 		tris = append(tris, newTriangle(
-			convertVector(t.A),
-			convertVector(t.B),
-			convertVector(t.C),
-			convertColour(t.Colour),
+			t.A,
+			t.B,
+			t.C,
+			t.Colour,
 			t.Emittance,
 		))
 	}

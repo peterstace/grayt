@@ -1,10 +1,8 @@
-package main
+package grayt
 
 import (
 	"math"
 	"math/rand"
-
-	"github.com/peterstace/grayt/scene"
 )
 
 type camera struct {
@@ -13,25 +11,26 @@ type camera struct {
 		// the screen or eye.  Y vectors go from the center of the screen or
 		// eye towards the top of the screen or eye.  Loc is the location of
 		// the center of the screen or eye.
-		loc, x, y vector
+		loc, x, y Vector
 	}
 }
 
-func newCamera(conf scene.Camera) camera {
+func newCamera(conf Camera) camera {
 
 	cam := camera{}
 
-	upDirection := convertVector(conf.UpDirection).unit()
-	viewDirection := convertVector(conf.ViewDirection).unit()
+	upDirection := conf.UpDirection.unit()
+	viewDirection := conf.ViewDirection.unit()
 
 	cam.screen.x = viewDirection.cross(upDirection)
 	cam.screen.y = cam.screen.x.cross(viewDirection)
 
 	cam.eye.x = cam.screen.x.scale(conf.FocalLength / conf.FocalRatio)
 	cam.eye.y = cam.screen.y.scale(conf.FocalLength / conf.FocalRatio)
-	cam.eye.loc = convertVector(conf.Location)
+	cam.eye.loc = conf.Location
 
-	halfScreenWidth := math.Tan(conf.FieldOfViewInDegrees*math.Pi/180/2) * conf.FocalLength
+	fieldOfViewInRadians := conf.FieldOfViewInDegrees * math.Pi / 180
+	halfScreenWidth := math.Tan(fieldOfViewInRadians/2) * conf.FocalLength
 	cam.screen.x = cam.screen.x.scale(halfScreenWidth)
 	cam.screen.y = cam.screen.y.scale(halfScreenWidth)
 	cam.screen.loc = cam.eye.loc.add(viewDirection.scale(conf.FocalLength))
