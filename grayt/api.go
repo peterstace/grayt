@@ -1,7 +1,11 @@
 package grayt
 
 import (
+	"bytes"
+	"encoding/base64"
+	"encoding/binary"
 	"fmt"
+	"hash/crc64"
 	"math"
 )
 
@@ -52,4 +56,25 @@ func JoinTriangles(ts ...[]Triangle) []Triangle {
 type Scene struct {
 	Camera    Camera
 	Triangles []Triangle
+}
+
+func (s Scene) hash() string {
+
+	// Calculate hash.
+	h := crc64.New(crc64.MakeTable(crc64.ISO))
+	h.Write([]byte(s.Camera.String()))
+	for _, t := range s.Triangles {
+		h.Write([]byte(t.String()))
+	}
+
+	// Calculate base64 encoded hash.
+	var buf bytes.Buffer
+	enc := base64.NewEncoder(base64.RawURLEncoding, &buf)
+	binary.Write(
+		enc,
+		binary.LittleEndian,
+		h.Sum64(),
+	)
+	enc.Close()
+	return buf.String()
 }

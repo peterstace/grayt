@@ -1,6 +1,8 @@
 package grayt
 
 import (
+	"flag"
+	"fmt"
 	"image"
 	"image/png"
 	"log"
@@ -9,12 +11,13 @@ import (
 	"time"
 )
 
-const pxWide = 128
-const pxHigh = 128
-const quality = int(1e5)
-
 // Run should be the single call made from main().
 func Run(baseName string, scene Scene) {
+
+	pxWide := flag.Int("w", 640, "width in pixels")
+	pxHigh := flag.Int("h", 480, "height in pixels")
+	quality := flag.Int("q", 10, "quality (samples per pixel)")
+	flag.Parse()
 
 	tris := convertTriangles(scene.Triangles)
 	accel := newAccelerationStructure(tris)
@@ -22,10 +25,10 @@ func Run(baseName string, scene Scene) {
 	img := make(chan image.Image)
 	completed := new(uint64)
 	go func() {
-		img <- traceImage(pxWide, pxHigh, accel, cam, quality, completed)
+		img <- traceImage(*pxWide, *pxHigh, accel, cam, *quality, completed)
 	}()
 
-	total := pxWide * pxHigh * quality
+	total := *pxWide * *pxHigh * *quality
 	cli := newCLI(total)
 
 	for {
@@ -34,7 +37,8 @@ func Run(baseName string, scene Scene) {
 			cli.update(int(atomic.LoadUint64(completed)))
 		case img := <-img:
 			cli.finished()
-			output := baseName + ".png"
+			output := fmt.Sprintf("%s[%s]_%dx%d_q%d.png",
+				baseName, scene.hash(), *pxWide, *pxHigh, *quality)
 			outFile, err := os.Create(output)
 			if err != nil {
 				log.Fatal(err)
