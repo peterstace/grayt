@@ -13,28 +13,12 @@ func main() {
 	})
 }
 
-var (
-	up    = Vect(0.0, 1.0, 0.0)
-	down  = Vect(0.0, -1.0, 0.0)
-	left  = Vect(-1.0, 0.0, 0.0)
-	right = Vect(1.0, 0.0, 0.0)
-	back  = Vect(0.0, 0.0, 1.0)
-	zero  = Vect(0.0, 0.0, 0.0)
-	one   = Vect(1.0, 1.0, -1.0)
-)
-
-var (
-	white = Colour{1, 1, 1}
-	green = Colour{0, 1, 0}
-	red   = Colour{1, 0, 0}
-)
-
 func cam() Camera {
 	const D = 1.3 // Estimated.
 	return Camera{
 		Location:             Vect(0.5, 0.5, D),
 		ViewDirection:        Vect(0.0, 0.0, -1.0),
-		UpDirection:          up,
+		UpDirection:          Vect(0.0, 1.0, 0.0),
 		FieldOfViewInDegrees: 2 * math.Asin(0.5/math.Sqrt(0.25+D*D)) * 180 / math.Pi,
 		FocalLength:          0.5 + D,
 		FocalRatio:           math.Inf(+1),
@@ -47,7 +31,7 @@ func tris() []Triangle {
 		Vect(size, 1.0, -size),
 		Vect(1.0-size, 0.999, -1.0+size),
 		5.0,
-		white,
+		White,
 	)
 	ts = append(ts, box()...)
 	ts = append(ts, shortBlock()...)
@@ -123,15 +107,15 @@ func alignedSquare(a, b Vector, emittance float64, colour Colour) []Triangle {
 func box() []Triangle {
 	var ts []Triangle
 	ts = append(ts,
-		alignedSquare(Vect(0, 0, 0), Vect(1, 0, -1), 0, white)...)
+		alignedSquare(Vect(0, 0, 0), Vect(1, 0, -1), 0, White)...)
 	ts = append(ts,
-		alignedSquare(Vect(0, 1, 0), Vect(1, 1, -1), 0, white)...)
+		alignedSquare(Vect(0, 1, 0), Vect(1, 1, -1), 0, White)...)
 	ts = append(ts,
-		alignedSquare(Vect(0, 0, 0), Vect(0, 1, -1), 0, red)...)
+		alignedSquare(Vect(0, 0, 0), Vect(0, 1, -1), 0, Red)...)
 	ts = append(ts,
-		alignedSquare(Vect(1, 0, 0), Vect(1, 1, -1), 0, green)...)
+		alignedSquare(Vect(1, 0, 0), Vect(1, 1, -1), 0, Green)...)
 	ts = append(ts,
-		alignedSquare(Vect(0, 0, -1), Vect(1, 1, -1), 0, white)...)
+		alignedSquare(Vect(0, 0, -1), Vect(1, 1, -1), 0, White)...)
 	return ts
 }
 
@@ -148,11 +132,11 @@ func shortBlock() []Triangle {
 		RTB = Vect(0.56, 0.30, -0.49)
 	)
 	var ts []Triangle
-	ts = append(ts, square(LTF, LTB, RTB, RTF, 0, white)...)
-	ts = append(ts, square(LBF, RBF, RTF, LTF, 0, white)...)
-	ts = append(ts, square(LBB, RBB, RTB, LTB, 0, white)...)
-	ts = append(ts, square(LBF, LBB, LTB, LTF, 0, white)...)
-	ts = append(ts, square(RBF, RBB, RTB, RTF, 0, white)...)
+	ts = append(ts, square(LTF, LTB, RTB, RTF, 0, White)...)
+	ts = append(ts, square(LBF, RBF, RTF, LTF, 0, White)...)
+	ts = append(ts, square(LBB, RBB, RTB, LTB, 0, White)...)
+	ts = append(ts, square(LBF, LBB, LTB, LTF, 0, White)...)
+	ts = append(ts, square(RBF, RBB, RTB, RTF, 0, White)...)
 	return ts
 }
 
@@ -169,10 +153,10 @@ func tallBlock() []Triangle {
 		RTB = Vect(0.14, 0.60, -0.74)
 	)
 	var ts []Triangle
-	ts = append(ts, square(LTF, LTB, RTB, RTF, 0, white)...)
-	ts = append(ts, square(LBF, RBF, RTF, LTF, 0, white)...)
-	ts = append(ts, square(LBB, RBB, RTB, LTB, 0, white)...)
-	ts = append(ts, square(LBF, LBB, LTB, LTF, 0, white)...)
-	ts = append(ts, square(RBF, RBB, RTB, RTF, 0, white)...)
+	ts = append(ts, square(LTF, LTB, RTB, RTF, 0, White)...)
+	ts = append(ts, square(LBF, RBF, RTF, LTF, 0, White)...)
+	ts = append(ts, square(LBB, RBB, RTB, LTB, 0, White)...)
+	ts = append(ts, square(LBF, LBB, LTB, LTF, 0, White)...)
+	ts = append(ts, square(RBF, RBB, RTB, RTF, 0, White)...)
 	return ts
 }
