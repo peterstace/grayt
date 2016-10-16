@@ -106,16 +106,11 @@ func alignedSquare(a, b Vector, emittance float64, colour Colour) []Triangle {
 
 func box() []Triangle {
 	var ts []Triangle
-	ts = append(ts,
-		alignedSquare(Vect(0, 0, 0), Vect(1, 0, -1), 0, White)...)
-	ts = append(ts,
-		alignedSquare(Vect(0, 1, 0), Vect(1, 1, -1), 0, White)...)
-	ts = append(ts,
-		alignedSquare(Vect(0, 0, 0), Vect(0, 1, -1), 0, Red)...)
-	ts = append(ts,
-		alignedSquare(Vect(1, 0, 0), Vect(1, 1, -1), 0, Green)...)
-	ts = append(ts,
-		alignedSquare(Vect(0, 0, -1), Vect(1, 1, -1), 0, White)...)
+	ts = append(ts, alignedSquare(Vect(0, 0, 0), Vect(1, 0, -1), 0, White)...)
+	ts = append(ts, alignedSquare(Vect(0, 1, 0), Vect(1, 1, -1), 0, White)...)
+	ts = append(ts, alignedSquare(Vect(0, 0, 0), Vect(0, 1, -1), 0, Red)...)
+	ts = append(ts, alignedSquare(Vect(1, 0, 0), Vect(1, 1, -1), 0, Green)...)
+	ts = append(ts, alignedSquare(Vect(0, 0, -1), Vect(1, 1, -1), 0, White)...)
 	return ts
 }
 
