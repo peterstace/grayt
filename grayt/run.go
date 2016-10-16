@@ -1,8 +1,12 @@
 package grayt
 
 import (
+	"bytes"
+	"encoding/base64"
+	"encoding/binary"
 	"flag"
 	"fmt"
+	"hash/crc64"
 	"image"
 	"image/png"
 	"log"
@@ -38,7 +42,7 @@ func Run(baseName string, scene Scene) {
 		case img := <-img:
 			cli.finished()
 			output := fmt.Sprintf("%s[%s]_%dx%d_q%d.png",
-				baseName, scene.hash(), *pxWide, *pxHigh, *quality)
+				baseName, hashScene(scene), *pxWide, *pxHigh, *quality)
 			outFile, err := os.Create(output)
 			if err != nil {
 				log.Fatal(err)
@@ -50,4 +54,25 @@ func Run(baseName string, scene Scene) {
 			os.Exit(0)
 		}
 	}
+}
+
+func hashScene(s Scene) string {
+
+	// Calculate hash.
+	h := crc64.New(crc64.MakeTable(crc64.ISO))
+	h.Write([]byte(s.Camera.String()))
+	for _, t := range s.Triangles {
+		h.Write([]byte(t.String()))
+	}
+
+	// Calculate base64 encoded hash.
+	var buf bytes.Buffer
+	enc := base64.NewEncoder(base64.RawURLEncoding, &buf)
+	binary.Write(
+		enc,
+		binary.LittleEndian,
+		h.Sum64(),
+	)
+	enc.Close()
+	return buf.String()
 }
