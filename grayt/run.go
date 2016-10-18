@@ -47,7 +47,8 @@ func Run(baseName string, scene Scene) {
 			if err != nil {
 				log.Fatal(err)
 			}
-			err = png.Encode(outFile, img)
+			enc := png.Encoder{CompressionLevel: png.BestCompression}
+			err = enc.Encode(outFile, img)
 			if err != nil {
 				log.Fatal(err)
 			}
