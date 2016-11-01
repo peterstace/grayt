@@ -18,8 +18,8 @@ type triangle struct {
 }
 
 func newTriangle(a, b, c Vector, colour Colour, emittance float64) triangle {
-	u := b.sub(a)
-	v := c.sub(a)
+	u := b.Sub(a)
+	v := c.Sub(a)
 	return triangle{
 		a:        a,
 		u:        u,
@@ -51,7 +51,7 @@ func convertTriangles(ts []Triangle) []triangle {
 func (t *triangle) intersect(r ray) (intersection, bool) {
 
 	// Check if there's a hit with the plane.
-	h := t.unitNorm.dot(t.a.sub(r.start)) / t.unitNorm.dot(r.dir)
+	h := t.unitNorm.dot(t.a.Sub(r.start)) / t.unitNorm.dot(r.dir)
 	if h <= 0 {
 		// Hit was behind the camera.
 		return intersection{}, false
@@ -68,7 +68,7 @@ func (t *triangle) intersect(r ray) (intersection, bool) {
 	// alpha = [(u.v)(w.v) - (v.v)(w.u)] / [(u.v)^2 - (u.u)(v.v)]
 	// beta  = [(u.v)(w.u) - (u.u)(w.v)] / [(u.v)^2 - (u.u)(v.v)]
 
-	w := r.at(h).sub(t.a)
+	w := r.at(h).Sub(t.a)
 	dotWV := w.dot(t.v)
 	dotWU := w.dot(t.u)
 	alpha := t.dotUV*dotWV - t.dotVV*dotWU

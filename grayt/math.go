@@ -43,7 +43,7 @@ func (v Vector) add(u Vector) Vector {
 	}
 }
 
-func (v Vector) sub(u Vector) Vector {
+func (v Vector) Sub(u Vector) Vector {
 	return Vector{
 		X: v.X - u.X,
 		Y: v.Y - u.Y,

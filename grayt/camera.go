@@ -47,6 +47,6 @@ func (c *camera) makeRay(x, y float64) ray {
 		add(c.screen.y.scale(y))
 	return ray{
 		start: start,
-		dir:   end.sub(start),
+		dir:   end.Sub(start),
 	}
 }
