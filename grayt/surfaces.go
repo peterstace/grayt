@@ -1,26 +1,34 @@
 package grayt
 
+type surface interface {
+	intersect(r ray) (intersection, bool)
+}
+
+type material struct {
+	colour    Colour
+	emittance float64
+}
+
+type object struct {
+	surface
+	material
+}
+
 type intersection struct {
 	unitNormal Vector
 	distance   float64
-
-	colour    Colour
-	emittance float64
 }
 
 type triangle struct {
 	a, u, v             Vector // Corner A, A to B, and A to C.
 	unitNorm            Vector
 	dotUV, dotUU, dotVV float64 // Precomputed dot products.
-
-	colour    Colour
-	emittance float64
 }
 
-func newTriangle(a, b, c Vector, colour Colour, emittance float64) triangle {
+func newTriangle(a, b, c Vector) surface {
 	u := b.Sub(a)
 	v := c.Sub(a)
-	return triangle{
+	return &triangle{
 		a:        a,
 		u:        u,
 		v:        v,
@@ -28,24 +36,7 @@ func newTriangle(a, b, c Vector, colour Colour, emittance float64) triangle {
 		dotUV:    u.dot(v),
 		dotUU:    u.dot(u),
 		dotVV:    v.dot(v),
-
-		colour:    colour,
-		emittance: emittance,
 	}
-}
-
-func convertTriangles(ts []Triangle) []triangle {
-	tris := make([]triangle, 0, len(ts))
-	for _, t := range ts {
-		tris = append(tris, newTriangle(
-			t.A,
-			t.B,
-			t.C,
-			t.Colour,
-			t.Emittance,
-		))
-	}
-	return tris
 }
 
 func (t *triangle) intersect(r ray) (intersection, bool) {
@@ -58,8 +49,8 @@ func (t *triangle) intersect(r ray) (intersection, bool) {
 	}
 
 	// Find out if the plane hit was inside the triangle. We need to solve the
-	// equation w = alpha*u + beta*v for alpha and beta (where alpha beta
-	// scalars, and u and v are vectors from a to b and a to c, and w is a
+	// equation w = alpha*u + beta*v for alpha and beta (where alpha and beta
+	// are scalars, and u and v are vectors from a to b and a to c, and w is a
 	// vector from a to the hit point).
 	//
 	// If the sum of alpha and beta is less than 1 and both alpha and beta are
@@ -83,7 +74,16 @@ func (t *triangle) intersect(r ray) (intersection, bool) {
 	return intersection{
 		unitNormal: t.unitNorm,
 		distance:   h,
-		colour:     t.colour,
-		emittance:  t.emittance,
 	}, true
+}
+
+func convertTriangles(tris TriangleList) []object {
+	objs := make([]object, 0, len(tris))
+	for _, tri := range tris {
+		objs = append(objs, object{
+			newTriangle(tri.A, tri.B, tri.C),
+			material{tri.Colour, tri.Emittance},
+		})
+	}
+	return objs
 }

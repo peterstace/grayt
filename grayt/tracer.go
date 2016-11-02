@@ -31,21 +31,20 @@ func traceImage(pxWide, pxHigh int, accel accelerationStructure, cam camera, qua
 
 func tracePath(accel accelerationStructure, r ray) Colour {
 
-	intersection, hit := accel.closestHit(r)
+	intersection, material, hit := accel.closestHit(r)
 	if !hit {
 		return Colour{0, 0, 0}
 	}
 
 	// Calculate probability of emitting.
 	pEmit := 0.1
-	if intersection.emittance != 0 {
+	if material.emittance != 0 {
 		pEmit = 1.0
 	}
 
 	// Handle emit case.
 	if rand.Float64() < pEmit {
-		return intersection.colour.
-			scale(intersection.emittance / pEmit)
+		return material.colour.scale(material.emittance / pEmit)
 	}
 
 	// Find where the ray hit. Reduce the intersection distance by a small
@@ -69,5 +68,5 @@ func tracePath(accel accelerationStructure, r ray) Colour {
 
 	return tracePath(accel, ray{start: hitLoc, dir: rnd}).
 		scale(brdf / (1 - pEmit)).
-		mul(intersection.colour)
+		mul(material.colour)
 }
