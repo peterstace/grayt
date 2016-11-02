@@ -37,7 +37,7 @@ func Run(baseName string, scene Scene) {
 
 	for {
 		select {
-		case <-time.After(100 * time.Millisecond):
+		case <-time.After(updateInterval):
 			cli.update(int(atomic.LoadUint64(completed)))
 		case img := <-img:
 			cli.finished()

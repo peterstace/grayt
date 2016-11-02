@@ -14,35 +14,41 @@ type cli struct {
 	lastUpdate    time.Time
 	smoothedSpeed float64
 
-	start time.Time
+	elapsed time.Duration
 }
 
 func newCLI(total int) *cli {
 	return &cli{
 		total: total,
-		start: time.Now(),
 	}
 }
 
 var posStrs = []string{`)`, `|`, `(`, `|`}
 
+const updateInterval = 100 * time.Millisecond
+
 func (c *cli) update(done int) {
+
+	now := time.Now()
+	timeDelta := now.Sub(c.lastUpdate)
+	c.lastUpdate = now
+	if timeDelta > 2*updateInterval {
+		return
+	} else {
+		c.elapsed += timeDelta
+	}
 
 	doneDelta := done - c.lastDone
 	c.lastDone = done
-	now := time.Now()
-	elapsed := now.Sub(c.start)
 
-	if now.Sub(c.start) > time.Second {
-		speed := float64(doneDelta) / now.Sub(c.lastUpdate).Seconds()
+	if c.elapsed > time.Second {
+		speed := float64(doneDelta) / timeDelta.Seconds()
 		const alpha = 0.001
 		c.smoothedSpeed = alpha*speed + (1-alpha)*c.smoothedSpeed
 	} else {
-		elapsedInSeconds := float64(elapsed) / float64(time.Second)
+		elapsedInSeconds := float64(c.elapsed) / float64(time.Second)
 		c.smoothedSpeed = float64(done) / elapsedInSeconds
 	}
-
-	c.lastUpdate = now
 
 	eta := time.Duration(float64(c.total-done)/c.smoothedSpeed) * time.Second
 
@@ -60,7 +66,7 @@ func (c *cli) update(done int) {
 		"%s [%6.2f%%] [Elapsed: %s] [ETA: %s] [%s samples/sec]",
 		posStr,
 		pctDone,
-		displayDuration(now.Sub(c.start)),
+		displayDuration(c.elapsed),
 		displayDuration(eta),
 		displayFloat64(c.smoothedSpeed),
 	)
