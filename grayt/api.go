@@ -30,49 +30,58 @@ func DefaultCamera() Camera {
 	}
 }
 
-type Triangle struct {
-	A, B, C   Vector
-	Colour    Colour
-	Emittance float64
+type Scene struct {
+	Camera  Camera
+	Objects ObjectList
 }
 
-func (t Triangle) String() string {
-	return fmt.Sprintf("A=%v B=%v C=%v Colour=%v Emittance=%v",
-		t.A, t.B, t.C, t.Colour, t.Emittance)
-}
+type ObjectList []Object
 
-type TriangleList []Triangle
-
-func JoinTriangles(ts ...TriangleList) TriangleList {
-	var all []Triangle
-	for _, t := range ts {
-		all = append(all, t...)
+func Group(objLists ...ObjectList) ObjectList {
+	var grouped ObjectList
+	for _, objList := range objLists {
+		grouped = append(grouped, objList...)
 	}
-	return all
+	return grouped
 }
 
-func (t TriangleList) SetColour(c Colour) TriangleList {
-	for i := range t {
-		t[i].Colour = c
+func (o ObjectList) With(fns ...func(*Object)) ObjectList {
+	for i := range o {
+		for _, fn := range fns {
+			fn(&o[i])
+		}
 	}
-	return t
+	return o
 }
 
-func (t TriangleList) SetEmittance(e float64) TriangleList {
-	for i := range t {
-		t[i].Emittance = e
-	}
-	return t
-}
+const (
+	White = 0xffffff
+	Black = 0x000000
+	Red   = 0xff0000
+	Green = 0x00ff00
+	Blue  = 0x0000ff
+)
 
-func Square(a, b, c, d Vector) TriangleList {
-	return []Triangle{
-		{A: a, B: b, C: c},
-		{A: c, B: d, C: a},
+func ColourRGB(rgb uint32) func(*Object) {
+	return func(o *Object) {
+		o.material.colour = newColour(rgb)
 	}
 }
 
-func AlignedSquare(a, b Vector) TriangleList {
+func Emittance(e float64) func(*Object) {
+	return func(o *Object) {
+		o.material.emittance = e
+	}
+}
+
+func Triangle(a, b, c Vector) ObjectList {
+	return ObjectList{{
+		newTriangle(a, b, c),
+		material{colour: newColour(White)},
+	}}
+}
+
+func AlignedSquare(a, b Vector) ObjectList {
 	var c, d Vector
 	switch {
 	case a.X == b.X:
@@ -88,13 +97,14 @@ func AlignedSquare(a, b Vector) TriangleList {
 		panic("a and b line in a common aligned plane")
 
 	}
-	return []Triangle{
-		{A: a, B: c, C: d},
-		{A: b, B: c, C: d},
-	}
+	return Group(
+		Triangle(a, c, d),
+		Triangle(b, c, d),
+	)
 }
 
-func AlignedBox(a, b Vector) TriangleList {
+func AlignedBox(a, b Vector) ObjectList {
+
 	a1 := Vect(b.X, a.Y, a.Z)
 	a2 := Vect(a.X, b.Y, a.Z)
 	a3 := Vect(a.X, a.Y, b.Z)
@@ -102,27 +112,21 @@ func AlignedBox(a, b Vector) TriangleList {
 	b2 := Vect(b.X, a.Y, b.Z)
 	b3 := Vect(b.X, b.Y, a.Z)
 
-	return TriangleList{
+	return Group(
+		Triangle(a, a1, a2),
+		Triangle(a, a2, a3),
+		Triangle(a, a3, a1),
 
-		{A: a, B: a1, C: a2},
-		{A: a, B: a2, C: a3},
-		{A: a, B: a3, C: a1},
+		Triangle(b, b1, b2),
+		Triangle(b, b2, b3),
+		Triangle(b, b3, b1),
 
-		{A: b, B: b1, C: b2},
-		{A: b, B: b2, C: b3},
-		{A: b, B: b3, C: b1},
+		Triangle(a1, b2, b3),
+		Triangle(a2, b3, b1),
+		Triangle(a3, b1, b2),
 
-		{A: a1, B: b2, C: b3},
-		{A: a2, B: b3, C: b1},
-		{A: a3, B: b1, C: b2},
-
-		{A: b1, B: a2, C: a3},
-		{A: b2, B: a3, C: a1},
-		{A: b3, B: a1, C: a2},
-	}
-}
-
-type Scene struct {
-	Camera    Camera
-	Triangles []Triangle
+		Triangle(b1, a2, a3),
+		Triangle(b2, a3, a1),
+		Triangle(b3, a1, a2),
+	)
 }

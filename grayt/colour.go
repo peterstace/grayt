@@ -5,16 +5,19 @@ import (
 	"math"
 )
 
-var (
-	White = Colour{1, 1, 1}
-	Red   = Colour{1, 0, 0}
-	Green = Colour{0, 1, 0}
-	Blue  = Colour{0, 0, 1}
-	Black = Colour{0, 0, 0}
-)
-
 type Colour struct {
 	R, G, B float64
+}
+
+func newColour(rgb uint32) Colour {
+	r := (rgb & 0xff0000) >> 16
+	g := (rgb & 0x00ff00) >> 8
+	b := (rgb & 0x0000ff)
+	return Colour{
+		R: float64(r) / 0xff,
+		G: float64(g) / 0xff,
+		B: float64(b) / 0xff,
+	}
 }
 
 func (c Colour) add(rhs Colour) Colour {

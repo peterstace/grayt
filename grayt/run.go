@@ -23,8 +23,7 @@ func Run(baseName string, scene Scene) {
 	quality := flag.Int("q", 10, "quality (samples per pixel)")
 	flag.Parse()
 
-	tris := convertTriangles(scene.Triangles)
-	accel := newAccelerationStructure(tris)
+	accel := newAccelerationStructure(scene.Objects)
 	cam := newCamera(scene.Camera)
 	img := make(chan image.Image)
 	completed := new(uint64)
@@ -62,8 +61,8 @@ func hashScene(s Scene) string {
 	// Calculate hash.
 	h := crc64.New(crc64.MakeTable(crc64.ISO))
 	h.Write([]byte(s.Camera.String()))
-	for _, t := range s.Triangles {
-		h.Write([]byte(t.String()))
+	for _, o := range s.Objects {
+		h.Write([]byte(fmt.Sprintf("%#v", o)))
 	}
 
 	// Calculate base64 encoded hash.

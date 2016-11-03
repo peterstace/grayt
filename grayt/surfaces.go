@@ -9,7 +9,7 @@ type material struct {
 	emittance float64
 }
 
-type object struct {
+type Object struct {
 	surface
 	material
 }
@@ -75,15 +75,4 @@ func (t *triangle) intersect(r ray) (intersection, bool) {
 		unitNormal: t.unitNorm,
 		distance:   h,
 	}, true
-}
-
-func convertTriangles(tris TriangleList) []object {
-	objs := make([]object, 0, len(tris))
-	for _, tri := range tris {
-		objs = append(objs, object{
-			newTriangle(tri.A, tri.B, tri.C),
-			material{tri.Colour, tri.Emittance},
-		})
-	}
-	return objs
 }
