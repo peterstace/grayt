@@ -130,3 +130,10 @@ func AlignedBox(a, b Vector) ObjectList {
 		Triangle(b3, a1, a2),
 	)
 }
+
+func Square(a, b, c, d Vector) ObjectList {
+	return Group(
+		Triangle(a, b, c),
+		Triangle(c, d, a),
+	)
+}

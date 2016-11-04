@@ -9,17 +9,15 @@ import (
 func main() {
 	Run("cornellbox", Scene{
 		Camera: Cam(1.3),
-		Triangles: JoinTriangles(
-			JoinTriangles(
-				ShortBlock(),
-				TallBlock(),
-				Floor,
-				Ceiling,
-				BackWall,
-			).SetColour(White),
-			LeftWall.SetColour(Red),
-			RightWall.SetColour(Green),
-			CeilingLight(),
+		Objects: Group(
+			ShortBlock(),
+			TallBlock(),
+			Floor,
+			Ceiling,
+			BackWall,
+			LeftWall.With(ColourRGB(Red)),
+			RightWall.With(ColourRGB(Green)),
+			CeilingLight().With(Emittance(5.0)),
 		),
 	})
 }
@@ -43,15 +41,15 @@ var (
 	RightWall = AlignedSquare(Vect(1, 0, 0), Vect(1, 1, -1))
 )
 
-func CeilingLight() TriangleList {
+func CeilingLight() ObjectList {
 	const size = 0.9
 	return AlignedBox(
 		Vect(size, 1.0, -size),
 		Vect(1.0-size, 0.999, -1.0+size),
-	).SetColour(White).SetEmittance(5.0)
+	)
 }
 
-func ShortBlock() TriangleList {
+func ShortBlock() ObjectList {
 	var (
 		// Left/Right, Top/Bottom, Front/Back.
 		LBF = Vect(0.76, 0.00, -0.12)
@@ -63,7 +61,7 @@ func ShortBlock() TriangleList {
 		RTF = Vect(0.47, 0.30, -0.21)
 		RTB = Vect(0.56, 0.30, -0.49)
 	)
-	return JoinTriangles(
+	return Group(
 		Square(LTF, LTB, RTB, RTF),
 		Square(LBF, RBF, RTF, LTF),
 		Square(LBB, RBB, RTB, LTB),
@@ -72,7 +70,7 @@ func ShortBlock() TriangleList {
 	)
 }
 
-func TallBlock() TriangleList {
+func TallBlock() ObjectList {
 	var (
 		// Left/Right, Top/Bottom, Front/Back.
 		LBF = Vect(0.52, 0.00, -0.54)
@@ -84,7 +82,7 @@ func TallBlock() TriangleList {
 		RTF = Vect(0.23, 0.60, -0.45)
 		RTB = Vect(0.14, 0.60, -0.74)
 	)
-	return JoinTriangles(
+	return Group(
 		Square(LTF, LTB, RTB, RTF),
 		Square(LBF, RBF, RTF, LTF),
 		Square(LBB, RBB, RTB, LTB),
