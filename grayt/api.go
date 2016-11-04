@@ -104,31 +104,10 @@ func AlignedSquare(a, b Vector) ObjectList {
 }
 
 func AlignedBox(a, b Vector) ObjectList {
-
-	a1 := Vect(b.X, a.Y, a.Z)
-	a2 := Vect(a.X, b.Y, a.Z)
-	a3 := Vect(a.X, a.Y, b.Z)
-	b1 := Vect(a.X, b.Y, b.Z)
-	b2 := Vect(b.X, a.Y, b.Z)
-	b3 := Vect(b.X, b.Y, a.Z)
-
-	return Group(
-		Triangle(a, a1, a2),
-		Triangle(a, a2, a3),
-		Triangle(a, a3, a1),
-
-		Triangle(b, b1, b2),
-		Triangle(b, b2, b3),
-		Triangle(b, b3, b1),
-
-		Triangle(a1, b2, b3),
-		Triangle(a2, b3, b1),
-		Triangle(a3, b1, b2),
-
-		Triangle(b1, a2, a3),
-		Triangle(b2, a3, a1),
-		Triangle(b3, a1, a2),
-	)
+	return ObjectList{{
+		newAlignedBox(a, b),
+		material{colour: newColour(White)},
+	}}
 }
 
 func Square(a, b, c, d Vector) ObjectList {
