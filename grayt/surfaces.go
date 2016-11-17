@@ -170,3 +170,56 @@ func (b *alignedBox) intersect(r ray) (intersection, bool) {
 		return intersection{distance: tmax, unitNormal: nMax}, true
 	}
 }
+
+type plane struct {
+	n Vector // Unit normal out of the plane.
+	x Vector // Any point on the plane.
+}
+
+func newPlane(n, x Vector) *plane {
+	return &plane{n, x}
+}
+
+func (p *plane) intersect(r ray) (intersection, bool) {
+	t := p.n.dot(p.x.Sub(r.start)) / p.n.dot(r.dir)
+	return intersection{p.n, t}, t > 0
+}
+
+type alignXPlane struct {
+	x float64
+}
+
+func newXPlane(x float64) *alignXPlane {
+	return &alignXPlane{x}
+}
+
+func (p *alignXPlane) intersect(r ray) (intersection, bool) {
+	t := (p.x - r.start.X) / r.dir.X
+	return intersection{Vect(+1, 0, 0), t}, t > 0
+}
+
+type alignYPlane struct {
+	y float64
+}
+
+func newYPlane(y float64) *alignYPlane {
+	return &alignYPlane{y}
+}
+
+func (p *alignYPlane) intersect(r ray) (intersection, bool) {
+	t := (p.y - r.start.Y) / r.dir.Y
+	return intersection{Vect(0, +1, 0), t}, t > 0
+}
+
+type alignZPlane struct {
+	z float64
+}
+
+func newZPlane(z float64) *alignZPlane {
+	return &alignZPlane{z}
+}
+
+func (p *alignZPlane) intersect(r ray) (intersection, bool) {
+	t := (p.z - r.start.Z) / r.dir.Z
+	return intersection{Vect(0, 0, +1), t}, t > 0
+}

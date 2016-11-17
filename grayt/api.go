@@ -94,7 +94,7 @@ func AlignedSquare(a, b Vector) ObjectList {
 		c = Vector{X: a.X, Y: b.Y, Z: a.Z}
 		d = Vector{X: b.X, Y: a.Y, Z: a.Z}
 	default:
-		panic("a and b line in a common aligned plane")
+		panic("a and b lie in a common aligned plane")
 
 	}
 	return Group(
@@ -115,4 +115,32 @@ func Square(a, b, c, d Vector) ObjectList {
 		Triangle(a, b, c),
 		Triangle(c, d, a),
 	)
+}
+
+func Plane(normal, pt Vector) ObjectList {
+	return ObjectList{{
+		newPlane(normal, pt),
+		material{colour: newColour(White)},
+	}}
+}
+
+func XPlane(x float64) ObjectList {
+	return ObjectList{{
+		newXPlane(x),
+		material{colour: newColour(White)},
+	}}
+}
+
+func YPlane(y float64) ObjectList {
+	return ObjectList{{
+		newYPlane(y),
+		material{colour: newColour(White)},
+	}}
+}
+
+func ZPlane(z float64) ObjectList {
+	return ObjectList{{
+		newZPlane(z),
+		material{colour: newColour(White)},
+	}}
 }
