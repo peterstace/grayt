@@ -55,7 +55,7 @@ func Cam(d float64) Camera {
 var (
 	Floor     = AlignedSquare(Vect(0, 0, 0), Vect(1, 0, -1))
 	Ceiling   = AlignedSquare(Vect(0, 1, 0), Vect(1, 1, -1))
-	BackWall  = AlignedSquare(Vect(0, 0, -1), Vect(1, 1, -1))
+	BackWall  = ZPlane(-1)
 	LeftWall  = AlignedSquare(Vect(0, 0, 0), Vect(0, 1, -1))
 	RightWall = AlignedSquare(Vect(1, 0, 0), Vect(1, 1, -1))
 )
