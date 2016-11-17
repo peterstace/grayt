@@ -144,3 +144,10 @@ func ZPlane(z float64) ObjectList {
 		material{colour: newColour(White)},
 	}}
 }
+
+func Sphere(c Vector, r float64) ObjectList {
+	return ObjectList{{
+		newSphere(c, r),
+		material{colour: newColour(White)},
+	}}
+}

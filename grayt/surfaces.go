@@ -223,3 +223,49 @@ func (p *alignZPlane) intersect(r ray) (intersection, bool) {
 	t := (p.z - r.start.Z) / r.dir.Z
 	return intersection{Vect(0, 0, +1), t}, t > 0
 }
+
+type sphere struct {
+	centre Vector
+	radius float64
+}
+
+func newSphere(c Vector, r float64) *sphere {
+	return &sphere{c, r}
+}
+
+func (s *sphere) intersect(r ray) (intersection, bool) {
+
+	// Get coeficients to a.x^2 + b.x + c = 0
+	emc := r.start.Sub(s.centre)
+	a := r.dir.lengthSq()
+	b := 2 * emc.dot(r.dir)
+	c := emc.lengthSq() - s.radius*s.radius
+
+	// Find discrimenant b*b - 4*a*c
+	disc := b*b - 4*a*c
+	if disc < 0 {
+		return intersection{}, false
+	}
+
+	// Find x1 and x2 using a numerically stable algorithm.
+	var signOfB float64
+	signOfB = math.Copysign(1.0, b)
+	q := -0.5 * (b + signOfB*math.Sqrt(disc))
+	x1 := q / a
+	x2 := c / q
+
+	var t float64
+	if x1 > 0 && x2 > 0 {
+		// Both are positive, so take the smaller one.
+		t = math.Min(x1, x2)
+	} else {
+		// At least one is negative, take the larger one (which is either
+		// negative or positive).
+		t = math.Max(x1, x2)
+	}
+
+	return intersection{
+		unitNormal: r.at(t).Sub(s.centre).unit(),
+		distance:   t,
+	}, t > 0
+}
