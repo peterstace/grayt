@@ -19,32 +19,32 @@ func newCamera(conf Camera) camera {
 
 	cam := camera{}
 
-	upDirection := conf.UpDirection.unit()
-	viewDirection := conf.ViewDirection.unit()
+	upDirection := conf.UpDirection.Unit()
+	viewDirection := conf.ViewDirection.Unit()
 
 	cam.screen.x = viewDirection.cross(upDirection)
 	cam.screen.y = cam.screen.x.cross(viewDirection)
 
-	cam.eye.x = cam.screen.x.scale(conf.FocalLength / conf.FocalRatio)
-	cam.eye.y = cam.screen.y.scale(conf.FocalLength / conf.FocalRatio)
+	cam.eye.x = cam.screen.x.Scale(conf.FocalLength / conf.FocalRatio)
+	cam.eye.y = cam.screen.y.Scale(conf.FocalLength / conf.FocalRatio)
 	cam.eye.loc = conf.Location
 
 	fieldOfViewInRadians := conf.FieldOfViewInDegrees * math.Pi / 180
 	halfScreenWidth := math.Tan(fieldOfViewInRadians/2) * conf.FocalLength
-	cam.screen.x = cam.screen.x.scale(halfScreenWidth)
-	cam.screen.y = cam.screen.y.scale(halfScreenWidth)
-	cam.screen.loc = cam.eye.loc.add(viewDirection.scale(conf.FocalLength))
+	cam.screen.x = cam.screen.x.Scale(halfScreenWidth)
+	cam.screen.y = cam.screen.y.Scale(halfScreenWidth)
+	cam.screen.loc = cam.eye.loc.Add(viewDirection.Scale(conf.FocalLength))
 
 	return cam
 }
 
 func (c *camera) makeRay(x, y float64) ray {
 	start := c.eye.loc.
-		add(c.eye.x.scale(2*rand.Float64() - 1.0)).
-		add(c.eye.y.scale(2*rand.Float64() - 1.0))
+		Add(c.eye.x.Scale(2*rand.Float64() - 1.0)).
+		Add(c.eye.y.Scale(2*rand.Float64() - 1.0))
 	end := c.screen.loc.
-		add(c.screen.x.scale(x)).
-		add(c.screen.y.scale(y))
+		Add(c.screen.x.Scale(x)).
+		Add(c.screen.y.Scale(y))
 	return ray{
 		start: start,
 		dir:   end.Sub(start),

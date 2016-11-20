@@ -34,7 +34,7 @@ func newTriangle(a, b, c Vector) surface {
 		a:        a,
 		u:        u,
 		v:        v,
-		unitNorm: u.cross(v).unit(),
+		unitNorm: u.cross(v).Unit(),
 		dotUV:    u.dot(v),
 		dotUU:    u.dot(u),
 		dotVV:    v.dot(v),
@@ -237,9 +237,9 @@ func (s *sphere) intersect(r ray) (intersection, bool) {
 
 	// Get coeficients to a.x^2 + b.x + c = 0
 	emc := r.start.Sub(s.centre)
-	a := r.dir.lengthSq()
+	a := r.dir.LengthSq()
 	b := 2 * emc.dot(r.dir)
-	c := emc.lengthSq() - s.radius*s.radius
+	c := emc.LengthSq() - s.radius*s.radius
 
 	// Find discrimenant b*b - 4*a*c
 	disc := b*b - 4*a*c
@@ -265,7 +265,7 @@ func (s *sphere) intersect(r ray) (intersection, bool) {
 	}
 
 	return intersection{
-		unitNormal: r.at(t).Sub(s.centre).unit(),
+		unitNormal: r.at(t).Sub(s.centre).Unit(),
 		distance:   t,
 	}, t > 0
 }

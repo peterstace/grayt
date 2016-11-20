@@ -10,15 +10,15 @@ func Vect(x, y, z float64) Vector {
 	return Vector{x, y, z}
 }
 
-func (v Vector) length() float64 {
+func (v Vector) Length() float64 {
 	return math.Sqrt(v.X*v.X + v.Y*v.Y + v.Z*v.Z)
 }
 
-func (v Vector) lengthSq() float64 {
+func (v Vector) LengthSq() float64 {
 	return v.X*v.X + v.Y*v.Y + v.Z*v.Z
 }
 
-func (v Vector) unit() Vector {
+func (v Vector) Unit() Vector {
 	length := math.Sqrt(v.X*v.X + v.Y*v.Y + v.Z*v.Z)
 	return Vector{
 		X: v.X / length,
@@ -27,7 +27,7 @@ func (v Vector) unit() Vector {
 	}
 }
 
-func (v Vector) scale(mul float64) Vector {
+func (v Vector) Scale(mul float64) Vector {
 	return Vector{
 		X: v.X * mul,
 		Y: v.Y * mul,
@@ -35,7 +35,7 @@ func (v Vector) scale(mul float64) Vector {
 	}
 }
 
-func (v Vector) add(u Vector) Vector {
+func (v Vector) Add(u Vector) Vector {
 	return Vector{
 		X: v.X + u.X,
 		Y: v.Y + u.Y,
@@ -100,5 +100,5 @@ type ray struct {
 }
 
 func (r ray) at(t float64) Vector {
-	return r.start.add(r.dir.scale(t))
+	return r.start.Add(r.dir.Scale(t))
 }

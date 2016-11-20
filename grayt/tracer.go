@@ -18,7 +18,7 @@ func traceImage(pxWide, pxHigh int, accel accelerationStructure, cam camera, qua
 				x := (float64(pxX-pxWide/2) + rand.Float64()) * pxPitch
 				y := (float64(pxY-pxHigh/2) + rand.Float64()) * pxPitch * -1.0
 				r := cam.makeRay(x, y)
-				r.dir = r.dir.unit()
+				r.dir = r.dir.Unit()
 				accum.add(pxX, pxY, tracePath(accel, r))
 				atomic.AddUint64(completed, 1)
 
@@ -53,14 +53,14 @@ func tracePath(accel accelerationStructure, r ray) Colour {
 
 	// Orient the unit normal towards the ray origin.
 	if intersection.unitNormal.dot(r.dir) > 0 {
-		intersection.unitNormal = intersection.unitNormal.scale(-1.0)
+		intersection.unitNormal = intersection.unitNormal.Scale(-1.0)
 	}
 
 	// Create a random vector on the hemisphere towards the normal.
 	rnd := Vector{rand.NormFloat64(), rand.NormFloat64(), rand.NormFloat64()}
-	rnd = rnd.unit()
+	rnd = rnd.Unit()
 	if rnd.dot(intersection.unitNormal) < 0 {
-		rnd = rnd.scale(-1.0)
+		rnd = rnd.Scale(-1.0)
 	}
 
 	// Apply the BRDF (bidirectional reflection distribution function).
