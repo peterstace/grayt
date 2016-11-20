@@ -22,11 +22,14 @@ func main() {
 	})
 }
 func Cam(d float64) Camera {
+	loc := Vect(0.5, 0.5, d)
+	at := Vect(0.5, 0.25, -0.5)
+	dir := at.Sub(loc)
 	return Camera{
-		Location:             Vect(0.5, 0.5, d),
-		ViewDirection:        Vect(0.0, 0.0, -1.0),
+		Location:             loc,
+		ViewDirection:        dir,
 		UpDirection:          Vect(0.0, 1.0, 0.0),
-		FieldOfViewInDegrees: 2 * math.Asin(0.5/math.Sqrt(0.25+d*d)) * 180 / math.Pi,
+		FieldOfViewInDegrees: 0.95 * 2 * math.Asin(0.5/math.Sqrt(0.25+d*d)) * 180 / math.Pi,
 		FocalLength:          0.5 + d,
 		FocalRatio:           math.Inf(+1),
 	}
