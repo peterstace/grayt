@@ -54,40 +54,87 @@ type sphere struct {
 }
 
 func Tree() ObjectList {
-	var ol ObjectList
-	for _, s := range recurse(sphere{Vect(0.5, 0, -0.5), 0.2}, 8) {
-		ol = Group(ol, Sphere(s.c, s.r))
+
+	root := sphere{Vect(0.5, 0, -0.5), 0.2}
+	spheres := new([]sphere)
+	*spheres = append(*spheres, root)
+	recurse(spheres, root, 9)
+
+	var objList ObjectList
+	for _, s := range *spheres {
+		objList = Group(objList, Sphere(s.c, s.r))
 	}
-	return ol
+	return objList
 }
 
-const radiusScaleDown = 0.8
+const radiusScaleDown = 0.7
 
-var rnd = rand.New(rand.NewSource(2))
-
-func recurse(parent sphere, level int) []sphere {
+func recurse(spheres *[]sphere, parent sphere, level int) {
 
 	if level == 0 {
-		return []sphere{parent}
+		return
 	}
 
-	var spheres []sphere
-	for i := 0; i < 2; i++ {
-		var child sphere
-		matches := false
-		for !matches {
-			rndUnit := Vector{rnd.NormFloat64(), rnd.NormFloat64(), rnd.NormFloat64()}.Unit()
-			child.c = parent.c.Add(rndUnit.Scale(parent.r))
-			child.r = radiusScaleDown * parent.r
-			matches = true &&
-				child.c.X > child.r &&
-				child.c.X < 1.0-child.r &&
-				child.c.Y > child.r &&
-				child.c.Y < 1.0-child.r &&
-				child.c.Z < -child.r &&
-				child.c.Z > -1.0+child.r
+	child1, child2 := findChildren(spheres, parent)
+
+	*spheres = append(*spheres, child1)
+	*spheres = append(*spheres, child2)
+
+	recurse(spheres, child1, level-1)
+	recurse(spheres, child2, level-1)
+}
+
+func findChildren(spheres *[]sphere, parent sphere) (sphere, sphere) {
+	var child1, child2 sphere
+	for true {
+		child1 = createChild(parent)
+		child2 = createChild(parent)
+		if !isValidChild(child1, parent, spheres) {
+			continue
 		}
-		spheres = append(spheres, recurse(child, level-1)...)
+		if !isValidChild(child2, parent, spheres) {
+			continue
+		}
+		if spheresIntersect(child1, child2) {
+			continue
+		}
+		break
 	}
-	return append(spheres, parent)
+	return child1, child2
+}
+
+var rnd = rand.New(rand.NewSource(0))
+
+func createChild(parent sphere) sphere {
+	rndUnit := Vector{rnd.NormFloat64(), rnd.NormFloat64(), rnd.NormFloat64()}.Unit()
+	return sphere{
+		parent.c.Add(rndUnit.Scale(parent.r)),
+		radiusScaleDown * parent.r,
+	}
+}
+
+func isValidChild(child, parent sphere, spheres *[]sphere) bool {
+
+	// Check for intersection with other spheres (ignore the parent).
+	for _, s := range *spheres {
+		if s.c == parent.c && s.r == parent.r {
+			continue
+		}
+		if spheresIntersect(s, child) {
+			return false
+		}
+	}
+
+	// Check for wall/floor/ceiling intersection.
+	return true &&
+		child.c.X > child.r &&
+		child.c.X < 1.0-child.r &&
+		child.c.Y > child.r &&
+		child.c.Y < 1.0-child.r &&
+		child.c.Z < -child.r &&
+		child.c.Z > -1.0+child.r
+}
+
+func spheresIntersect(s1, s2 sphere) bool {
+	return s1.c.Sub(s2.c).Length() < s1.r+s2.r
 }
