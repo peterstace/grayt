@@ -79,7 +79,19 @@ func Triangle(a, b, c Vector) ObjectList {
 }
 
 func AlignedSquare(a, b Vector) ObjectList {
+
+	same := func(a, b float64) int {
+		if a == b {
+			return 1
+		}
+		return 0
+	}
+	if same(a.X, b.X)+same(a.Y, b.Y)+same(a.Z, b.Z) != 1 {
+		panic("a and b must have exactly 1 dimension in common")
+	}
+
 	a, b = a.min(b), a.max(b)
+
 	switch {
 	case a.X == b.X:
 		return defaultObject(&alignXSquare{a.X, a.Y, b.Y, a.Z, b.Z})
@@ -88,7 +100,7 @@ func AlignedSquare(a, b Vector) ObjectList {
 	case a.Z == b.Z:
 		return defaultObject(&alignZSquare{a.X, b.X, a.Y, b.Y, a.Z})
 	default:
-		panic("a and b lie in a common aligned plane")
+		panic(false)
 
 	}
 }
