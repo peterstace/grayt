@@ -105,23 +105,23 @@ func Square(a, b, c, d Vector) ObjectList {
 }
 
 func Plane(normal, pt Vector) ObjectList {
-	return defaultObject(newPlane(normal, pt))
+	return defaultObject(&plane{normal, pt})
 }
 
 func XPlane(x float64) ObjectList {
-	return defaultObject(newXPlane(x))
+	return defaultObject(&alignXPlane{x})
 }
 
 func YPlane(y float64) ObjectList {
-	return defaultObject(newYPlane(y))
+	return defaultObject(&alignYPlane{y})
 }
 
 func ZPlane(z float64) ObjectList {
-	return defaultObject(newZPlane(z))
+	return defaultObject(&alignZPlane{z})
 }
 
 func Sphere(c Vector, r float64) ObjectList {
-	return defaultObject(newSphere(c, r))
+	return defaultObject(&sphere{c, r})
 }
 
 func defaultObject(s surface) ObjectList {
