@@ -75,30 +75,18 @@ func Emittance(e float64) func(*Object) {
 }
 
 func Triangle(a, b, c Vector) ObjectList {
-	return ObjectList{{
-		newTriangle(a, b, c),
-		material{colour: newColour(White)},
-	}}
+	return defaultObject(newTriangle(a, b, c))
 }
 
 func AlignedSquare(a, b Vector) ObjectList {
 	a, b = a.min(b), a.max(b)
 	switch {
 	case a.X == b.X:
-		return ObjectList{{
-			&alignXSquare{a.X, a.Y, b.Y, a.Z, b.Z},
-			material{colour: newColour(White)},
-		}}
+		return defaultObject(&alignXSquare{a.X, a.Y, b.Y, a.Z, b.Z})
 	case a.Y == b.Y:
-		return ObjectList{{
-			&alignYSquare{a.X, b.X, a.Y, a.Z, b.Z},
-			material{colour: newColour(White)},
-		}}
+		return defaultObject(&alignYSquare{a.X, b.X, a.Y, a.Z, b.Z})
 	case a.Z == b.Z:
-		return ObjectList{{
-			&alignZSquare{a.X, b.X, a.Y, b.Y, a.Z},
-			material{colour: newColour(White)},
-		}}
+		return defaultObject(&alignZSquare{a.X, b.X, a.Y, b.Y, a.Z})
 	default:
 		panic("a and b lie in a common aligned plane")
 
@@ -106,10 +94,7 @@ func AlignedSquare(a, b Vector) ObjectList {
 }
 
 func AlignedBox(a, b Vector) ObjectList {
-	return ObjectList{{
-		newAlignedBox(a, b),
-		material{colour: newColour(White)},
-	}}
+	return defaultObject(newAlignedBox(a, b))
 }
 
 func Square(a, b, c, d Vector) ObjectList {
@@ -120,36 +105,27 @@ func Square(a, b, c, d Vector) ObjectList {
 }
 
 func Plane(normal, pt Vector) ObjectList {
-	return ObjectList{{
-		newPlane(normal, pt),
-		material{colour: newColour(White)},
-	}}
+	return defaultObject(newPlane(normal, pt))
 }
 
 func XPlane(x float64) ObjectList {
-	return ObjectList{{
-		newXPlane(x),
-		material{colour: newColour(White)},
-	}}
+	return defaultObject(newXPlane(x))
 }
 
 func YPlane(y float64) ObjectList {
-	return ObjectList{{
-		newYPlane(y),
-		material{colour: newColour(White)},
-	}}
+	return defaultObject(newYPlane(y))
 }
 
 func ZPlane(z float64) ObjectList {
-	return ObjectList{{
-		newZPlane(z),
-		material{colour: newColour(White)},
-	}}
+	return defaultObject(newZPlane(z))
 }
 
 func Sphere(c Vector, r float64) ObjectList {
+	return defaultObject(newSphere(c, r))
+}
+
+func defaultObject(s surface) ObjectList {
 	return ObjectList{{
-		newSphere(c, r),
-		material{colour: newColour(White)},
+		s, material{colour: newColour(White)},
 	}}
 }
