@@ -82,25 +82,27 @@ func Triangle(a, b, c Vector) ObjectList {
 }
 
 func AlignedSquare(a, b Vector) ObjectList {
-	var c, d Vector
+	a, b = a.min(b), a.max(b)
 	switch {
 	case a.X == b.X:
-		c = Vector{X: a.X, Y: a.Y, Z: b.Z}
-		d = Vector{X: a.X, Y: b.Y, Z: a.Z}
+		return ObjectList{{
+			&alignXSquare{a.X, a.Y, b.Y, a.Z, b.Z},
+			material{colour: newColour(White)},
+		}}
 	case a.Y == b.Y:
-		c = Vector{X: a.X, Y: a.Y, Z: b.Z}
-		d = Vector{X: b.X, Y: a.Y, Z: a.Z}
+		return ObjectList{{
+			&alignYSquare{a.X, b.X, a.Y, a.Z, b.Z},
+			material{colour: newColour(White)},
+		}}
 	case a.Z == b.Z:
-		c = Vector{X: a.X, Y: b.Y, Z: a.Z}
-		d = Vector{X: b.X, Y: a.Y, Z: a.Z}
+		return ObjectList{{
+			&alignZSquare{a.X, b.X, a.Y, b.Y, a.Z},
+			material{colour: newColour(White)},
+		}}
 	default:
 		panic("a and b lie in a common aligned plane")
 
 	}
-	return Group(
-		Triangle(a, c, d),
-		Triangle(b, c, d),
-	)
 }
 
 func AlignedBox(a, b Vector) ObjectList {

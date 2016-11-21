@@ -269,3 +269,36 @@ func (s *sphere) intersect(r ray) (intersection, bool) {
 		distance:   t,
 	}, t > 0
 }
+
+type alignXSquare struct {
+	x, y1, y2, z1, z2 float64
+}
+
+func (s *alignXSquare) intersect(r ray) (intersection, bool) {
+	t := (s.x - r.start.X) / r.dir.X
+	hit := r.at(t)
+	return intersection{Vect(+1, 0, 0), t},
+		t > 0 && hit.Y > s.y1 && hit.Y < s.y2 && hit.Z > s.z1 && hit.Z < s.z2
+}
+
+type alignYSquare struct {
+	x1, x2, y, z1, z2 float64
+}
+
+func (s *alignYSquare) intersect(r ray) (intersection, bool) {
+	t := (s.y - r.start.Y) / r.dir.Y
+	hit := r.at(t)
+	return intersection{Vect(0, +1, 0), t},
+		t > 0 && hit.X > s.x1 && hit.X < s.x2 && hit.Z > s.z1 && hit.Z < s.z2
+}
+
+type alignZSquare struct {
+	x1, x2, y1, y2, z float64
+}
+
+func (s *alignZSquare) intersect(r ray) (intersection, bool) {
+	t := (s.z - r.start.Z) / r.dir.Z
+	hit := r.at(t)
+	return intersection{Vect(0, 0, +1), t},
+		t > 0 && hit.X > s.x1 && hit.X < s.x2 && hit.Y > s.y1 && hit.Y < s.y2
+}
