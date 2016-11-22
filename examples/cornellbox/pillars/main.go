@@ -1,9 +1,9 @@
 package main
 
 import (
-	"math"
 	"math/rand"
 
+	. "github.com/peterstace/grayt/examples/cornellbox"
 	. "github.com/peterstace/grayt/grayt"
 )
 
@@ -39,33 +39,6 @@ func main() {
 			),
 		),
 	})
-}
-
-func Cam(d float64) Camera {
-	return Camera{
-		Location:             Vect(0.5, 0.5, d),
-		ViewDirection:        Vect(0.0, 0.0, -1.0),
-		UpDirection:          Vect(0.0, 1.0, 0.0),
-		FieldOfViewInDegrees: 2 * math.Asin(0.5/math.Sqrt(0.25+d*d)) * 180 / math.Pi,
-		FocalLength:          0.5 + d,
-		FocalRatio:           math.Inf(+1),
-	}
-}
-
-var (
-	Floor     = AlignedSquare(Vect(0, 0, 0), Vect(1, 0, -1))
-	Ceiling   = AlignedSquare(Vect(0, 1, 0), Vect(1, 1, -1))
-	BackWall  = ZPlane(-1)
-	LeftWall  = AlignedSquare(Vect(0, 0, 0), Vect(0, 1, -1))
-	RightWall = AlignedSquare(Vect(1, 0, 0), Vect(1, 1, -1))
-)
-
-func CeilingLight() ObjectList {
-	const size = 0.9
-	return AlignedBox(
-		Vect(size, 1.0, -size),
-		Vect(1.0-size, 0.999, -1.0+size),
-	)
 }
 
 var rnd = rand.New(rand.NewSource(0))
