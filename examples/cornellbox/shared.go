@@ -1,26 +1,10 @@
-package main
+package cornellbox
 
 import (
 	"math"
 
 	. "github.com/peterstace/grayt/grayt"
 )
-
-func main() {
-	Run("cornellbox", Scene{
-		Camera: Cam(1.3),
-		Objects: Group(
-			ShortBlock(),
-			TallBlock(),
-			Floor,
-			Ceiling,
-			BackWall,
-			LeftWall.With(ColourRGB(Red)),
-			RightWall.With(ColourRGB(Green)),
-			CeilingLight().With(Emittance(5.0)),
-		),
-	})
-}
 
 func Cam(d float64) Camera {
 	return Camera{
