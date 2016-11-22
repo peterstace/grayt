@@ -20,6 +20,60 @@ func newColourFromRGB(rgb uint32) Colour {
 	}
 }
 
+func newColourFromHSL(hue, saturation, lightness float64) Colour {
+
+	if hue < 0 || hue > 360 {
+		panic("hue must be from 0 to 360")
+	}
+	if saturation < 0 || saturation > 1 {
+		panic("saturation must be between 0 and 1")
+	}
+	if lightness < 0 || lightness > 1 {
+		panic("lightness must be between 0 and 1")
+	}
+
+	c := (1 - math.Abs(2*lightness-1)) * saturation // chroma
+	hueAdj := hue / 60
+	for hueAdj > 2 {
+		hueAdj -= 2
+	}
+	x := c * (1 - math.Abs(hueAdj-1))
+
+	var r, g, b float64
+	switch {
+	case hueAdj <= 1:
+		r, g, b = c, x, 0
+	case hueAdj <= 2:
+		r, g, b = x, c, 0
+	case hueAdj <= 3:
+		r, g, b = 0, c, x
+	case hueAdj <= 4:
+		r, g, b = 0, x, c
+	case hueAdj <= 5:
+		r, g, b = x, 0, c
+	case hueAdj <= 6:
+		r, g, b = c, 0, x
+	default:
+		panic(false)
+	}
+
+	m := lightness - 0.5*c
+	r += m
+	g += m
+	b += m
+
+	if r < 0 || r > 1.0 {
+		panic(false)
+	}
+	if g < 0 || g > 1.0 {
+		panic(false)
+	}
+	if b < 0 || b > 1.0 {
+		panic(false)
+	}
+	return Colour{r, g, b}
+}
+
 func (c Colour) add(rhs Colour) Colour {
 	return Colour{
 		c.R + rhs.R,
