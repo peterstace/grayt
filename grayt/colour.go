@@ -9,7 +9,7 @@ type Colour struct {
 	R, G, B float64
 }
 
-func newColour(rgb uint32) Colour {
+func newColourFromRGB(rgb uint32) Colour {
 	r := (rgb & 0xff0000) >> 16
 	g := (rgb & 0x00ff00) >> 8
 	b := (rgb & 0x0000ff)

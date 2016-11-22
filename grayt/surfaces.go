@@ -1,6 +1,9 @@
 package grayt
 
-import "math"
+import (
+	"fmt"
+	"math"
+)
 
 type surface interface {
 	intersect(r ray) (intersection, bool)
@@ -16,6 +19,10 @@ type Object struct {
 	material
 }
 
+func (o Object) String() string {
+	return fmt.Sprintf("\tSurface={%v}\n\tMaterial={%v}", o.surface, o.material)
+}
+
 type intersection struct {
 	unitNormal Vector
 	distance   float64
@@ -25,6 +32,10 @@ type triangle struct {
 	a, u, v             Vector // Corner A, A to B, and A to C.
 	unitNorm            Vector
 	dotUV, dotUU, dotVV float64 // Precomputed dot products.
+}
+
+func (t *triangle) String() string {
+	return fmt.Sprintf("Type=triangle A=%v B=%v C=%v", t.a, t.a.Add(t.u), t.a.Add(t.v))
 }
 
 func newTriangle(a, b, c Vector) surface {
@@ -83,10 +94,14 @@ type alignedBox struct {
 	min, max Vector
 }
 
+func (a *alignedBox) String() string {
+	return fmt.Sprintf("Type=alignedBox Min=%v Max=%v", a.min, a.max)
+}
+
 func newAlignedBox(corner1, corner2 Vector) surface {
 	return &alignedBox{
-		min: corner1.min(corner2),
-		max: corner1.max(corner2),
+		min: corner1.Min(corner2),
+		max: corner1.Max(corner2),
 	}
 }
 
@@ -176,6 +191,10 @@ type plane struct {
 	x Vector // Any point on the plane.
 }
 
+func (p *plane) String() string {
+	return fmt.Sprintf("Type=plane N=%v X=%v", p.n, p.x)
+}
+
 func (p *plane) intersect(r ray) (intersection, bool) {
 	t := p.n.dot(p.x.Sub(r.start)) / p.n.dot(r.dir)
 	return intersection{p.n, t}, t > 0
@@ -183,6 +202,10 @@ func (p *plane) intersect(r ray) (intersection, bool) {
 
 type alignXPlane struct {
 	x float64
+}
+
+func (p *alignXPlane) String() string {
+	return fmt.Sprintf("Type=alignXPlane X=%v", p.x)
 }
 
 func (p *alignXPlane) intersect(r ray) (intersection, bool) {
@@ -194,6 +217,10 @@ type alignYPlane struct {
 	y float64
 }
 
+func (p *alignYPlane) String() string {
+	return fmt.Sprintf("Type=alignYPlane Y=%v", p.y)
+}
+
 func (p *alignYPlane) intersect(r ray) (intersection, bool) {
 	t := (p.y - r.start.Y) / r.dir.Y
 	return intersection{Vect(0, +1, 0), t}, t > 0
@@ -201,6 +228,10 @@ func (p *alignYPlane) intersect(r ray) (intersection, bool) {
 
 type alignZPlane struct {
 	z float64
+}
+
+func (p *alignZPlane) String() string {
+	return fmt.Sprintf("Type=alignZPlane Z=%v", p.z)
 }
 
 func (p *alignZPlane) intersect(r ray) (intersection, bool) {
@@ -211,6 +242,10 @@ func (p *alignZPlane) intersect(r ray) (intersection, bool) {
 type sphere struct {
 	centre Vector
 	radius float64
+}
+
+func (s *sphere) String() string {
+	return fmt.Sprintf("Type=sphere C=%v R=%v", s.centre, s.radius)
 }
 
 func (s *sphere) intersect(r ray) (intersection, bool) {
@@ -254,6 +289,11 @@ type alignXSquare struct {
 	x, y1, y2, z1, z2 float64
 }
 
+func (a *alignXSquare) String() string {
+	return fmt.Sprintf("Type=alignXSquare X=%v Y1=%v Y2=%v Z1=%v Z2=%v",
+		a.x, a.y1, a.y2, a.z1, a.z2)
+}
+
 func (s *alignXSquare) intersect(r ray) (intersection, bool) {
 	t := (s.x - r.start.X) / r.dir.X
 	hit := r.at(t)
@@ -265,6 +305,11 @@ type alignYSquare struct {
 	x1, x2, y, z1, z2 float64
 }
 
+func (a *alignYSquare) String() string {
+	return fmt.Sprintf("Type=alignYSquare X1=%v X2=%v Y=%v Z1=%v Z2=%v",
+		a.x1, a.x2, a.y, a.z1, a.z2)
+}
+
 func (s *alignYSquare) intersect(r ray) (intersection, bool) {
 	t := (s.y - r.start.Y) / r.dir.Y
 	hit := r.at(t)
@@ -274,6 +319,11 @@ func (s *alignYSquare) intersect(r ray) (intersection, bool) {
 
 type alignZSquare struct {
 	x1, x2, y1, y2, z float64
+}
+
+func (a *alignZSquare) String() string {
+	return fmt.Sprintf("Type=alignZSquare X1=%v X2=%v Y1=%v Y2=%v Z=%v",
+		a.x1, a.x2, a.y1, a.y2, a.z)
 }
 
 func (s *alignZSquare) intersect(r ray) (intersection, bool) {

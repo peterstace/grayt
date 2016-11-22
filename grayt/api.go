@@ -64,7 +64,13 @@ const (
 
 func ColourRGB(rgb uint32) func(*Object) {
 	return func(o *Object) {
-		o.material.colour = newColour(rgb)
+		o.material.colour = newColourFromRGB(rgb)
+	}
+}
+
+func ColourHSL(hue, saturation, lightness float64) func(*Object) {
+	return func(o *Object) {
+		o.material.colour = newColourFromHSL(hue, saturation, lightness)
 	}
 }
 
@@ -90,7 +96,7 @@ func AlignedSquare(a, b Vector) ObjectList {
 		panic("a and b must have exactly 1 dimension in common")
 	}
 
-	a, b = a.min(b), a.max(b)
+	a, b = a.Min(b), a.Max(b)
 
 	switch {
 	case a.X == b.X:
@@ -138,6 +144,6 @@ func Sphere(c Vector, r float64) ObjectList {
 
 func defaultObject(s surface) ObjectList {
 	return ObjectList{{
-		s, material{colour: newColour(White)},
+		s, material{colour: newColourFromRGB(White)},
 	}}
 }

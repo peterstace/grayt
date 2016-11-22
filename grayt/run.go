@@ -21,7 +21,15 @@ func Run(baseName string, scene Scene) {
 	pxWide := flag.Int("w", 640, "width in pixels")
 	pxHigh := flag.Int("h", 480, "height in pixels")
 	quality := flag.Int("q", 10, "quality (samples per pixel)")
+	verbose := flag.Bool("v", false, "verbose model")
 	flag.Parse()
+
+	if *verbose {
+		fmt.Printf("Camera: %v\n", scene.Camera)
+		for i, o := range scene.Objects {
+			fmt.Printf("Object %d:\n%v\n", i, o)
+		}
+	}
 
 	accel := newAccelerationStructure(scene.Objects)
 	cam := newCamera(scene.Camera)

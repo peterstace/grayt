@@ -79,7 +79,7 @@ func (v Vector) cross(u Vector) Vector {
 	}
 }
 
-func (v Vector) min(u Vector) Vector {
+func (v Vector) Min(u Vector) Vector {
 	return Vector{
 		math.Min(v.X, u.X),
 		math.Min(v.Y, u.Y),
@@ -87,7 +87,7 @@ func (v Vector) min(u Vector) Vector {
 	}
 }
 
-func (v Vector) max(u Vector) Vector {
+func (v Vector) Max(u Vector) Vector {
 	return Vector{
 		math.Max(v.X, u.X),
 		math.Max(v.Y, u.Y),
