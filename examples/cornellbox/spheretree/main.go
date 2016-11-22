@@ -1,15 +1,20 @@
 package main
 
 import (
-	"math"
 	"math/rand"
 
+	. "github.com/peterstace/grayt/examples/cornellbox"
 	. "github.com/peterstace/grayt/grayt"
 )
 
 func main() {
+
+	c := Cam(1.3)
+	c.ViewDirection = Vect(0.5, 0.25, -0.5).Sub(c.Location)
+	c.FieldOfViewInDegrees *= 0.95
+
 	Run("sphere_tree", Scene{
-		Camera: Cam(1.3),
+		Camera: c,
 		Objects: Group(
 			Tree(),
 			Floor,
@@ -20,35 +25,6 @@ func main() {
 			CeilingLight().With(Emittance(5.0)),
 		),
 	})
-}
-func Cam(d float64) Camera {
-	loc := Vect(0.5, 0.5, d)
-	at := Vect(0.5, 0.25, -0.5)
-	dir := at.Sub(loc)
-	return Camera{
-		Location:             loc,
-		ViewDirection:        dir,
-		UpDirection:          Vect(0.0, 1.0, 0.0),
-		FieldOfViewInDegrees: 0.95 * 2 * math.Asin(0.5/math.Sqrt(0.25+d*d)) * 180 / math.Pi,
-		FocalLength:          0.5 + d,
-		FocalRatio:           math.Inf(+1),
-	}
-}
-
-var (
-	Floor     = AlignedSquare(Vect(0, 0, 0), Vect(1, 0, -1))
-	Ceiling   = AlignedSquare(Vect(0, 1, 0), Vect(1, 1, -1))
-	BackWall  = ZPlane(-1)
-	LeftWall  = AlignedSquare(Vect(0, 0, 0), Vect(0, 1, -1))
-	RightWall = AlignedSquare(Vect(1, 0, 0), Vect(1, 1, -1))
-)
-
-func CeilingLight() ObjectList {
-	const size = 0.9
-	return AlignedBox(
-		Vect(size, 1.0, -size),
-		Vect(1.0-size, 0.999, -1.0+size),
-	)
 }
 
 type sphere struct {
