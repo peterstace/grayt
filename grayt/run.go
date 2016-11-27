@@ -22,6 +22,7 @@ func Run(baseName string, scene Scene) {
 	pxHigh := flag.Int("h", 480, "height in pixels")
 	quality := flag.Int("q", 10, "quality (samples per pixel)")
 	verbose := flag.Bool("v", false, "verbose model")
+	output := flag.String("o", "", "output file override")
 	flag.Parse()
 
 	if *verbose {
@@ -48,9 +49,11 @@ func Run(baseName string, scene Scene) {
 			cli.update(int(atomic.LoadUint64(completed)))
 		case img := <-img:
 			cli.finished()
-			output := fmt.Sprintf("%s[%s]_%dx%d_q%d.png",
-				baseName, hashScene(scene), *pxWide, *pxHigh, *quality)
-			outFile, err := os.Create(output)
+			if *output == "" {
+				*output = fmt.Sprintf("%s[%s]_%dx%d_q%d.png",
+					baseName, hashScene(scene), *pxWide, *pxHigh, *quality)
+			}
+			outFile, err := os.Create(*output)
 			if err != nil {
 				log.Fatal(err)
 			}
