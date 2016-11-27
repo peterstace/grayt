@@ -15,25 +15,24 @@ type camera struct {
 	}
 }
 
-func newCamera(conf Camera) camera {
+func newCamera(conf CameraBlueprint) camera {
 
 	cam := camera{}
 
-	upDirection := conf.UpDirection.Unit()
-	viewDirection := conf.ViewDirection.Unit()
+	upDirection := conf.upDirection.Unit()
+	viewDirection := conf.lookingAt.Sub(conf.location).Unit()
 
 	cam.screen.x = viewDirection.cross(upDirection)
 	cam.screen.y = cam.screen.x.cross(viewDirection)
 
-	cam.eye.x = cam.screen.x.Scale(conf.FocalLength / conf.FocalRatio)
-	cam.eye.y = cam.screen.y.Scale(conf.FocalLength / conf.FocalRatio)
-	cam.eye.loc = conf.Location
+	cam.eye.x = cam.screen.x.Scale(conf.focalLength / conf.focalRatio)
+	cam.eye.y = cam.screen.y.Scale(conf.focalLength / conf.focalRatio)
+	cam.eye.loc = conf.location
 
-	fieldOfViewInRadians := conf.FieldOfViewInDegrees * math.Pi / 180
-	halfScreenWidth := math.Tan(fieldOfViewInRadians/2) * conf.FocalLength
+	halfScreenWidth := math.Tan(conf.fieldOfViewInRadians/2) * conf.focalLength
 	cam.screen.x = cam.screen.x.Scale(halfScreenWidth)
 	cam.screen.y = cam.screen.y.Scale(halfScreenWidth)
-	cam.screen.loc = cam.eye.loc.Add(viewDirection.Scale(conf.FocalLength))
+	cam.screen.loc = cam.eye.loc.Add(viewDirection.Scale(conf.focalLength))
 
 	return cam
 }

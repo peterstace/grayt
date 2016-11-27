@@ -10,11 +10,11 @@ import (
 func main() {
 
 	c := Cam(1.3)
-	c.ViewDirection = Vect(0.5, 0.25, -0.5).Sub(c.Location)
-	c.FieldOfViewInDegrees *= 0.95
-
 	Run("sphere_tree", Scene{
-		Camera: c,
+		Camera: c.With(
+			LookingAt(Vect(0.5, 0.25, -0.5)),
+			ScaleFieldOfView(0.95),
+		),
 		Objects: Group(
 			Tree(),
 			Floor,

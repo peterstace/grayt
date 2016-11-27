@@ -8,12 +8,12 @@ import (
 )
 
 func main() {
-	at := Vect(0.5, initialBoxRadius, -0.5)
 	c := Cam(1.3)
-	c.ViewDirection = at.Sub(c.Location)
-	c.FieldOfViewInDegrees *= 0.5
 	Run("splitbox", Scene{
-		Camera: c,
+		Camera: c.With(
+			LookingAt(Vect(0.5, initialBoxRadius, -0.5)),
+			ScaleFieldOfView(0.5),
+		),
 		Objects: Group(
 			Floor,
 			Ceiling,

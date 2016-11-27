@@ -5,33 +5,85 @@ import (
 	"math"
 )
 
-type Camera struct {
-	Location             Vector
-	ViewDirection        Vector
-	UpDirection          Vector
-	FieldOfViewInDegrees float64
-	FocalLength          float64 // Distance to the focus plane.
-	FocalRatio           float64 // Ratio between the focal length and the diameter of the eye.
+type CameraBlueprint struct {
+	location             Vector
+	lookingAt            Vector
+	upDirection          Vector
+	fieldOfViewInRadians float64
+	focalLength          float64
+	focalRatio           float64
 }
 
-func (c Camera) String() string {
-	return fmt.Sprintf("Location=%v ViewDir=%v UpDir=%v FOV=%v FocalLength=%v FocalRation=%v",
-		c.Location, c.ViewDirection, c.UpDirection, c.FieldOfViewInDegrees, c.FocalLength, c.FocalRatio)
+func (c CameraBlueprint) With(opts ...cameraOption) CameraBlueprint {
+	for _, opt := range opts {
+		opt(&c)
+	}
+	return c
 }
 
-func DefaultCamera() Camera {
-	return Camera{
-		Location:             Vector{},
-		ViewDirection:        Vect(0, 0, -1),
-		UpDirection:          Vect(0, 1, 0),
-		FieldOfViewInDegrees: 100,
-		FocalLength:          10,
-		FocalRatio:           math.Inf(+1),
+func (c CameraBlueprint) String() string {
+	return fmt.Sprintf(
+		"Location=%v LookingAt=%v UpDir=%v FOV=%v FocalLength=%v FocalRatio=%v",
+		c.location, c.lookingAt, c.upDirection, c.fieldOfViewInRadians, c.focalLength, c.focalRatio,
+	)
+}
+
+func Camera() CameraBlueprint {
+	return CameraBlueprint{
+		location:             Vect(0, 10, 10),
+		lookingAt:            Vect(0, 0, 0),
+		upDirection:          Vect(0, 1, 0),
+		fieldOfViewInRadians: 90 * math.Pi / 180,
+		focalLength:          1.0,
+		focalRatio:           math.Inf(+1),
+	}
+}
+
+type cameraOption func(*CameraBlueprint)
+
+func Location(x Vector) cameraOption {
+	return func(c *CameraBlueprint) {
+		c.location = x
+	}
+}
+
+func LookingAt(x Vector) cameraOption {
+	return func(c *CameraBlueprint) {
+		c.lookingAt = x
+	}
+}
+
+func UpDirection(x Vector) cameraOption {
+	return func(c *CameraBlueprint) {
+		c.upDirection = x
+	}
+}
+
+func FieldOfViewInRadians(r float64) cameraOption {
+	return func(c *CameraBlueprint) {
+		c.fieldOfViewInRadians = r
+	}
+}
+
+func FieldOfViewInDegrees(d float64) cameraOption {
+	return FieldOfViewInRadians(d * math.Pi / 180)
+}
+
+func ScaleFieldOfView(s float64) cameraOption {
+	return func(c *CameraBlueprint) {
+		c.fieldOfViewInRadians *= s
+	}
+}
+
+func FocalLengthAndRatio(focalLength, focalRatio float64) cameraOption {
+	return func(c *CameraBlueprint) {
+		c.focalLength = focalLength
+		c.focalRatio = focalRatio
 	}
 }
 
 type Scene struct {
-	Camera  Camera
+	Camera  CameraBlueprint
 	Objects ObjectList
 }
 

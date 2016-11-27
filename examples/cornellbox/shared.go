@@ -6,15 +6,12 @@ import (
 	. "github.com/peterstace/grayt/grayt"
 )
 
-func Cam(d float64) Camera {
-	return Camera{
-		Location:             Vect(0.5, 0.5, d),
-		ViewDirection:        Vect(0.0, 0.0, -1.0),
-		UpDirection:          Vect(0.0, 1.0, 0.0),
-		FieldOfViewInDegrees: 2 * math.Asin(0.5/math.Sqrt(0.25+d*d)) * 180 / math.Pi,
-		FocalLength:          0.5 + d,
-		FocalRatio:           math.Inf(+1),
-	}
+func Cam(d float64) CameraBlueprint {
+	return Camera().With(
+		Location(Vect(0.5, 0.5, d)),
+		LookingAt(Vect(0.5, 0.5, -0.5)),
+		FieldOfViewInRadians(2*math.Asin(0.5/math.Sqrt(0.25+d*d))),
+	)
 }
 
 var (
