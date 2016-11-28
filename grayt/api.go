@@ -12,6 +12,8 @@ type CameraBlueprint struct {
 	fieldOfViewInRadians float64
 	focalLength          float64
 	focalRatio           float64
+	aspectWide           int
+	aspectHigh           int
 }
 
 func (c CameraBlueprint) With(opts ...cameraOption) CameraBlueprint {
@@ -36,6 +38,8 @@ func Camera() CameraBlueprint {
 		fieldOfViewInRadians: 90 * math.Pi / 180,
 		focalLength:          1.0,
 		focalRatio:           math.Inf(+1),
+		aspectWide:           1,
+		aspectHigh:           1,
 	}
 }
 
@@ -79,6 +83,16 @@ func FocalLengthAndRatio(focalLength, focalRatio float64) cameraOption {
 	return func(c *CameraBlueprint) {
 		c.focalLength = focalLength
 		c.focalRatio = focalRatio
+	}
+}
+
+func AspectRatioWidthAndHeight(wide, high int) cameraOption {
+	if wide <= 0 || high <= 0 {
+		panic("aspect ratio elements must be positive")
+	}
+	return func(c *CameraBlueprint) {
+		c.aspectWide = wide
+		c.aspectHigh = high
 	}
 }
 

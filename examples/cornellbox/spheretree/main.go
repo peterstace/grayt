@@ -14,6 +14,7 @@ func main() {
 		Camera: c.With(
 			LookingAt(Vect(0.5, 0.25, -0.5)),
 			ScaleFieldOfView(0.95),
+			AspectRatioWidthAndHeight(2, 1),
 		),
 		Objects: Group(
 			Tree(),

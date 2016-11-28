@@ -19,7 +19,6 @@ import (
 func Run(baseName string, scene Scene) {
 
 	pxWide := flag.Int("w", 640, "width in pixels")
-	pxHigh := flag.Int("h", 480, "height in pixels")
 	quality := flag.Int("q", 10, "quality (samples per pixel)")
 	verbose := flag.Bool("v", false, "verbose model")
 	output := flag.String("o", "", "output file override")
@@ -32,15 +31,17 @@ func Run(baseName string, scene Scene) {
 		}
 	}
 
+	pxHigh := *pxWide * scene.Camera.aspectHigh / scene.Camera.aspectWide
+
 	accel := newAccelerationStructure(scene.Objects)
 	cam := newCamera(scene.Camera)
 	img := make(chan image.Image)
 	completed := new(uint64)
 	go func() {
-		img <- traceImage(*pxWide, *pxHigh, accel, cam, *quality, completed)
+		img <- traceImage(*pxWide, pxHigh, accel, cam, *quality, completed)
 	}()
 
-	total := *pxWide * *pxHigh * *quality
+	total := *pxWide * pxHigh * *quality
 	cli := newCLI(total)
 
 	for {
@@ -51,7 +52,7 @@ func Run(baseName string, scene Scene) {
 			cli.finished()
 			if *output == "" {
 				*output = fmt.Sprintf("%s[%s]_%dx%d_q%d.png",
-					baseName, hashScene(scene), *pxWide, *pxHigh, *quality)
+					baseName, hashScene(scene), *pxWide, pxHigh, *quality)
 			}
 			outFile, err := os.Create(*output)
 			if err != nil {
