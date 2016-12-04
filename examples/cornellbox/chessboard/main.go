@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"strconv"
 
 	. "github.com/peterstace/grayt/examples/cornellbox"
 	. "github.com/peterstace/grayt/grayt"
@@ -19,21 +21,27 @@ func main() {
 	flag.Parse()
 	c := Cam(1.3)
 	c = c.With(FocalLengthAndRatio(1.3+*focalDepth, *focalRatio))
-	Run("cornellbox_chessboard", Scene{
-		Camera: c,
-		Objects: Group(
-			ShortBlock(),
-			TallBlock(),
-			chessboard(Vect(0, 0, 0), Vect(0, 1, -1), Red, Yellow),
-			chessboard(Vect(1, 0, 0), Vect(1, 1, -1), Cyan, Blue),
-			chessboard(Vect(0, 0, 0), Vect(1, 0, -1), Magenta, Green),
-			chessboard(Vect(0, 0, -1), Vect(1, 1, -1), Magenta, Green),
-			Ceiling,
-			LeftWall.With(ColourRGB(Red)),
-			RightWall.With(ColourRGB(Green)),
-			CeilingLight().With(Emittance(5.0)),
+	Run(
+		fmt.Sprintf(
+			"cornellbox_chessboard_%v_%v",
+			strconv.FormatFloat(*focalDepth, 'f', -1, 64),
+			strconv.FormatFloat(*focalRatio, 'f', -1, 64),
 		),
-	})
+		Scene{
+			Camera: c,
+			Objects: Group(
+				ShortBlock(),
+				TallBlock(),
+				chessboard(Vect(0, 0, 0), Vect(0, 1, -1), Red, Yellow),
+				chessboard(Vect(1, 0, 0), Vect(1, 1, -1), Cyan, Blue),
+				chessboard(Vect(0, 0, 0), Vect(1, 0, -1), Magenta, Green),
+				chessboard(Vect(0, 0, -1), Vect(1, 1, -1), Magenta, Green),
+				Ceiling,
+				LeftWall.With(ColourRGB(Red)),
+				RightWall.With(ColourRGB(Green)),
+				CeilingLight().With(Emittance(5.0)),
+			),
+		})
 }
 
 func chessboard(v1, v2 Vector, c1, c2 uint32) ObjectList {
