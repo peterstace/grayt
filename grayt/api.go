@@ -121,11 +121,14 @@ func (o ObjectList) With(fns ...func(*Object)) ObjectList {
 }
 
 const (
-	White = 0xffffff
-	Black = 0x000000
-	Red   = 0xff0000
-	Green = 0x00ff00
-	Blue  = 0x0000ff
+	White   = 0xffffff
+	Black   = 0x000000
+	Red     = 0xff0000
+	Green   = 0x00ff00
+	Blue    = 0x0000ff
+	Yellow  = 0xffff00
+	Cyan    = 0x00ffff
+	Magenta = 0xff00ff
 )
 
 func ColourRGB(rgb uint32) func(*Object) {

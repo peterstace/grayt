@@ -15,13 +15,16 @@ import (
 	"time"
 )
 
+var (
+	pxWide  = flag.Int("w", 640, "width in pixels")
+	quality = flag.Int("q", 10, "quality (samples per pixel)")
+	verbose = flag.Bool("v", false, "verbose model")
+	output  = flag.String("o", "", "output file override")
+)
+
 // Run should be the single call made from main().
 func Run(baseName string, scene Scene) {
 
-	pxWide := flag.Int("w", 640, "width in pixels")
-	quality := flag.Int("q", 10, "quality (samples per pixel)")
-	verbose := flag.Bool("v", false, "verbose model")
-	output := flag.String("o", "", "output file override")
 	flag.Parse()
 
 	if *verbose {
