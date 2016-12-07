@@ -11,6 +11,7 @@ import (
 	"image/png"
 	"log"
 	"os"
+	"reflect"
 	"sync/atomic"
 	"time"
 )
@@ -75,9 +76,10 @@ func hashScene(s Scene) string {
 
 	// Calculate hash.
 	h := crc64.New(crc64.MakeTable(crc64.ISO))
-	h.Write([]byte(s.Camera.String()))
+	binary.Write(h, binary.LittleEndian, s.Camera)
 	for _, o := range s.Objects {
-		h.Write([]byte(fmt.Sprintf("%#v", o)))
+		h.Write([]byte(reflect.TypeOf(o).String()))
+		binary.Write(h, binary.LittleEndian, o)
 	}
 
 	// Calculate base64 encoded hash.
