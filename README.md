@@ -4,7 +4,13 @@
 
 Go RAY Tracer
 
-## Known Issues
+## Features
 
-* Only supports triangles. This leads to slow runtimes. At least should also
-  have sphere, aligned box, aligned square, and aligned plane.
+- [X] Path tracing via rendering equation simulation (Monte Carlo method).
+
+- [X] Diffuse reflections (matte surfaces).
+- [ ] Specular reflections (mirror surfaces).
+- [ ] Light transmission (transparent surfaces).
+- [X] Depth of field effects.
+
+- [ ] Fast acceleration structure.
