@@ -14,6 +14,10 @@ Go RAY Tracer
 - [ ] Multithreading support.
 - [ ] Fast acceleration structure.
 
+## TODO
+
+- Use terminology for focal distance / focal ratio correctly.
+
 ## Gallery
 
 ### Cornell Box
