@@ -1,14 +1,18 @@
 package grayt
 
-func newAccelerationStructure(objs ObjectList) accelerationStructure {
-	return accelerationStructure{objs}
+type accelerationStructure interface {
+	closestHit(ray) (intersection, material, bool)
 }
 
-type accelerationStructure struct {
+func newListAccelerationStructure(objs ObjectList) accelerationStructure {
+	return listAccelerationStructure{objs}
+}
+
+type listAccelerationStructure struct {
 	objs []Object
 }
 
-func (a accelerationStructure) closestHit(r ray) (intersection, material, bool) {
+func (a listAccelerationStructure) closestHit(r ray) (intersection, material, bool) {
 	var closest struct {
 		intersection intersection
 		material     material

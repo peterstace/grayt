@@ -37,7 +37,7 @@ func Run(baseName string, scene Scene) {
 
 	pxHigh := *pxWide * scene.Camera.aspectHigh / scene.Camera.aspectWide
 
-	accel := newAccelerationStructure(scene.Objects)
+	accel := newListAccelerationStructure(scene.Objects)
 	cam := newCamera(scene.Camera)
 	img := make(chan image.Image)
 	completed := new(uint64)
