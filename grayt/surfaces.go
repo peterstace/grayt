@@ -7,6 +7,7 @@ import (
 
 type surface interface {
 	intersect(r ray) (intersection, bool)
+	bound() (Vector, Vector)
 }
 
 type material struct {
@@ -88,6 +89,13 @@ func (t *triangle) intersect(r ray) (intersection, bool) {
 		unitNormal: t.unitNorm,
 		distance:   h,
 	}, true
+}
+
+func (t *triangle) bound() (Vector, Vector) {
+	b := t.a.Add(t.u)
+	c := t.a.Add(t.v)
+	return t.a.Min(b.Min(c)), t.a.Max(b.Max(c))
+
 }
 
 type alignedBox struct {
@@ -186,6 +194,10 @@ func (b *alignedBox) intersect(r ray) (intersection, bool) {
 	}
 }
 
+func (b *alignedBox) bound() (Vector, Vector) {
+	return b.min, b.max
+}
+
 type plane struct {
 	n Vector // Unit normal out of the plane.
 	x Vector // Any point on the plane.
@@ -198,6 +210,11 @@ func (p *plane) String() string {
 func (p *plane) intersect(r ray) (intersection, bool) {
 	t := p.n.dot(p.x.Sub(r.start)) / p.n.dot(r.dir)
 	return intersection{p.n, t}, t > 0
+}
+
+func (p *plane) bound() (Vector, Vector) {
+	inf := math.Inf(+1)
+	return Vect(-inf, -inf, -inf), Vect(inf, inf, inf)
 }
 
 type alignXPlane struct {
@@ -213,6 +230,11 @@ func (p *alignXPlane) intersect(r ray) (intersection, bool) {
 	return intersection{Vect(+1, 0, 0), t}, t > 0
 }
 
+func (p *alignXPlane) bound() (Vector, Vector) {
+	inf := math.Inf(+1)
+	return Vect(p.x, -inf, -inf), Vect(p.x, inf, inf)
+}
+
 type alignYPlane struct {
 	y float64
 }
@@ -226,6 +248,11 @@ func (p *alignYPlane) intersect(r ray) (intersection, bool) {
 	return intersection{Vect(0, +1, 0), t}, t > 0
 }
 
+func (p *alignYPlane) bound() (Vector, Vector) {
+	inf := math.Inf(+1)
+	return Vect(-inf, p.y, -inf), Vect(inf, p.y, inf)
+}
+
 type alignZPlane struct {
 	z float64
 }
@@ -237,6 +264,11 @@ func (p *alignZPlane) String() string {
 func (p *alignZPlane) intersect(r ray) (intersection, bool) {
 	t := (p.z - r.start.Z) / r.dir.Z
 	return intersection{Vect(0, 0, +1), t}, t > 0
+}
+
+func (p *alignZPlane) bound() (Vector, Vector) {
+	inf := math.Inf(+1)
+	return Vect(-inf, -inf, p.z), Vect(inf, inf, p.z)
 }
 
 type sphere struct {
@@ -285,6 +317,11 @@ func (s *sphere) intersect(r ray) (intersection, bool) {
 	}, t > 0
 }
 
+func (s *sphere) bound() (Vector, Vector) {
+	r := Vect(s.radius, s.radius, s.radius)
+	return s.centre.Sub(r), s.centre.Add(r)
+}
+
 type alignXSquare struct {
 	x, y1, y2, z1, z2 float64
 }
@@ -299,6 +336,10 @@ func (s *alignXSquare) intersect(r ray) (intersection, bool) {
 	hit := r.at(t)
 	return intersection{Vect(+1, 0, 0), t},
 		t > 0 && hit.Y > s.y1 && hit.Y < s.y2 && hit.Z > s.z1 && hit.Z < s.z2
+}
+
+func (s *alignXSquare) bound() (Vector, Vector) {
+	return Vect(s.x, s.y1, s.z1), Vect(s.x, s.y2, s.z2)
 }
 
 type alignYSquare struct {
@@ -317,6 +358,10 @@ func (s *alignYSquare) intersect(r ray) (intersection, bool) {
 		t > 0 && hit.X > s.x1 && hit.X < s.x2 && hit.Z > s.z1 && hit.Z < s.z2
 }
 
+func (s *alignYSquare) bound() (Vector, Vector) {
+	return Vect(s.x1, s.y, s.z1), Vect(s.x2, s.y, s.z2)
+}
+
 type alignZSquare struct {
 	x1, x2, y1, y2, z float64
 }
@@ -331,4 +376,8 @@ func (s *alignZSquare) intersect(r ray) (intersection, bool) {
 	hit := r.at(t)
 	return intersection{Vect(0, 0, +1), t},
 		t > 0 && hit.X > s.x1 && hit.X < s.x2 && hit.Y > s.y1 && hit.Y < s.y2
+}
+
+func (s *alignZSquare) bound() (Vector, Vector) {
+	return Vect(s.x1, s.y1, s.z), Vect(s.x2, s.y2, s.z)
 }
