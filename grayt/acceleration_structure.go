@@ -35,18 +35,25 @@ func (a listAccelerationStructure) closestHit(r ray) (intersection, material, bo
 }
 
 func newFastAccelerationStructure(objs ObjectList) accelerationStructure {
-	return fastAccelerationStructure{} // TODO
+	return &fastAccelerationStructure{}
 }
 
 type fastAccelerationStructure struct {
-	// TODO
-
-	// Bounding Area
-	// Child structures.
+	bound    boundingArea
+	children []accelerationStructure
 }
 
-func (a fastAccelerationStructure) closestHit(r ray) (intersection, material, bool) {
-	return intersection{}, material{}, false // TODO
+func (a *fastAccelerationStructure) closestHit(r ray) (intersection, material, bool) {
+	if !a.bound.hit(r) {
+		return intersection{}, material{}, false
+	}
+	for _, child := range a.children {
+		intersection, material, hit := child.closestHit(r)
+		if hit {
+			return intersection, material, true
+		}
+	}
+	return intersection{}, material{}, false
 }
 
 type boundingArea struct {
