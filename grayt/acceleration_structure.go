@@ -37,7 +37,11 @@ func (a listAccelerationStructure) closestHit(r ray) (intersection, material, bo
 	return closest.intersection, closest.material, closest.hit
 }
 
-func newFastAccelerationStructure(objs ObjectList) accelerationStructure {
+func newFastAccelerationStructure(objs ObjectList, levels int) accelerationStructure {
+
+	if levels == 0 {
+		return newListAccelerationStructure(objs)
+	}
 
 	n := len(objs)
 
@@ -100,10 +104,8 @@ func newFastAccelerationStructure(objs ObjectList) accelerationStructure {
 			Vect(xmax[n-1], ymax[n-1], zmax[n-1]),
 		},
 		[]accelerationStructure{
-			//newFastAccelerationStructure(children1),
-			//newFastAccelerationStructure(children2),
-			newListAccelerationStructure(children1),
-			newListAccelerationStructure(children2),
+			newFastAccelerationStructure(children1, levels-1),
+			newFastAccelerationStructure(children2, levels-1),
 		},
 	}
 }
