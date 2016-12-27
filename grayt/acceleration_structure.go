@@ -37,93 +37,6 @@ func (a listAccelerationStructure) closestHit(r ray) (intersection, material, bo
 	return closest.intersection, closest.material, closest.hit
 }
 
-func newNode(objs []Object) *node {
-
-	n := len(objs)
-
-	xmax := make([]float64, n)
-	for i, obj := range objs {
-		_, max := obj.bound()
-		xmax[i] = max.X
-	}
-	sort.Float64s(xmax)
-	xmin := make([]float64, n)
-	for i, obj := range objs {
-		min, _ := obj.bound()
-		xmin[i] = min.X
-	}
-	sort.Float64s(xmin)
-
-	ymax := make([]float64, n)
-	for i, obj := range objs {
-		_, max := obj.bound()
-		ymax[i] = max.Y
-	}
-	sort.Float64s(ymax)
-	ymin := make([]float64, n)
-	for i, obj := range objs {
-		min, _ := obj.bound()
-		ymin[i] = min.Y
-	}
-	sort.Float64s(ymin)
-
-	zmax := make([]float64, n)
-	for i, obj := range objs {
-		_, max := obj.bound()
-		zmax[i] = max.Z
-	}
-	sort.Float64s(zmax)
-	zmin := make([]float64, n)
-	for i, obj := range objs {
-		min, _ := obj.bound()
-		zmin[i] = min.Z
-	}
-	sort.Float64s(zmin)
-
-	bound := boundingArea{
-		Vect(xmin[0], ymin[0], zmin[0]),
-		Vect(xmax[n-1], ymax[n-1], zmax[n-1]),
-	}
-
-	switch n {
-	case 1:
-		return &node{
-			bound: bound,
-			obj:   objs[0],
-		}
-	case 2:
-		return &node{
-			bound: bound,
-			children: []*node{
-				newNode([]Object{objs[0]}),
-				newNode([]Object{objs[1]}),
-			},
-		}
-	default:
-		children1 := []Object{}
-		children2 := []Object{}
-		cutoffXMin := xmin[n/2]
-		cutoffXMax := xmax[n/2]
-		for _, obj := range objs {
-			min, max := obj.surface.bound()
-			if max.X < cutoffXMax {
-				children1 = append(children1, obj)
-			}
-			if min.X > cutoffXMin {
-				children2 = append(children2, obj)
-			}
-		}
-
-		return &node{
-			bound: bound,
-			children: []*node{
-				newNode(children1),
-				newNode(children2),
-			},
-		}
-	}
-}
-
 func newFastAccelerationStructure(objs ObjectList) accelerationStructure {
 	return newNode(objs)
 }
@@ -134,6 +47,61 @@ type node struct {
 	// Exactly 1 field populated:
 	children []*node
 	obj      Object
+}
+
+func newNode(objs []Object) *node {
+
+	if len(objs) == 1 {
+		min, max := objs[0].bound()
+		return &node{
+			bound: boundingArea{min, max},
+			obj:   objs[0],
+		}
+	}
+
+	n := len(objs)
+
+	dim := func(v Vector) float64 { return v.X }
+	var byCenter byCenter
+	byCenter.objs = objs
+	byCenter.dimension = dim
+	sort.Sort(byCenter)
+
+	inf := math.Inf(+1)
+	bound := boundingArea{
+		Vect(-inf, -inf, -inf),
+		Vect(+inf, +inf, +inf),
+	}
+	for _, obj := range objs {
+		min, max := obj.bound()
+		bound.min = bound.min.Min(min)
+		bound.max = bound.max.Max(max)
+	}
+
+	return &node{
+		bound: bound,
+		children: []*node{
+			newNode(objs[:n/2]),
+			newNode(objs[n/2:]),
+		},
+	}
+}
+
+type byCenter struct {
+	dimension func(Vector) float64
+	objs      []Object
+}
+
+func (b byCenter) Len() int      { return len(b.objs) }
+func (b byCenter) Swap(i, j int) { b.objs[i], b.objs[j] = b.objs[j], b.objs[i] }
+func (b byCenter) Less(i, j int) bool {
+	minI, maxI := b.objs[i].bound()
+	minJ, maxJ := b.objs[j].bound()
+	return b.dimension(mid(minI, maxI)) < b.dimension(mid(minJ, maxJ))
+}
+
+func mid(u, v Vector) Vector {
+	return u.Add(v).Scale(0.5)
 }
 
 func (a *node) closestHit(r ray) (intersection, material, bool) {
