@@ -37,11 +37,7 @@ func (a listAccelerationStructure) closestHit(r ray) (intersection, material, bo
 	return closest.intersection, closest.material, closest.hit
 }
 
-func newFastAccelerationStructure(objs ObjectList, levels int) accelerationStructure {
-
-	if levels == 0 {
-		return newListAccelerationStructure(objs)
-	}
+func newNode(objs []Object) *node {
 
 	n := len(objs)
 
@@ -84,40 +80,69 @@ func newFastAccelerationStructure(objs ObjectList, levels int) accelerationStruc
 	}
 	sort.Float64s(zmin)
 
-	children1 := []Object{}
-	children2 := []Object{}
-	cutoffXMin := xmin[n/2]
-	cutoffXMax := xmax[n/2]
-	for _, obj := range objs {
-		min, max := obj.surface.bound()
-		if max.X < cutoffXMax {
-			children1 = append(children1, obj)
-		}
-		if min.X > cutoffXMin {
-			children2 = append(children2, obj)
-		}
+	bound := boundingArea{
+		Vect(xmin[0], ymin[0], zmin[0]),
+		Vect(xmax[n-1], ymax[n-1], zmax[n-1]),
 	}
 
-	return &fastAccelerationStructure{
-		boundingArea{
-			Vect(xmin[0], ymin[0], zmin[0]),
-			Vect(xmax[n-1], ymax[n-1], zmax[n-1]),
-		},
-		[]accelerationStructure{
-			newFastAccelerationStructure(children1, levels-1),
-			newFastAccelerationStructure(children2, levels-1),
-		},
+	switch n {
+	case 1:
+		return &node{
+			bound: bound,
+			obj:   objs[0],
+		}
+	case 2:
+		return &node{
+			bound: bound,
+			children: []*node{
+				newNode([]Object{objs[0]}),
+				newNode([]Object{objs[1]}),
+			},
+		}
+	default:
+		children1 := []Object{}
+		children2 := []Object{}
+		cutoffXMin := xmin[n/2]
+		cutoffXMax := xmax[n/2]
+		for _, obj := range objs {
+			min, max := obj.surface.bound()
+			if max.X < cutoffXMax {
+				children1 = append(children1, obj)
+			}
+			if min.X > cutoffXMin {
+				children2 = append(children2, obj)
+			}
+		}
+
+		return &node{
+			bound: bound,
+			children: []*node{
+				newNode(children1),
+				newNode(children2),
+			},
+		}
 	}
 }
 
-type fastAccelerationStructure struct {
-	bound    boundingArea
-	children []accelerationStructure
+func newFastAccelerationStructure(objs ObjectList) accelerationStructure {
+	return newNode(objs)
 }
 
-func (a *fastAccelerationStructure) closestHit(r ray) (intersection, material, bool) {
+type node struct {
+	bound boundingArea
+
+	// Exactly 1 field populated:
+	children []*node
+	obj      Object
+}
+
+func (a *node) closestHit(r ray) (intersection, material, bool) {
 	if !a.bound.hit(r) {
 		return intersection{}, material{}, false
+	}
+	if len(a.children) == 0 {
+		intersection, hit := a.obj.intersect(r)
+		return intersection, a.obj.material, hit
 	}
 	for _, child := range a.children {
 		intersection, material, hit := child.closestHit(r)
