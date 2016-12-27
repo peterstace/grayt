@@ -1,6 +1,9 @@
 package grayt
 
-import "math"
+import (
+	"math"
+	"sort"
+)
 
 type accelerationStructure interface {
 	closestHit(ray) (intersection, material, bool)
@@ -35,7 +38,74 @@ func (a listAccelerationStructure) closestHit(r ray) (intersection, material, bo
 }
 
 func newFastAccelerationStructure(objs ObjectList) accelerationStructure {
-	return &fastAccelerationStructure{}
+
+	n := len(objs)
+
+	xmax := make([]float64, n)
+	for i, obj := range objs {
+		_, max := obj.bound()
+		xmax[i] = max.X
+	}
+	sort.Float64s(xmax)
+	xmin := make([]float64, n)
+	for i, obj := range objs {
+		min, _ := obj.bound()
+		xmin[i] = min.X
+	}
+	sort.Float64s(xmin)
+
+	ymax := make([]float64, n)
+	for i, obj := range objs {
+		_, max := obj.bound()
+		ymax[i] = max.Y
+	}
+	sort.Float64s(ymax)
+	ymin := make([]float64, n)
+	for i, obj := range objs {
+		min, _ := obj.bound()
+		ymin[i] = min.Y
+	}
+	sort.Float64s(ymin)
+
+	zmax := make([]float64, n)
+	for i, obj := range objs {
+		_, max := obj.bound()
+		zmax[i] = max.Z
+	}
+	sort.Float64s(zmax)
+	zmin := make([]float64, n)
+	for i, obj := range objs {
+		min, _ := obj.bound()
+		zmin[i] = min.Z
+	}
+	sort.Float64s(zmin)
+
+	children1 := []Object{}
+	children2 := []Object{}
+	cutoffXMin := xmin[n/2]
+	cutoffXMax := xmax[n/2]
+	for _, obj := range objs {
+		min, max := obj.surface.bound()
+		if max.X < cutoffXMax {
+			children1 = append(children1, obj)
+		}
+		if min.X > cutoffXMin {
+			children2 = append(children2, obj)
+		}
+	}
+
+	return &fastAccelerationStructure{
+		boundingArea{
+			Vect(xmin[0], ymin[0], zmin[0]),
+			Vect(xmax[n-1], ymax[n-1], zmax[n-1]),
+		},
+		[]accelerationStructure{
+			//newFastAccelerationStructure(children1),
+			//newFastAccelerationStructure(children2),
+			newListAccelerationStructure(children1),
+			newListAccelerationStructure(children2),
+		},
+	}
 }
 
 type fastAccelerationStructure struct {
