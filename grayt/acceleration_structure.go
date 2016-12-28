@@ -1,6 +1,7 @@
 package grayt
 
 import (
+	"fmt"
 	"math"
 	"sort"
 )
@@ -44,9 +45,28 @@ func newFastAccelerationStructure(objs ObjectList) accelerationStructure {
 type node struct {
 	bound boundingArea
 
-	// Exactly 1 field populated:
-	children []*node
-	obj      Object
+	// Either children or obj populated.
+	child1, child2 *node
+	obj            Object
+}
+
+func (n *node) String() string {
+	return n.toString("")
+}
+
+func (n *node) toString(indent string) string {
+	str := fmt.Sprintf(
+		indent+"bound: %v\n",
+		n.bound,
+	)
+	assert((n.child1 == nil) == (n.child2 == nil))
+	if n.child1 != nil {
+		str += n.child1.toString(indent + "\t")
+		str += n.child2.toString(indent + "\t")
+	} else {
+		str += indent + "\t" + n.obj.String() + "\n"
+	}
+	return str
 }
 
 func newNode(objs []Object) *node {
@@ -69,8 +89,8 @@ func newNode(objs []Object) *node {
 
 	inf := math.Inf(+1)
 	bound := boundingArea{
-		Vect(-inf, -inf, -inf),
 		Vect(+inf, +inf, +inf),
+		Vect(-inf, -inf, -inf),
 	}
 	for _, obj := range objs {
 		min, max := obj.bound()
@@ -79,11 +99,9 @@ func newNode(objs []Object) *node {
 	}
 
 	return &node{
-		bound: bound,
-		children: []*node{
-			newNode(objs[:n/2]),
-			newNode(objs[n/2:]),
-		},
+		bound:  bound,
+		child1: newNode(objs[:n/2]),
+		child2: newNode(objs[n/2:]),
 	}
 }
 
@@ -105,20 +123,33 @@ func mid(u, v Vector) Vector {
 }
 
 func (a *node) closestHit(r ray) (intersection, material, bool) {
+
 	if !a.bound.hit(r) {
 		return intersection{}, material{}, false
 	}
-	if len(a.children) == 0 {
+
+	assert((a.child1 == nil) == (a.child2 == nil))
+	if a.child1 == nil {
 		intersection, hit := a.obj.intersect(r)
 		return intersection, a.obj.material, hit
 	}
-	for _, child := range a.children {
-		intersection, material, hit := child.closestHit(r)
-		if hit {
-			return intersection, material, true
+
+	intersection1, material1, hit1 := a.child1.closestHit(r)
+	intersection2, material2, hit2 := a.child2.closestHit(r)
+	switch {
+	case hit1 && hit2:
+		if intersection1.distance < intersection2.distance {
+			return intersection1, material1, true
+		} else {
+			return intersection2, material2, true
 		}
+	case hit1:
+		return intersection1, material1, true
+	case hit2:
+		return intersection2, material2, true
+	default:
+		return intersection{}, material{}, false
 	}
-	return intersection{}, material{}, false
 }
 
 type boundingArea struct {
