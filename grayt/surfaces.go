@@ -95,7 +95,6 @@ func (t *triangle) bound() (Vector, Vector) {
 	b := t.a.Add(t.u)
 	c := t.a.Add(t.v)
 	return t.a.Min(b.Min(c)), t.a.Max(b.Max(c))
-
 }
 
 type alignedBox struct {
