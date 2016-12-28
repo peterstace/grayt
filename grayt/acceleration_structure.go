@@ -158,6 +158,8 @@ type boundingArea struct {
 
 func (b *boundingArea) hit(r ray) bool {
 
+	// TODO: Could possibly do a bit of a speedup here.
+
 	tx1 := (b.min.X - r.start.X) / r.dir.X
 	tx2 := (b.max.X - r.start.X) / r.dir.X
 	ty1 := (b.min.Y - r.start.Y) / r.dir.Y
