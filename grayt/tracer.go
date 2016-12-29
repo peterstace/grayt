@@ -15,15 +15,14 @@ func traceImage(pxWide, pxHigh int, accel accelerationStructure, cam camera, qua
 	// Trace the image.
 	pxPitch := 2.0 / float64(pxWide)
 	for i := 0; i < quality; i++ {
-		for pxX := 0; pxX < pxWide; pxX++ {
-			for pxY := 0; pxY < pxHigh; pxY++ {
+		for pxY := 0; pxY < pxHigh; pxY++ {
+			for pxX := 0; pxX < pxWide; pxX++ {
 				x := (float64(pxX-pxWide/2) + rng.Float64()) * pxPitch
 				y := (float64(pxY-pxHigh/2) + rng.Float64()) * pxPitch * -1.0
 				r := cam.makeRay(x, y)
 				r.dir = r.dir.Unit()
 				accum.add(pxX, pxY, tracePath(accel, r))
 				atomic.AddUint64(completed, 1)
-
 			}
 		}
 	}
