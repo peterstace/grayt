@@ -138,7 +138,7 @@ func (b *alignedBox) intersect(r ray) (intersection, bool) {
 	}
 
 	if math.Min(ty1, ty2) > tmin {
-		if ty1 < ty2 && ty1 > 0 {
+		if ty1 < ty2 {
 			tmin = ty1
 			nMin = Vect(0, -1, 0)
 		} else {
@@ -157,7 +157,7 @@ func (b *alignedBox) intersect(r ray) (intersection, bool) {
 	}
 
 	if math.Min(tz1, tz2) > tmin {
-		if tz1 < tz2 && tz1 > 0 {
+		if tz1 < tz2 {
 			tmin = tz1
 			nMin = Vect(0, 0, -1)
 		} else {
