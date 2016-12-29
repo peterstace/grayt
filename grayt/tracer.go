@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 )
 
-var rng = rand.New(rand.NewSource(1))
+var rng = rand.New(rand.NewSource(-1))
 
 func traceImage(pxWide, pxHigh int, accel accelerationStructure, cam camera, quality int, completed *uint64) image.Image {
 
@@ -16,6 +16,7 @@ func traceImage(pxWide, pxHigh int, accel accelerationStructure, cam camera, qua
 	pxPitch := 2.0 / float64(pxWide)
 	for i := 0; i < quality; i++ {
 		for pxY := 0; pxY < pxHigh; pxY++ {
+			rng.Seed(int64(i*pxHigh + pxY))
 			for pxX := 0; pxX < pxWide; pxX++ {
 				x := (float64(pxX-pxWide/2) + rng.Float64()) * pxPitch
 				y := (float64(pxY-pxHigh/2) + rng.Float64()) * pxPitch * -1.0
