@@ -14,6 +14,7 @@ function run_test()
     echo -e "\nPASSED"
     return 0
   else
+    compare $SCRIPT_PATH/actual_$name.png $SCRIPT_PATH/expect_$name.png $SCRIPT_PATH/diff_$name.png
     echo -e "\nFAILED"
     return 1
   fi
