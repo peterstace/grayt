@@ -6,6 +6,8 @@ import (
 	"sync/atomic"
 )
 
+var rng = rand.New(rand.NewSource(1))
+
 func traceImage(pxWide, pxHigh int, accel accelerationStructure, cam camera, quality int, completed *uint64) image.Image {
 
 	accum := newAccumulator(pxWide, pxHigh)
@@ -15,8 +17,8 @@ func traceImage(pxWide, pxHigh int, accel accelerationStructure, cam camera, qua
 	for i := 0; i < quality; i++ {
 		for pxX := 0; pxX < pxWide; pxX++ {
 			for pxY := 0; pxY < pxHigh; pxY++ {
-				x := (float64(pxX-pxWide/2) + rand.Float64()) * pxPitch
-				y := (float64(pxY-pxHigh/2) + rand.Float64()) * pxPitch * -1.0
+				x := (float64(pxX-pxWide/2) + rng.Float64()) * pxPitch
+				y := (float64(pxY-pxHigh/2) + rng.Float64()) * pxPitch * -1.0
 				r := cam.makeRay(x, y)
 				r.dir = r.dir.Unit()
 				accum.add(pxX, pxY, tracePath(accel, r))
@@ -43,7 +45,7 @@ func tracePath(accel accelerationStructure, r ray) Colour {
 	}
 
 	// Handle emit case.
-	if rand.Float64() < pEmit {
+	if rng.Float64() < pEmit {
 		return material.colour.scale(material.emittance / pEmit)
 	}
 
@@ -57,7 +59,7 @@ func tracePath(accel accelerationStructure, r ray) Colour {
 	}
 
 	// Create a random vector on the hemisphere towards the normal.
-	rnd := Vector{rand.NormFloat64(), rand.NormFloat64(), rand.NormFloat64()}
+	rnd := Vector{rng.NormFloat64(), rng.NormFloat64(), rng.NormFloat64()}
 	rnd = rnd.Unit()
 	if rnd.dot(intersection.unitNormal) < 0 {
 		rnd = rnd.Scale(-1.0)
