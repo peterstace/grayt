@@ -17,6 +17,7 @@ Go RAY Tracer
 ## TODO
 
 - Use terminology for focal distance / focal ratio correctly.
+- Use Ginkgo and Gomega for testing.
 
 ## Gallery
 
