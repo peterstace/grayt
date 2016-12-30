@@ -166,8 +166,6 @@ type boundingArea struct {
 
 func (b *boundingArea) hit(r ray) bool {
 
-	// TODO: Could possibly do a bit of a speedup here.
-
 	tx1 := (b.min.X - r.start.X) / r.dir.X
 	tx2 := (b.max.X - r.start.X) / r.dir.X
 	ty1 := (b.min.Y - r.start.Y) / r.dir.Y
@@ -177,26 +175,12 @@ func (b *boundingArea) hit(r ray) bool {
 
 	tmin, tmax := math.Inf(-1), math.Inf(+1)
 
-	if math.Min(tx1, tx2) > tmin {
-		tmin = math.Min(tx1, tx2)
-	}
-	if math.Max(tx1, tx2) < tmax {
-		tmax = math.Max(tx1, tx2)
-	}
-
-	if math.Min(ty1, ty2) > tmin {
-		tmin = math.Min(ty1, ty2)
-	}
-	if math.Max(ty1, ty2) < tmax {
-		tmax = math.Max(ty1, ty2)
-	}
-
-	if math.Min(tz1, tz2) > tmin {
-		tmin = math.Min(tz1, tz2)
-	}
-	if math.Max(tz1, tz2) < tmax {
-		tmax = math.Max(tz1, tz2)
-	}
+	tmin = math.Max(tmin, math.Min(tx1, tx2))
+	tmax = math.Min(tmax, math.Max(tx1, tx2))
+	tmin = math.Max(tmin, math.Min(ty1, ty2))
+	tmax = math.Min(tmax, math.Max(ty1, ty2))
+	tmin = math.Max(tmin, math.Min(tz1, tz2))
+	tmax = math.Min(tmax, math.Max(tz1, tz2))
 
 	return tmin <= tmax && tmax > 0
 }
