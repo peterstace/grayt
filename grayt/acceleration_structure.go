@@ -79,14 +79,6 @@ func newNode(objs []Object) *node {
 		}
 	}
 
-	n := len(objs)
-
-	dim := func(v Vector) float64 { return v.X }
-	var byCenter byCenter
-	byCenter.objs = objs
-	byCenter.dimension = dim
-	sort.Sort(byCenter)
-
 	inf := math.Inf(+1)
 	bound := boundingArea{
 		Vect(+inf, +inf, +inf),
@@ -98,6 +90,22 @@ func newNode(objs []Object) *node {
 		bound.max = bound.max.Max(max)
 	}
 
+	var dim func(Vector) float64
+	boundSize := bound.max.Sub(bound.min)
+	if boundSize.X > math.Max(boundSize.Y, boundSize.Z) {
+		dim = func(v Vector) float64 { return v.X }
+	} else if boundSize.Y > boundSize.Z {
+		dim = func(v Vector) float64 { return v.Y }
+	} else {
+		dim = func(v Vector) float64 { return v.Z }
+	}
+
+	var byCenter byCenter
+	byCenter.objs = objs
+	byCenter.dimension = dim
+	sort.Sort(byCenter)
+
+	n := len(objs)
 	return &node{
 		bound:  bound,
 		child1: newNode(objs[:n/2]),
