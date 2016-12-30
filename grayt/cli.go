@@ -41,7 +41,7 @@ func (c *cli) update(done int) {
 	doneDelta := done - c.lastDone
 	c.lastDone = done
 
-	if c.elapsed > time.Second {
+	if c.elapsed > 5*time.Second {
 		speed := float64(doneDelta) / timeDelta.Seconds()
 		const alpha = 0.001
 		c.smoothedSpeed = alpha*speed + (1-alpha)*c.smoothedSpeed
