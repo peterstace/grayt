@@ -8,6 +8,8 @@ import (
 
 var rng = rand.New(rand.NewSource(-1))
 
+var debug bool
+
 func traceImage(pxWide, pxHigh int, accel accelerationStructure, cam camera, quality int, completed *uint64) image.Image {
 
 	accum := newAccumulator(pxWide, pxHigh)
@@ -18,6 +20,7 @@ func traceImage(pxWide, pxHigh int, accel accelerationStructure, cam camera, qua
 		for pxY := 0; pxY < pxHigh; pxY++ {
 			rng.Seed(int64(i*pxHigh + pxY))
 			for pxX := 0; pxX < pxWide; pxX++ {
+				debug = pxX == 0 && pxY == 0
 				x := (float64(pxX-pxWide/2) + rng.Float64()) * pxPitch
 				y := (float64(pxY-pxHigh/2) + rng.Float64()) * pxPitch * -1.0
 				r := cam.makeRay(x, y)

@@ -1,6 +1,9 @@
 package grayt
 
-import "math"
+import (
+	"log"
+	"math"
+)
 
 type grid struct {
 	origin     Vector
@@ -36,8 +39,13 @@ func newGrid(lambda float64, objs ObjectList) *grid {
 
 	for _, obj := range objs {
 		min, max := obj.bound()
-		minCoord := truncate(min.Sub(grid.origin).div(grid.stride))
-		maxCoord := truncate(max.Sub(grid.origin).div(grid.stride))
+		minCoord := truncate(min.Sub(grid.origin).div(grid.stride)).min(grid.resolution.sub(intVect{1, 1, 1}))
+		maxCoord := truncate(max.Sub(grid.origin).div(grid.stride)).min(grid.resolution.sub(intVect{1, 1, 1}))
+		log.Printf("%#v", obj)
+		log.Printf("Min: %v", min)
+		log.Printf("Max: %v", max)
+		log.Printf("MinC: %v", minCoord)
+		log.Printf("MaxC: %v", maxCoord)
 		var pos intVect
 		for pos.x = minCoord.x; pos.x <= maxCoord.x; pos.x++ {
 			for pos.y = minCoord.y; pos.y <= maxCoord.y; pos.y++ {
@@ -54,8 +62,18 @@ func newGrid(lambda float64, objs ObjectList) *grid {
 
 func (g *grid) closestHit(r ray) (intersection, material, bool) {
 
+	if debug {
+		log.Print("==DEBUG==")
+		log.Printf("Ray: %v", r)
+	}
+
 	delta := g.stride.div(r.dir)
 	inc := truncate(delta.sign())
+
+	if debug {
+		log.Printf("Delta: %v", delta)
+		log.Printf("Inc: %v", inc)
+	}
 
 	ogrid := r.start.Sub(g.origin) // ray start relative to the grid origin.
 	cellCoord := ogrid.div(g.stride)
@@ -71,27 +89,20 @@ func (g *grid) closestHit(r ray) (intersection, material, bool) {
 		div(r.dir)
 
 	pos := truncate(cellCoord)
-	if pos.x < 0 {
-		pos.x = -1
-	}
-	if pos.y < 0 {
-		pos.y = -1
-	}
-	if pos.y < 0 {
-		pos.y = -1
-	}
-	if pos.x >= g.resolution.x {
-		pos.x = g.resolution.x
-	}
-	if pos.y >= g.resolution.y {
-		pos.y = g.resolution.y
-	}
-	if pos.z >= g.resolution.z {
-		pos.z = g.resolution.z
+
+	if debug {
+		log.Printf("Ogrid: %v", ogrid)
+		log.Printf("CellCoord: %v", cellCoord)
+		log.Printf("Next: %v", next)
+		log.Printf("Pos: %v", pos)
 	}
 
 loop:
 	for true {
+
+		if debug {
+			log.Print("TOP")
+		}
 
 		// TODO: Is is numerically stable to keep incrementing next? Could we
 		// instead compute it fresh each time? Does it really matter if it's
@@ -100,21 +111,26 @@ loop:
 		case next.X < math.Min(next.Y, next.Z):
 			pos.x += inc.x
 			next.X += delta.X
-			if pos.x < 0 || pos.x >= g.resolution.x {
+			if pos.x < 0 && inc.x < 0 || pos.x > g.resolution.x && inc.x > 0 {
 				break loop
 			}
 		case next.Y < next.Z:
 			pos.y += inc.y
 			next.Y += delta.Y
-			if pos.y < 0 || pos.y >= g.resolution.y {
+			if pos.y < 0 && inc.y < 0 || pos.y > g.resolution.y && inc.y > 0 {
 				break loop
 			}
 		default:
 			pos.z += inc.z
-			next.Y += delta.Y
-			if pos.z < 0 || pos.z >= g.resolution.z {
+			next.Z += delta.Z
+			if pos.z < 0 && inc.z < 0 || pos.z > g.resolution.z && inc.z > 0 {
 				break loop
 			}
+		}
+
+		if debug {
+			log.Printf("Pos: %v", pos)
+			log.Printf("Next: %v", pos)
 		}
 
 		var closest struct {
@@ -122,7 +138,11 @@ loop:
 			material     material
 			hit          bool
 		}
-		for link := g.data[g.dataIndex(pos)]; link != nil; link = link.next {
+		var head *link
+		if pos.x >= 0 && pos.x < g.resolution.x && pos.y >= 0 && pos.y < g.resolution.y && pos.z >= 0 && pos.z < g.resolution.z {
+			head = g.data[g.dataIndex(pos)]
+		}
+		for link := head; link != nil; link = link.next {
 			intersection, hit := link.obj.intersect(r)
 			if !hit {
 				continue
@@ -157,6 +177,10 @@ type link struct {
 	obj  Object
 }
 
+type intVect struct {
+	x, y, z int
+}
+
 func truncate(v Vector) intVect {
 	return intVect{
 		int(v.X),
@@ -165,14 +189,31 @@ func truncate(v Vector) intVect {
 	}
 }
 
-type intVect struct {
-	x, y, z int
-}
-
 func (v intVect) asVector() Vector {
 	return Vector{
 		float64(v.x),
 		float64(v.y),
 		float64(v.z),
+	}
+}
+
+func (v intVect) min(u intVect) intVect {
+	if v.x > u.x {
+		v.x = u.x
+	}
+	if v.y > u.y {
+		v.y = u.y
+	}
+	if v.z > u.z {
+		v.z = u.z
+	}
+	return v
+}
+
+func (v intVect) sub(u intVect) intVect {
+	return intVect{
+		v.x - u.x,
+		v.y - u.y,
+		v.z - u.z,
 	}
 }
