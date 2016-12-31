@@ -20,7 +20,7 @@ func traceImage(pxWide, pxHigh int, accel accelerationStructure, cam camera, qua
 		for pxY := 0; pxY < pxHigh; pxY++ {
 			rng.Seed(int64(i*pxHigh + pxY))
 			for pxX := 0; pxX < pxWide; pxX++ {
-				debug = pxX == 0 && pxY == pxHigh-1
+				debug = pxX == 210 && pxY == 510
 				x := (float64(pxX-pxWide/2) + rng.Float64()) * pxPitch
 				y := (float64(pxY-pxHigh/2) + rng.Float64()) * pxPitch * -1.0
 				r := cam.makeRay(x, y)

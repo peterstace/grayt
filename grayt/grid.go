@@ -152,8 +152,14 @@ loop:
 			head = g.data[g.dataIndex(pos)]
 		}
 		for link := head; link != nil; link = link.next {
+			if debug {
+				log.Printf("Look for hit: %v", link.obj)
+			}
 			intersection, hit := link.obj.intersect(r)
 			if !hit {
+				continue
+			}
+			if intersection.distance > math.Min(next.X, math.Min(next.Y, next.Z)) {
 				continue
 			}
 			if !closest.hit || intersection.distance < closest.intersection.distance {
