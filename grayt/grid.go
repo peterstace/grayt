@@ -67,8 +67,8 @@ func (g *grid) closestHit(r ray) (intersection, material, bool) {
 		log.Printf("Ray: %v", r)
 	}
 
-	delta := g.stride.div(r.dir)
-	inc := truncate(delta.sign())
+	delta := g.stride.div(r.dir).abs()
+	inc := truncate(r.dir.sign())
 
 	if debug {
 		log.Printf("Delta: %v", delta)
@@ -112,25 +112,34 @@ loop:
 			pos.x += inc.x
 			next.X += delta.X
 			if pos.x < 0 && inc.x < 0 || pos.x > g.resolution.x && inc.x > 0 {
+				if debug {
+					log.Printf("Break X")
+				}
 				break loop
 			}
 		case next.Y < next.Z:
 			pos.y += inc.y
 			next.Y += delta.Y
 			if pos.y < 0 && inc.y < 0 || pos.y > g.resolution.y && inc.y > 0 {
+				if debug {
+					log.Printf("Break Y")
+				}
 				break loop
 			}
 		default:
 			pos.z += inc.z
 			next.Z += delta.Z
 			if pos.z < 0 && inc.z < 0 || pos.z > g.resolution.z && inc.z > 0 {
+				if debug {
+					log.Printf("Break Z")
+				}
 				break loop
 			}
 		}
 
 		if debug {
 			log.Printf("Pos: %v", pos)
-			log.Printf("Next: %v", pos)
+			log.Printf("Next: %v", next)
 		}
 
 		var closest struct {

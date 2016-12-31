@@ -126,6 +126,14 @@ func (v Vector) floor() Vector {
 	}
 }
 
+func (v Vector) abs() Vector {
+	return Vector{
+		math.Abs(v.X),
+		math.Abs(v.Y),
+		math.Abs(v.Z),
+	}
+}
+
 type ray struct {
 	start, dir Vector
 }
