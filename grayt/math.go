@@ -95,6 +95,37 @@ func (v Vector) Max(u Vector) Vector {
 	}
 }
 
+func (v Vector) sign() Vector {
+	x, y, z := 0.0, 0.0, 0.0
+	if v.X > 0 {
+		x = +1
+	}
+	if v.X < 0 {
+		x = -1
+	}
+	if v.Y > 0 {
+		y = +1
+	}
+	if v.Y < 0 {
+		y = -1
+	}
+	if v.Z > 0 {
+		z = +1
+	}
+	if v.Z < 0 {
+		z = -1
+	}
+	return Vector{x, y, z}
+}
+
+func (v Vector) floor() Vector {
+	return Vector{
+		math.Floor(v.X),
+		math.Floor(v.Y),
+		math.Floor(v.Z),
+	}
+}
+
 type ray struct {
 	start, dir Vector
 }
