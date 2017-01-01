@@ -210,7 +210,7 @@ func (g *grid) findHitInCell(pos triple, next Vector, r ray) (intersection, mate
 		if !hit {
 			continue
 		}
-		nextCell := addULPs(math.Min(next.X, math.Min(next.Y, next.Z)), 50)
+		nextCell := addULPs(math.Min(next.X, math.Min(next.Y, next.Z)), ulpFudgeFactor)
 		if intersection.distance > nextCell {
 			continue
 		}

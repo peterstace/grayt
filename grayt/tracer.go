@@ -53,7 +53,7 @@ func tracePath(accel accelerationStructure, r ray) Colour {
 
 	// Find where the ray hit. Reduce the intersection distance by a small
 	// amount so that reflected rays don't intersect with it immediately.
-	hitLoc := r.at(addULPs(intersection.distance, -50))
+	hitLoc := r.at(addULPs(intersection.distance, -ulpFudgeFactor))
 
 	// Orient the unit normal towards the ray origin.
 	if intersection.unitNormal.dot(r.dir) > 0 {

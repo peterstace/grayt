@@ -94,8 +94,8 @@ func (t *triangle) intersect(r ray) (intersection, bool) {
 func (t *triangle) bound() (Vector, Vector) {
 	b := t.a.Add(t.u)
 	c := t.a.Add(t.v)
-	min := t.a.Min(b.Min(c)).addULPs(-50)
-	max := t.a.Max(b.Max(c)).addULPs(+50)
+	min := t.a.Min(b.Min(c)).addULPs(-ulpFudgeFactor)
+	max := t.a.Max(b.Max(c)).addULPs(+ulpFudgeFactor)
 	return min, max
 }
 
@@ -321,7 +321,7 @@ func (s *sphere) intersect(r ray) (intersection, bool) {
 func (s *sphere) bound() (Vector, Vector) {
 	r := Vect(s.radius, s.radius, s.radius)
 	min, max := s.centre.Sub(r), s.centre.Add(r)
-	return min.addULPs(-50), max.addULPs(50)
+	return min.addULPs(-ulpFudgeFactor), max.addULPs(ulpFudgeFactor)
 }
 
 type alignXSquare struct {
