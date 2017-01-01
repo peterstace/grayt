@@ -105,16 +105,15 @@ func (g *grid) closestHit(r ray) (intersection, material, bool) {
 		log.Printf("Ray: %v", r)
 	}
 
-	var cellCoord Vector
-	if g.insideBoundingBox(r.start) {
-		cellCoord = g.cellCoord(r.start)
-	} else {
-		if distance, hit := g.hitBoundingBox(r); !hit {
+	var distance float64
+	if !g.insideBoundingBox(r.start) {
+		var hit bool
+		distance, hit = g.hitBoundingBox(r)
+		if !hit {
 			return intersection{}, material{}, false
-		} else {
-			cellCoord = g.cellCoord(r.at(distance))
 		}
 	}
+	cellCoord := g.cellCoord(r.at(distance))
 
 	pos := truncate(cellCoord).
 		min(g.resolution).
