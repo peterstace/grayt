@@ -318,7 +318,14 @@ func (s *sphere) intersect(r ray) (intersection, bool) {
 
 func (s *sphere) bound() (Vector, Vector) {
 	r := Vect(s.radius, s.radius, s.radius)
-	return s.centre.Sub(r), s.centre.Add(r)
+	min, max := s.centre.Sub(r), s.centre.Add(r)
+	max.X = addULPs(max.X, +50)
+	max.Y = addULPs(max.Y, +50)
+	max.Z = addULPs(max.Z, +50)
+	min.X = addULPs(min.X, -50)
+	min.Y = addULPs(min.Y, -50)
+	min.Z = addULPs(min.Z, -50)
+	return min, max
 }
 
 type alignXSquare struct {

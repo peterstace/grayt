@@ -44,6 +44,7 @@ func Run(baseName string, scene Scene) {
 	for i := range accel.data {
 		log.Printf("Data:       %v", accel.data[i])
 	}
+	//accel := newListAccelerationStructure(scene.Objects)
 
 	cam := newCamera(scene.Camera)
 	img := make(chan image.Image)
