@@ -6,7 +6,9 @@ import (
 )
 
 type grid struct {
-	origin     Vector
+	minBound Vector
+	maxBound Vector
+
 	stride     Vector
 	data       []*link
 	resolution intVect
@@ -32,6 +34,7 @@ func newGrid(lambda float64, objs ObjectList) *grid {
 
 	grid := &grid{
 		minBound,
+		maxBound,
 		stride,
 		data,
 		res,
@@ -39,8 +42,8 @@ func newGrid(lambda float64, objs ObjectList) *grid {
 
 	for _, obj := range objs {
 		min, max := obj.bound()
-		minCoord := truncate(min.Sub(grid.origin).div(grid.stride)).min(grid.resolution.sub(intVect{1, 1, 1}))
-		maxCoord := truncate(max.Sub(grid.origin).div(grid.stride)).min(grid.resolution.sub(intVect{1, 1, 1}))
+		minCoord := truncate(min.Sub(grid.minBound).div(grid.stride)).min(grid.resolution.sub(intVect{1, 1, 1}))
+		maxCoord := truncate(max.Sub(grid.minBound).div(grid.stride)).min(grid.resolution.sub(intVect{1, 1, 1}))
 		log.Printf("%#v", obj)
 		log.Printf("Min: %v", min)
 		log.Printf("Max: %v", max)
@@ -60,6 +63,41 @@ func newGrid(lambda float64, objs ObjectList) *grid {
 	return grid
 }
 
+func (g *grid) insideBoundingBox(v Vector) bool {
+	return true &&
+		v.X >= g.minBound.X && v.X <= g.maxBound.X &&
+		v.Y >= g.minBound.Y && v.Y <= g.maxBound.Y &&
+		v.Z >= g.minBound.Z && v.Z <= g.maxBound.Z
+}
+
+func (g *grid) hitBoundingBox(r ray) (float64, bool) {
+
+	tx1 := (g.minBound.X - r.start.X) / r.dir.X
+	tx2 := (g.maxBound.X - r.start.X) / r.dir.X
+	ty1 := (g.minBound.Y - r.start.Y) / r.dir.Y
+	ty2 := (g.maxBound.Y - r.start.Y) / r.dir.Y
+	tz1 := (g.minBound.Z - r.start.Z) / r.dir.Z
+	tz2 := (g.maxBound.Z - r.start.Z) / r.dir.Z
+
+	tmin, tmax := math.Inf(-1), math.Inf(+1)
+
+	tmin = math.Max(tmin, math.Min(tx1, tx2))
+	tmax = math.Min(tmax, math.Max(tx1, tx2))
+	tmin = math.Max(tmin, math.Min(ty1, ty2))
+	tmax = math.Min(tmax, math.Max(ty1, ty2))
+	tmin = math.Max(tmin, math.Min(tz1, tz2))
+	tmax = math.Min(tmax, math.Max(tz1, tz2))
+
+	return tmin, tmin <= tmax && tmin >= 0
+}
+
+func (g *grid) cellCoord(v Vector) Vector {
+	return v.
+		Sub(g.minBound).
+		div(g.stride)
+
+}
+
 func (g *grid) closestHit(r ray) (intersection, material, bool) {
 
 	if debug {
@@ -67,16 +105,24 @@ func (g *grid) closestHit(r ray) (intersection, material, bool) {
 		log.Printf("Ray: %v", r)
 	}
 
+	var cellCoord Vector
+	if g.insideBoundingBox(r.start) {
+		cellCoord = g.cellCoord(r.start)
+	} else {
+		if distance, hit := g.hitBoundingBox(r); !hit {
+			return intersection{}, material{}, false
+		} else {
+			cellCoord = g.cellCoord(r.at(distance))
+		}
+	}
+
+	pos := truncate(cellCoord).
+		min(g.resolution).
+		max(intVect{})
+
 	delta := g.stride.div(r.dir).abs()
 	inc := truncate(r.dir.sign())
 
-	if debug {
-		log.Printf("Delta: %v", delta)
-		log.Printf("Inc: %v", inc)
-	}
-
-	ogrid := r.start.Sub(g.origin) // ray start relative to the grid origin.
-	cellCoord := ogrid.div(g.stride)
 	next := cellCoord.
 		floor().
 		Add(r.dir.
@@ -85,16 +131,15 @@ func (g *grid) closestHit(r ray) (intersection, material, bool) {
 			Add(Vect(0.5, 0.5, 0.5)),
 		).
 		mul(g.stride).
-		Sub(ogrid).
+		Sub(r.start.Sub(g.minBound)).
 		div(r.dir)
 
-	pos := truncate(cellCoord)
-
 	if debug {
-		log.Printf("Ogrid: %v", ogrid)
 		log.Printf("CellCoord: %v", cellCoord)
-		log.Printf("Next: %v", next)
 		log.Printf("Pos: %v", pos)
+		log.Printf("Delta: %v", delta)
+		log.Printf("Inc: %v", inc)
+		log.Printf("Next: %v", next)
 	}
 
 loop:
@@ -102,44 +147,6 @@ loop:
 
 		if debug {
 			log.Print("TOP")
-		}
-
-		// TODO: Is is numerically stable to keep incrementing next? Could we
-		// instead compute it fresh each time? Does it really matter if it's
-		// numerically stable?
-		switch {
-		case next.X < math.Min(next.Y, next.Z):
-			pos.x += inc.x
-			next.X += delta.X
-			if pos.x < 0 && inc.x < 0 || pos.x > g.resolution.x && inc.x > 0 {
-				if debug {
-					log.Printf("Break X")
-				}
-				break loop
-			}
-		case next.Y < next.Z:
-			pos.y += inc.y
-			next.Y += delta.Y
-			if pos.y < 0 && inc.y < 0 || pos.y > g.resolution.y && inc.y > 0 {
-				if debug {
-					log.Printf("Break Y")
-				}
-				break loop
-			}
-		default:
-			pos.z += inc.z
-			next.Z += delta.Z
-			if pos.z < 0 && inc.z < 0 || pos.z > g.resolution.z && inc.z > 0 {
-				if debug {
-					log.Printf("Break Z")
-				}
-				break loop
-			}
-		}
-
-		if debug {
-			log.Printf("Pos: %v", pos)
-			log.Printf("Next: %v", next)
 		}
 
 		var closest struct {
@@ -153,14 +160,24 @@ loop:
 		}
 		for link := head; link != nil; link = link.next {
 			if debug {
-				log.Printf("Look for hit: %v", link.obj)
+				log.Printf("\tLook for hit: %v", link.obj)
 			}
 			intersection, hit := link.obj.intersect(r)
 			if !hit {
+				if debug {
+					log.Printf("\tNo hit")
+				}
 				continue
 			}
-			if intersection.distance > math.Min(next.X, math.Min(next.Y, next.Z)) {
+			nextCell := addULPs(math.Min(next.X, math.Min(next.Y, next.Z)), 50)
+			if intersection.distance > nextCell {
+				if debug {
+					log.Printf("\tHit, but outside of cell, intersection distance: %v", intersection.distance)
+				}
 				continue
+			}
+			if debug {
+				log.Printf("\tWas hit, at distance %v", intersection.distance)
 			}
 			if !closest.hit || intersection.distance < closest.intersection.distance {
 				closest.intersection = intersection
@@ -170,6 +187,47 @@ loop:
 		}
 		if closest.hit {
 			return closest.intersection, closest.material, true
+		}
+
+		// TODO: Is is numerically stable to keep incrementing next? Could we
+		// instead compute it fresh each time? Does it really matter if it's
+		// numerically stable?
+		switch {
+		case next.X < math.Min(next.Y, next.Z):
+			pos.x += inc.x
+			next.X += delta.X
+			if pos.x < 0 && inc.x < 0 || pos.x >= g.resolution.x && inc.x > 0 {
+				if debug {
+					log.Printf("\tPos %v", pos)
+					log.Printf("\tBreak X")
+				}
+				break loop
+			}
+		case next.Y < next.Z:
+			pos.y += inc.y
+			next.Y += delta.Y
+			if pos.y < 0 && inc.y < 0 || pos.y >= g.resolution.y && inc.y > 0 {
+				if debug {
+					log.Printf("\tPos %v", pos)
+					log.Printf("\tBreak Y")
+				}
+				break loop
+			}
+		default:
+			pos.z += inc.z
+			next.Z += delta.Z
+			if pos.z < 0 && inc.z < 0 || pos.z >= g.resolution.z && inc.z > 0 {
+				if debug {
+					log.Printf("\tPos %v", pos)
+					log.Printf("\tBreak Z")
+				}
+				break loop
+			}
+		}
+
+		if debug {
+			log.Printf("\tPos: %v", pos)
+			log.Printf("\tNext: %v", next)
 		}
 	}
 
@@ -220,6 +278,19 @@ func (v intVect) min(u intVect) intVect {
 		v.y = u.y
 	}
 	if v.z > u.z {
+		v.z = u.z
+	}
+	return v
+}
+
+func (v intVect) max(u intVect) intVect {
+	if v.x < u.x {
+		v.x = u.x
+	}
+	if v.y < u.y {
+		v.y = u.y
+	}
+	if v.z < u.z {
 		v.z = u.z
 	}
 	return v

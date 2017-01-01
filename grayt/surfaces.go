@@ -21,7 +21,7 @@ type Object struct {
 }
 
 func (o Object) String() string {
-	return fmt.Sprintf("\tSurface={%v}\n\tMaterial={%v}", o.surface, o.material)
+	return fmt.Sprintf("Surface={%v} Material={%v}", o.surface, o.material)
 }
 
 type intersection struct {

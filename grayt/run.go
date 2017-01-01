@@ -38,7 +38,7 @@ func Run(baseName string, scene Scene) {
 	pxHigh := *pxWide * scene.Camera.aspectHigh / scene.Camera.aspectWide
 
 	accel := newGrid(2, scene.Objects)
-	log.Printf("Origin:     %#v", accel.origin)
+	log.Printf("Origin:     %#v", accel.minBound)
 	log.Printf("Stride:     %#v", accel.stride)
 	log.Printf("Resolution: %#v", accel.resolution)
 	for i := range accel.data {
