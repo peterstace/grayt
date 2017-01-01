@@ -76,19 +76,23 @@ func (g *grid) closestHit(r ray) (intersection, material, bool) {
 	}
 
 	cellCoordsFloat := g.cellCoordsFloat(r.at(distance))
-	pos := g.cellCoordsInt(cellCoordsFloat)
+	initialPos := g.cellCoordsInt(cellCoordsFloat)
 	delta := g.delta(r)
 	inc := g.inc(r)
-	next := g.next(cellCoordsFloat, r)
+	initialNextHitDistance := g.next(cellCoordsFloat, r)
+
+	var pos = initialPos
 
 	for true {
 
-		if intersection, material, hit := g.findHitInCell(pos, next, r); hit {
+		nextHitDistance := pos.sub(initialPos).asVector().abs().mul(delta).Add(initialNextHitDistance)
+
+		if intersection, material, hit := g.findHitInCell(pos, nextHitDistance, r); hit {
 			return intersection, material, true
 		}
 
 		var exitGrid bool
-		next, pos, exitGrid = g.nextCell(next, delta, pos, inc)
+		pos, exitGrid = g.nextCell(nextHitDistance, initialPos, pos, inc)
 		if exitGrid {
 			break
 		}
@@ -161,27 +165,21 @@ func (g *grid) next(cellCoordsFloat Vector, r ray) Vector {
 		div(r.dir)
 }
 
-func (g *grid) nextCell(next, delta Vector, pos, inc triple) (Vector, triple, bool) {
+func (g *grid) nextCell(next Vector, initialPos, pos, inc triple) (triple, bool) {
 
-	// TODO: Is is numerically stable to keep incrementing next? Could we
-	// instead compute it fresh each time? Does it really matter if it's
-	// numerically stable?
 	var exitGrid bool
 	switch {
 	case next.X < math.Min(next.Y, next.Z):
 		pos.x += inc.x
-		next.X += delta.X
 		exitGrid = pos.x < 0 && inc.x < 0 || pos.x >= g.resolution.x && inc.x > 0
 	case next.Y < next.Z:
 		pos.y += inc.y
-		next.Y += delta.Y
 		exitGrid = pos.y < 0 && inc.y < 0 || pos.y >= g.resolution.y && inc.y > 0
 	default:
 		pos.z += inc.z
-		next.Z += delta.Z
 		exitGrid = pos.z < 0 && inc.z < 0 || pos.z >= g.resolution.z && inc.z > 0
 	}
-	return next, pos, exitGrid
+	return pos, exitGrid
 }
 
 func (g *grid) dataIndex(pos triple) int {
