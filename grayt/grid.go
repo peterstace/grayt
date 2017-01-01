@@ -196,15 +196,7 @@ func (g *grid) findHitInCell(pos triple, next Vector, r ray) (intersection, mate
 		hit          bool
 	}
 
-	var head *link
-	if true &&
-		pos.x >= 0 && pos.x < g.resolution.x &&
-		pos.y >= 0 && pos.y < g.resolution.y &&
-		pos.z >= 0 && pos.z < g.resolution.z {
-		head = g.data[g.dataIndex(pos)]
-	}
-
-	for link := head; link != nil; link = link.next {
+	for link := g.data[g.dataIndex(pos)]; link != nil; link = link.next {
 		intersection, hit := link.obj.intersect(r)
 		if !hit {
 			continue
