@@ -10,11 +10,33 @@ type grid struct {
 
 	stride     Vector
 	data       []*link
-	resolution intVect
+	resolution triple
 }
 
 func newGrid(lambda float64, objs ObjectList) *grid {
 
+	minBound, maxBound := bounds(objs)
+	boundDiff := maxBound.Sub(minBound)
+	volume := boundDiff.X * boundDiff.Y * boundDiff.Z
+
+	resolutionFactor := math.Pow(lambda*float64(len(objs))/volume, 1.0/3.0)
+	resolution := truncate(boundDiff.Scale(resolutionFactor))
+	stride := boundDiff.div(resolution.asVector())
+	data := make([]*link, resolution.x*resolution.y*resolution.z)
+
+	grid := &grid{
+		minBound,
+		maxBound,
+		stride,
+		data,
+		resolution,
+	}
+	grid.populate(objs)
+
+	return grid
+}
+
+func bounds(objs ObjectList) (Vector, Vector) {
 	inf := math.Inf(+1)
 	minBound, maxBound := Vect(+inf, +inf, +inf), Vect(-inf, -inf, -inf)
 	for _, obj := range objs {
@@ -22,39 +44,57 @@ func newGrid(lambda float64, objs ObjectList) *grid {
 		minBound = minBound.Min(min)
 		maxBound = maxBound.Max(max)
 	}
-	boundDiff := maxBound.Sub(minBound)
-	volume := boundDiff.X * boundDiff.Y * boundDiff.Z
+	return minBound, maxBound
+}
 
-	resolutionFactor := math.Pow(lambda*float64(len(objs))/volume, 1.0/3.0)
-	res := truncate(boundDiff.Scale(resolutionFactor))
-	stride := boundDiff.div(res.asVector())
-
-	data := make([]*link, res.x*res.y*res.z)
-
-	grid := &grid{
-		minBound,
-		maxBound,
-		stride,
-		data,
-		res,
-	}
-
+func (g *grid) populate(objs ObjectList) {
 	for _, obj := range objs {
 		min, max := obj.bound()
-		minCoord := truncate(min.Sub(grid.minBound).div(grid.stride)).min(grid.resolution.sub(intVect{1, 1, 1}))
-		maxCoord := truncate(max.Sub(grid.minBound).div(grid.stride)).min(grid.resolution.sub(intVect{1, 1, 1}))
-		var pos intVect
+		minCoord := truncate(min.Sub(g.minBound).div(g.stride)).min(g.resolution.sub(triple{1, 1, 1}))
+		maxCoord := truncate(max.Sub(g.minBound).div(g.stride)).min(g.resolution.sub(triple{1, 1, 1}))
+		var pos triple
 		for pos.x = minCoord.x; pos.x <= maxCoord.x; pos.x++ {
 			for pos.y = minCoord.y; pos.y <= maxCoord.y; pos.y++ {
 				for pos.z = minCoord.z; pos.z <= maxCoord.z; pos.z++ {
-					idx := grid.dataIndex(pos)
-					grid.data[idx] = &link{grid.data[idx], obj}
+					idx := g.dataIndex(pos)
+					g.data[idx] = &link{g.data[idx], obj}
 				}
 			}
 		}
 	}
+}
 
-	return grid
+func (g *grid) closestHit(r ray) (intersection, material, bool) {
+
+	var distance float64
+	if !g.insideBoundingBox(r.start) {
+		var hit bool
+		distance, hit = g.hitBoundingBox(r)
+		if !hit {
+			return intersection{}, material{}, false
+		}
+	}
+
+	cellCoordsFloat := g.cellCoordsFloat(r.at(distance))
+	pos := g.cellCoordsInt(cellCoordsFloat)
+	delta := g.delta(r)
+	inc := g.inc(r)
+	next := g.next(cellCoordsFloat, r)
+
+	for true {
+
+		if intersection, material, hit := g.findHitInCell(pos, next, r); hit {
+			return intersection, material, true
+		}
+
+		var exitGrid bool
+		next, pos, exitGrid = g.nextCell(next, delta, pos, inc)
+		if exitGrid {
+			break
+		}
+	}
+
+	return intersection{}, material{}, false
 }
 
 func (g *grid) insideBoundingBox(v Vector) bool {
@@ -85,29 +125,32 @@ func (g *grid) hitBoundingBox(r ray) (float64, bool) {
 	return tmin, tmin <= tmax && tmin >= 0
 }
 
-func (g *grid) closestHit(r ray) (intersection, material, bool) {
-
-	var distance float64
-	if !g.insideBoundingBox(r.start) {
-		var hit bool
-		distance, hit = g.hitBoundingBox(r)
-		if !hit {
-			return intersection{}, material{}, false
-		}
-	}
-	cellCoord := r.at(distance).
+func (g *grid) cellCoordsFloat(v Vector) Vector {
+	return v.
 		Sub(g.minBound).
 		div(g.stride)
+}
 
-	pos := truncate(cellCoord).
+func (g *grid) cellCoordsInt(cellCoordsFloat Vector) triple {
+	return truncate(cellCoordsFloat).
 		min(g.resolution).
-		max(intVect{})
+		max(triple{})
+}
 
-	delta := g.stride.div(r.dir).abs()
+func (g *grid) delta(r ray) Vector {
+	return g.stride.
+		div(r.dir).
+		abs()
+}
 
-	inc := truncate(r.dir.sign())
+func (g *grid) inc(r ray) triple {
+	return truncate(
+		r.dir.sign(),
+	)
+}
 
-	next := cellCoord.
+func (g *grid) next(cellCoordsFloat Vector, r ray) Vector {
+	return cellCoordsFloat.
 		floor().
 		Add(r.dir.
 			sign().
@@ -117,24 +160,9 @@ func (g *grid) closestHit(r ray) (intersection, material, bool) {
 		mul(g.stride).
 		Sub(r.start.Sub(g.minBound)).
 		div(r.dir)
-
-	for true {
-
-		if intersection, material, hit := g.findHitInCell(pos, next, r); hit {
-			return intersection, material, true
-		}
-
-		var exitGrid bool
-		next, pos, exitGrid = g.nextCell(next, delta, pos, inc)
-		if exitGrid {
-			break
-		}
-	}
-
-	return intersection{}, material{}, false
 }
 
-func (g *grid) nextCell(next, delta Vector, pos, inc intVect) (Vector, intVect, bool) {
+func (g *grid) nextCell(next, delta Vector, pos, inc triple) (Vector, triple, bool) {
 
 	// TODO: Is is numerically stable to keep incrementing next? Could we
 	// instead compute it fresh each time? Does it really matter if it's
@@ -157,11 +185,11 @@ func (g *grid) nextCell(next, delta Vector, pos, inc intVect) (Vector, intVect, 
 	return next, pos, exitGrid
 }
 
-func (g *grid) dataIndex(pos intVect) int {
+func (g *grid) dataIndex(pos triple) int {
 	return pos.x + g.resolution.x*pos.y + g.resolution.x*g.resolution.y*pos.z
 }
 
-func (g *grid) findHitInCell(pos intVect, next Vector, r ray) (intersection, material, bool) {
+func (g *grid) findHitInCell(pos triple, next Vector, r ray) (intersection, material, bool) {
 
 	var closest struct {
 		intersection intersection
@@ -199,58 +227,4 @@ func (g *grid) findHitInCell(pos intVect, next Vector, r ray) (intersection, mat
 type link struct {
 	next *link
 	obj  Object
-}
-
-type intVect struct {
-	x, y, z int
-}
-
-func truncate(v Vector) intVect {
-	return intVect{
-		int(v.X),
-		int(v.Y),
-		int(v.Z),
-	}
-}
-
-func (v intVect) asVector() Vector {
-	return Vector{
-		float64(v.x),
-		float64(v.y),
-		float64(v.z),
-	}
-}
-
-func (v intVect) min(u intVect) intVect {
-	if v.x > u.x {
-		v.x = u.x
-	}
-	if v.y > u.y {
-		v.y = u.y
-	}
-	if v.z > u.z {
-		v.z = u.z
-	}
-	return v
-}
-
-func (v intVect) max(u intVect) intVect {
-	if v.x < u.x {
-		v.x = u.x
-	}
-	if v.y < u.y {
-		v.y = u.y
-	}
-	if v.z < u.z {
-		v.z = u.z
-	}
-	return v
-}
-
-func (v intVect) sub(u intVect) intVect {
-	return intVect{
-		v.x - u.x,
-		v.y - u.y,
-		v.z - u.z,
-	}
 }

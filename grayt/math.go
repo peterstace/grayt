@@ -96,26 +96,11 @@ func (v Vector) Max(u Vector) Vector {
 }
 
 func (v Vector) sign() Vector {
-	x, y, z := 0.0, 0.0, 0.0
-	if v.X > 0 {
-		x = +1
+	return Vector{
+		math.Copysign(1, v.X),
+		math.Copysign(1, v.Y),
+		math.Copysign(1, v.Z),
 	}
-	if v.X < 0 {
-		x = -1
-	}
-	if v.Y > 0 {
-		y = +1
-	}
-	if v.Y < 0 {
-		y = -1
-	}
-	if v.Z > 0 {
-		z = +1
-	}
-	if v.Z < 0 {
-		z = -1
-	}
-	return Vector{x, y, z}
 }
 
 func (v Vector) floor() Vector {
@@ -148,4 +133,62 @@ type ray struct {
 
 func (r ray) at(t float64) Vector {
 	return r.start.Add(r.dir.Scale(t))
+}
+
+type triple struct {
+	x, y, z int
+}
+
+func truncate(v Vector) triple {
+	return triple{
+		int(v.X),
+		int(v.Y),
+		int(v.Z),
+	}
+}
+
+func (v triple) asVector() Vector {
+	return Vector{
+		float64(v.x),
+		float64(v.y),
+		float64(v.z),
+	}
+}
+
+func (v triple) min(u triple) triple {
+	return triple{
+		intMin(v.x, u.x),
+		intMin(v.y, u.y),
+		intMin(v.z, u.z),
+	}
+}
+
+func (v triple) max(u triple) triple {
+	return triple{
+		intMax(v.x, u.x),
+		intMax(v.y, u.y),
+		intMax(v.z, u.z),
+	}
+}
+
+func (v triple) sub(u triple) triple {
+	return triple{
+		v.x - u.x,
+		v.y - u.y,
+		v.z - u.z,
+	}
+}
+
+func intMin(x, y int) int {
+	if x < y {
+		return x
+	}
+	return y
+}
+
+func intMax(x, y int) int {
+	if x > y {
+		return x
+	}
+	return y
 }
