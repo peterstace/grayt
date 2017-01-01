@@ -94,7 +94,9 @@ func (t *triangle) intersect(r ray) (intersection, bool) {
 func (t *triangle) bound() (Vector, Vector) {
 	b := t.a.Add(t.u)
 	c := t.a.Add(t.v)
-	return t.a.Min(b.Min(c)), t.a.Max(b.Max(c))
+	min := t.a.Min(b.Min(c)).addULPs(-50)
+	max := t.a.Max(b.Max(c)).addULPs(+50)
+	return min, max
 }
 
 type alignedBox struct {
