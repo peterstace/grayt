@@ -133,7 +133,7 @@ func (g *grid) cellCoordsFloat(v Vector) Vector {
 
 func (g *grid) cellCoordsInt(cellCoordsFloat Vector) triple {
 	return truncate(cellCoordsFloat).
-		min(g.resolution).
+		min(g.resolution.sub(triple{1, 1, 1})).
 		max(triple{})
 }
 
@@ -150,8 +150,7 @@ func (g *grid) inc(r ray) triple {
 }
 
 func (g *grid) next(cellCoordsFloat Vector, r ray) Vector {
-	return cellCoordsFloat.
-		floor().
+	return g.cellCoordsInt(cellCoordsFloat).asVector().
 		Add(r.dir.
 			sign().
 			Scale(0.5).
