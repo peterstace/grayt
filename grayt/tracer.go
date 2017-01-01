@@ -8,9 +8,11 @@ import (
 
 var rng = rand.New(rand.NewSource(-1))
 
-func traceImage(pxWide, pxHigh int, accel accelerationStructure, cam camera, quality int, completed *uint64) image.Image {
+func traceImage(pxWide, pxHigh int, scene Scene, quality int, completed *uint64) image.Image {
 
+	cam := newCamera(scene.Camera)
 	accum := newAccumulator(pxWide, pxHigh)
+	accel := newGrid(4, scene.Objects)
 
 	// Trace the image.
 	pxPitch := 2.0 / float64(pxWide)
