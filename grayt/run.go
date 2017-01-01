@@ -38,13 +38,6 @@ func Run(baseName string, scene Scene) {
 	pxHigh := *pxWide * scene.Camera.aspectHigh / scene.Camera.aspectWide
 
 	accel := newGrid(10, scene.Objects)
-	log.Printf("Origin:     %#v", accel.minBound)
-	log.Printf("Stride:     %#v", accel.stride)
-	log.Printf("Resolution: %#v", accel.resolution)
-	for i := range accel.data {
-		log.Printf("Data:       %v", accel.data[i])
-	}
-	//accel := newListAccelerationStructure(scene.Objects)
 
 	cam := newCamera(scene.Camera)
 	img := make(chan image.Image)

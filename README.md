@@ -12,7 +12,8 @@ Go RAY Tracer
 - [ ] Light transmission (transparent surfaces).
 - [X] Depth of field effects.
 - [ ] Multithreading support.
-- [ ] Fast acceleration structure.
+- [X] Fast acceleration structure.
+- [ ] Automatic Lambda detection for grid data structure.
 
 ## TODO
 

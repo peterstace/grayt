@@ -1,7 +1,6 @@
 package grayt
 
 import (
-	"log"
 	"math"
 )
 
@@ -44,11 +43,6 @@ func newGrid(lambda float64, objs ObjectList) *grid {
 		min, max := obj.bound()
 		minCoord := truncate(min.Sub(grid.minBound).div(grid.stride)).min(grid.resolution.sub(intVect{1, 1, 1}))
 		maxCoord := truncate(max.Sub(grid.minBound).div(grid.stride)).min(grid.resolution.sub(intVect{1, 1, 1}))
-		log.Printf("%#v", obj)
-		log.Printf("Min: %v", min)
-		log.Printf("Max: %v", max)
-		log.Printf("MinC: %v", minCoord)
-		log.Printf("MaxC: %v", maxCoord)
 		var pos intVect
 		for pos.x = minCoord.x; pos.x <= maxCoord.x; pos.x++ {
 			for pos.y = minCoord.y; pos.y <= maxCoord.y; pos.y++ {
@@ -91,19 +85,7 @@ func (g *grid) hitBoundingBox(r ray) (float64, bool) {
 	return tmin, tmin <= tmax && tmin >= 0
 }
 
-func (g *grid) cellCoord(v Vector) Vector {
-	return v.
-		Sub(g.minBound).
-		div(g.stride)
-
-}
-
 func (g *grid) closestHit(r ray) (intersection, material, bool) {
-
-	if debug {
-		log.Print("==DEBUG==")
-		log.Printf("Ray: %v", r)
-	}
 
 	var distance float64
 	if !g.insideBoundingBox(r.start) {
@@ -113,13 +95,16 @@ func (g *grid) closestHit(r ray) (intersection, material, bool) {
 			return intersection{}, material{}, false
 		}
 	}
-	cellCoord := g.cellCoord(r.at(distance))
+	cellCoord := r.at(distance).
+		Sub(g.minBound).
+		div(g.stride)
 
 	pos := truncate(cellCoord).
 		min(g.resolution).
 		max(intVect{})
 
 	delta := g.stride.div(r.dir).abs()
+
 	inc := truncate(r.dir.sign())
 
 	next := cellCoord.
@@ -133,115 +118,82 @@ func (g *grid) closestHit(r ray) (intersection, material, bool) {
 		Sub(r.start.Sub(g.minBound)).
 		div(r.dir)
 
-	if debug {
-		log.Printf("CellCoord: %v", cellCoord)
-		log.Printf("Pos: %v", pos)
-		log.Printf("Delta: %v", delta)
-		log.Printf("Inc: %v", inc)
-		log.Printf("Next: %v", next)
-	}
-
-loop:
 	for true {
 
-		if debug {
-			log.Print("TOP")
+		if intersection, material, hit := g.findHitInCell(pos, next, r); hit {
+			return intersection, material, true
 		}
 
-		var closest struct {
-			intersection intersection
-			material     material
-			hit          bool
-		}
-		var head *link
-		if pos.x >= 0 && pos.x < g.resolution.x && pos.y >= 0 && pos.y < g.resolution.y && pos.z >= 0 && pos.z < g.resolution.z {
-			head = g.data[g.dataIndex(pos)]
-		}
-		for link := head; link != nil; link = link.next {
-			if debug {
-				log.Printf("\tLook for hit: %v", link.obj)
-			}
-			intersection, hit := link.obj.intersect(r)
-			if !hit {
-				if debug {
-					log.Printf("\tNo hit")
-				}
-				continue
-			}
-			nextCell := addULPs(math.Min(next.X, math.Min(next.Y, next.Z)), 50)
-			if intersection.distance > nextCell {
-				if debug {
-					log.Printf("\tHit, but outside of cell, intersection distance: %v", intersection.distance)
-				}
-				continue
-			}
-			if debug {
-				log.Printf("\tWas hit, at distance %v", intersection.distance)
-			}
-			if !closest.hit || intersection.distance < closest.intersection.distance {
-				closest.intersection = intersection
-				closest.material = link.obj.material
-				closest.hit = true
-			}
-		}
-		if closest.hit {
-			return closest.intersection, closest.material, true
-		}
-
-		// TODO: Is is numerically stable to keep incrementing next? Could we
-		// instead compute it fresh each time? Does it really matter if it's
-		// numerically stable?
-		switch {
-		case next.X < math.Min(next.Y, next.Z):
-			pos.x += inc.x
-			next.X += delta.X
-			if pos.x < 0 && inc.x < 0 || pos.x >= g.resolution.x && inc.x > 0 {
-				if debug {
-					log.Printf("\tPos %v", pos)
-					log.Printf("\tBreak X")
-				}
-				break loop
-			}
-		case next.Y < next.Z:
-			pos.y += inc.y
-			next.Y += delta.Y
-			if pos.y < 0 && inc.y < 0 || pos.y >= g.resolution.y && inc.y > 0 {
-				if debug {
-					log.Printf("\tPos %v", pos)
-					log.Printf("\tBreak Y")
-				}
-				break loop
-			}
-		default:
-			pos.z += inc.z
-			next.Z += delta.Z
-			if pos.z < 0 && inc.z < 0 || pos.z >= g.resolution.z && inc.z > 0 {
-				if debug {
-					log.Printf("\tPos %v", pos)
-					log.Printf("\tBreak Z")
-				}
-				break loop
-			}
-		}
-
-		if debug {
-			log.Printf("\tPos: %v", pos)
-			log.Printf("\tNext: %v", next)
+		var exitGrid bool
+		next, pos, exitGrid = g.nextCell(next, delta, pos, inc)
+		if exitGrid {
+			break
 		}
 	}
 
 	return intersection{}, material{}, false
 }
 
+func (g *grid) nextCell(next, delta Vector, pos, inc intVect) (Vector, intVect, bool) {
+
+	// TODO: Is is numerically stable to keep incrementing next? Could we
+	// instead compute it fresh each time? Does it really matter if it's
+	// numerically stable?
+	var exitGrid bool
+	switch {
+	case next.X < math.Min(next.Y, next.Z):
+		pos.x += inc.x
+		next.X += delta.X
+		exitGrid = pos.x < 0 && inc.x < 0 || pos.x >= g.resolution.x && inc.x > 0
+	case next.Y < next.Z:
+		pos.y += inc.y
+		next.Y += delta.Y
+		exitGrid = pos.y < 0 && inc.y < 0 || pos.y >= g.resolution.y && inc.y > 0
+	default:
+		pos.z += inc.z
+		next.Z += delta.Z
+		exitGrid = pos.z < 0 && inc.z < 0 || pos.z >= g.resolution.z && inc.z > 0
+	}
+	return next, pos, exitGrid
+}
+
 func (g *grid) dataIndex(pos intVect) int {
 	return pos.x + g.resolution.x*pos.y + g.resolution.x*g.resolution.y*pos.z
 }
 
-func sign(f float64) int {
-	if f < 0 {
-		return -1
+func (g *grid) findHitInCell(pos intVect, next Vector, r ray) (intersection, material, bool) {
+
+	var closest struct {
+		intersection intersection
+		material     material
+		hit          bool
 	}
-	return +1
+
+	var head *link
+	if true &&
+		pos.x >= 0 && pos.x < g.resolution.x &&
+		pos.y >= 0 && pos.y < g.resolution.y &&
+		pos.z >= 0 && pos.z < g.resolution.z {
+		head = g.data[g.dataIndex(pos)]
+	}
+
+	for link := head; link != nil; link = link.next {
+		intersection, hit := link.obj.intersect(r)
+		if !hit {
+			continue
+		}
+		nextCell := addULPs(math.Min(next.X, math.Min(next.Y, next.Z)), 50)
+		if intersection.distance > nextCell {
+			continue
+		}
+		if !closest.hit || intersection.distance < closest.intersection.distance {
+			closest.intersection = intersection
+			closest.material = link.obj.material
+			closest.hit = true
+		}
+	}
+
+	return closest.intersection, closest.material, closest.hit
 }
 
 type link struct {
