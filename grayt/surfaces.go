@@ -21,7 +21,7 @@ type Object struct {
 }
 
 func (o Object) String() string {
-	return fmt.Sprintf("\tSurface={%v}\n\tMaterial={%v}", o.surface, o.material)
+	return fmt.Sprintf("Surface={%v} Material={%v}", o.surface, o.material)
 }
 
 type intersection struct {
@@ -94,7 +94,9 @@ func (t *triangle) intersect(r ray) (intersection, bool) {
 func (t *triangle) bound() (Vector, Vector) {
 	b := t.a.Add(t.u)
 	c := t.a.Add(t.v)
-	return t.a.Min(b.Min(c)), t.a.Max(b.Max(c))
+	min := t.a.Min(b.Min(c)).addULPs(-ulpFudgeFactor)
+	max := t.a.Max(b.Max(c)).addULPs(+ulpFudgeFactor)
+	return min, max
 }
 
 type alignedBox struct {
@@ -318,7 +320,8 @@ func (s *sphere) intersect(r ray) (intersection, bool) {
 
 func (s *sphere) bound() (Vector, Vector) {
 	r := Vect(s.radius, s.radius, s.radius)
-	return s.centre.Sub(r), s.centre.Add(r)
+	min, max := s.centre.Sub(r), s.centre.Add(r)
+	return min.addULPs(-ulpFudgeFactor), max.addULPs(ulpFudgeFactor)
 }
 
 type alignXSquare struct {

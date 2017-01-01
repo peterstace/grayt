@@ -95,10 +95,100 @@ func (v Vector) Max(u Vector) Vector {
 	}
 }
 
+func (v Vector) sign() Vector {
+	return Vector{
+		math.Copysign(1, v.X),
+		math.Copysign(1, v.Y),
+		math.Copysign(1, v.Z),
+	}
+}
+
+func (v Vector) floor() Vector {
+	return Vector{
+		math.Floor(v.X),
+		math.Floor(v.Y),
+		math.Floor(v.Z),
+	}
+}
+
+func (v Vector) abs() Vector {
+	return Vector{
+		math.Abs(v.X),
+		math.Abs(v.Y),
+		math.Abs(v.Z),
+	}
+}
+
+func (v Vector) addULPs(ulps int64) Vector {
+	return Vector{
+		addULPs(v.X, ulps),
+		addULPs(v.Y, ulps),
+		addULPs(v.Z, ulps),
+	}
+}
+
 type ray struct {
 	start, dir Vector
 }
 
 func (r ray) at(t float64) Vector {
 	return r.start.Add(r.dir.Scale(t))
+}
+
+type triple struct {
+	x, y, z int
+}
+
+func truncate(v Vector) triple {
+	return triple{
+		int(v.X),
+		int(v.Y),
+		int(v.Z),
+	}
+}
+
+func (v triple) asVector() Vector {
+	return Vector{
+		float64(v.x),
+		float64(v.y),
+		float64(v.z),
+	}
+}
+
+func (v triple) min(u triple) triple {
+	return triple{
+		intMin(v.x, u.x),
+		intMin(v.y, u.y),
+		intMin(v.z, u.z),
+	}
+}
+
+func (v triple) max(u triple) triple {
+	return triple{
+		intMax(v.x, u.x),
+		intMax(v.y, u.y),
+		intMax(v.z, u.z),
+	}
+}
+
+func (v triple) sub(u triple) triple {
+	return triple{
+		v.x - u.x,
+		v.y - u.y,
+		v.z - u.z,
+	}
+}
+
+func intMin(x, y int) int {
+	if x < y {
+		return x
+	}
+	return y
+}
+
+func intMax(x, y int) int {
+	if x > y {
+		return x
+	}
+	return y
 }

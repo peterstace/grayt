@@ -2,6 +2,8 @@ package grayt
 
 import "math"
 
+const ulpFudgeFactor = 50
+
 func float64AsInt64(f float64) int64 {
 	if f < 0 {
 		return -int64(math.Float64bits(-f))

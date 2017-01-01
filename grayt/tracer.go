@@ -12,7 +12,7 @@ func traceImage(pxWide, pxHigh int, scene Scene, quality int, completed *uint64)
 
 	cam := newCamera(scene.Camera)
 	accum := newAccumulator(pxWide, pxHigh)
-	accel := newListAccelerationStructure(scene.Objects)
+	accel := newGrid(4, scene.Objects)
 
 	// Trace the image.
 	pxPitch := 2.0 / float64(pxWide)
@@ -53,7 +53,7 @@ func tracePath(accel accelerationStructure, r ray) Colour {
 
 	// Find where the ray hit. Reduce the intersection distance by a small
 	// amount so that reflected rays don't intersect with it immediately.
-	hitLoc := r.at(addULPs(intersection.distance, -50))
+	hitLoc := r.at(addULPs(intersection.distance, -ulpFudgeFactor))
 
 	// Orient the unit normal towards the ray origin.
 	if intersection.unitNormal.dot(r.dir) > 0 {
