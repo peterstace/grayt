@@ -134,6 +134,14 @@ func (v Vector) abs() Vector {
 	}
 }
 
+func (v Vector) addULPs(ulps int64) Vector {
+	return Vector{
+		addULPs(v.X, ulps),
+		addULPs(v.Y, ulps),
+		addULPs(v.Z, ulps),
+	}
+}
+
 type ray struct {
 	start, dir Vector
 }
