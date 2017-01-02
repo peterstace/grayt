@@ -7,16 +7,17 @@ import (
 	"sync/atomic"
 )
 
-func traceImage(pxWide, pxHigh int, scene Scene, quality int, completed *uint64) image.Image {
+func traceImage(pxWide, pxHigh int, scene Scene, quality, numWorkers int, completed *uint64) image.Image {
 
 	cam := newCamera(scene.Camera)
 	accum := newAccumulator(pxWide, pxHigh)
 	accel := newGrid(4, scene.Objects)
 
-	const numWorkers = 2
 	var wg sync.WaitGroup
 	wg.Add(quality)
+
 	sem := make(chan struct{}, numWorkers)
+
 	pxPitch := 2.0 / float64(pxWide)
 	for q := 0; q < quality; q++ {
 		sem <- struct{}{}

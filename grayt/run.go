@@ -17,10 +17,11 @@ import (
 )
 
 var (
-	pxWide  = flag.Int("w", 640, "width in pixels")
-	quality = flag.Int("q", 10, "quality (samples per pixel)")
-	verbose = flag.Bool("v", false, "verbose model")
-	output  = flag.String("o", "", "output file override")
+	pxWide     = flag.Int("w", 640, "width in pixels")
+	quality    = flag.Int("q", 10, "quality (samples per pixel)")
+	verbose    = flag.Bool("v", false, "verbose model")
+	output     = flag.String("o", "", "output file override")
+	numWorkers = flag.Int("j", 1, "number of worker goroutines")
 )
 
 // Run should be the single call made from main().
@@ -40,7 +41,7 @@ func Run(baseName string, scene Scene) {
 	img := make(chan image.Image)
 	completed := new(uint64)
 	go func() {
-		img <- traceImage(*pxWide, pxHigh, scene, *quality, completed)
+		img <- traceImage(*pxWide, pxHigh, scene, *quality, *numWorkers, completed)
 	}()
 
 	total := *pxWide * pxHigh * *quality
