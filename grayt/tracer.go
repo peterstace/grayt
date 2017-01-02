@@ -6,8 +6,6 @@ import (
 	"sync/atomic"
 )
 
-var rng = rand.New(rand.NewSource(-1))
-
 func traceImage(pxWide, pxHigh int, scene Scene, quality int, completed *uint64) image.Image {
 
 	cam := newCamera(scene.Camera)
@@ -17,14 +15,14 @@ func traceImage(pxWide, pxHigh int, scene Scene, quality int, completed *uint64)
 	// Trace the image.
 	pxPitch := 2.0 / float64(pxWide)
 	for i := 0; i < quality; i++ {
+		rng := rand.New(rand.NewSource(int64(i)))
 		for pxY := 0; pxY < pxHigh; pxY++ {
-			rng.Seed(int64(i*pxHigh + pxY))
 			for pxX := 0; pxX < pxWide; pxX++ {
 				x := (float64(pxX-pxWide/2) + rng.Float64()) * pxPitch
 				y := (float64(pxY-pxHigh/2) + rng.Float64()) * pxPitch * -1.0
-				r := cam.makeRay(x, y)
+				r := cam.makeRay(x, y, rng)
 				r.dir = r.dir.Unit()
-				accum.add(pxX, pxY, tracePath(accel, r))
+				accum.add(pxX, pxY, tracePath(accel, r, rng))
 				atomic.AddUint64(completed, 1)
 			}
 		}
@@ -33,7 +31,7 @@ func traceImage(pxWide, pxHigh int, scene Scene, quality int, completed *uint64)
 	return accum.toImage(1.0)
 }
 
-func tracePath(accel accelerationStructure, r ray) Colour {
+func tracePath(accel accelerationStructure, r ray, rng *rand.Rand) Colour {
 
 	intersection, material, hit := accel.closestHit(r)
 	if !hit {
@@ -70,7 +68,7 @@ func tracePath(accel accelerationStructure, r ray) Colour {
 	// Apply the BRDF (bidirectional reflection distribution function).
 	brdf := rnd.dot(intersection.unitNormal)
 
-	return tracePath(accel, ray{start: hitLoc, dir: rnd}).
+	return tracePath(accel, ray{start: hitLoc, dir: rnd}, rng).
 		scale(brdf / (1 - pEmit)).
 		mul(material.colour)
 }
