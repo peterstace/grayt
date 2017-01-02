@@ -3,37 +3,46 @@ package grayt
 import (
 	"image"
 	"math/rand"
+	"sync"
 	"sync/atomic"
 )
 
-var rng = rand.New(rand.NewSource(-1))
-
-func traceImage(pxWide, pxHigh int, scene Scene, quality int, completed *uint64) image.Image {
+func traceImage(pxWide, pxHigh int, scene Scene, quality, numWorkers int, completed *uint64) image.Image {
 
 	cam := newCamera(scene.Camera)
 	accum := newAccumulator(pxWide, pxHigh)
 	accel := newGrid(4, scene.Objects)
 
-	// Trace the image.
+	var wg sync.WaitGroup
+	wg.Add(quality)
+
+	sem := make(chan struct{}, numWorkers)
+
 	pxPitch := 2.0 / float64(pxWide)
-	for i := 0; i < quality; i++ {
-		for pxY := 0; pxY < pxHigh; pxY++ {
-			rng.Seed(int64(i*pxHigh + pxY))
-			for pxX := 0; pxX < pxWide; pxX++ {
-				x := (float64(pxX-pxWide/2) + rng.Float64()) * pxPitch
-				y := (float64(pxY-pxHigh/2) + rng.Float64()) * pxPitch * -1.0
-				r := cam.makeRay(x, y)
-				r.dir = r.dir.Unit()
-				accum.add(pxX, pxY, tracePath(accel, r))
-				atomic.AddUint64(completed, 1)
+	for q := 0; q < quality; q++ {
+		sem <- struct{}{}
+		go func(q int) {
+			rng := rand.New(rand.NewSource(int64(q)))
+			for pxY := 0; pxY < pxHigh; pxY++ {
+				for pxX := 0; pxX < pxWide; pxX++ {
+					x := (float64(pxX-pxWide/2) + rng.Float64()) * pxPitch
+					y := (float64(pxY-pxHigh/2) + rng.Float64()) * pxPitch * -1.0
+					r := cam.makeRay(x, y, rng)
+					r.dir = r.dir.Unit()
+					accum.add(pxX, pxY, tracePath(accel, r, rng), q)
+					atomic.AddUint64(completed, 1)
+				}
 			}
-		}
+			<-sem
+			wg.Done()
+		}(q)
 	}
+	wg.Wait()
 
 	return accum.toImage(1.0)
 }
 
-func tracePath(accel accelerationStructure, r ray) Colour {
+func tracePath(accel accelerationStructure, r ray, rng *rand.Rand) Colour {
 
 	intersection, material, hit := accel.closestHit(r)
 	if !hit {
@@ -70,7 +79,7 @@ func tracePath(accel accelerationStructure, r ray) Colour {
 	// Apply the BRDF (bidirectional reflection distribution function).
 	brdf := rnd.dot(intersection.unitNormal)
 
-	return tracePath(accel, ray{start: hitLoc, dir: rnd}).
+	return tracePath(accel, ray{start: hitLoc, dir: rnd}, rng).
 		scale(brdf / (1 - pEmit)).
 		mul(material.colour)
 }

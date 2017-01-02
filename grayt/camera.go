@@ -1,6 +1,9 @@
 package grayt
 
-import "math"
+import (
+	"math"
+	"math/rand"
+)
 
 type camera struct {
 	screen, eye struct {
@@ -34,7 +37,7 @@ func newCamera(conf CameraBlueprint) camera {
 	return cam
 }
 
-func (c *camera) makeRay(x, y float64) ray {
+func (c *camera) makeRay(x, y float64, rng *rand.Rand) ray {
 	start := c.eye.loc.
 		Add(c.eye.x.Scale(2*rng.Float64() - 1.0)).
 		Add(c.eye.y.Scale(2*rng.Float64() - 1.0))
