@@ -11,14 +11,16 @@ Go RAY Tracer
 - [ ] Specular reflections (mirror surfaces).
 - [ ] Light transmission (transparent surfaces).
 - [X] Depth of field effects.
-- [ ] Multithreading support.
+- [X] Multithreading support.
 - [X] Fast acceleration structure.
-- [ ] Automatic Lambda detection for grid data structure.
 
 ## TODO
 
 - Use terminology for focal distance / focal ratio correctly.
 - Use Ginkgo and Gomega for testing.
+- Automatic Lambda Detection
+- Voxel Geometry
+- Profiling
 
 ## Gallery
 
@@ -28,7 +30,7 @@ Go RAY Tracer
 
 ### Split Box
 
-![Split Box](/gallery/splitbox[wnNQ9molxVk]_720x720_q5000.png)
+![Split Box](/gallery/splitbox[KQRdZO3e8KI]_1024x1024_q100000.png)
 
 ### Sphere Tree
 
