@@ -6,6 +6,6 @@ import (
 	"github.com/peterstace/grayt/grayt"
 )
 
-func BenchmarkClassic(b *testing.B) {
+func BenchmarkSplitbox(b *testing.B) {
 	grayt.BenchmarkTraceImage(b, scene())
 }

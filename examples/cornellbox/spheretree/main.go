@@ -8,9 +8,12 @@ import (
 )
 
 func main() {
+	Run("sphere_tree", scene())
+}
 
+func scene() Scene {
 	c := Cam(1.3)
-	Run("sphere_tree", Scene{
+	return Scene{
 		Camera: c.With(
 			LookingAt(Vect(0.5, 0.25, -0.5)),
 			ScaleFieldOfView(0.95),
@@ -25,7 +28,7 @@ func main() {
 			RightWall.With(ColourRGB(Green)),
 			CeilingLight().With(Emittance(5.0)),
 		),
-	})
+	}
 }
 
 type sphere struct {
