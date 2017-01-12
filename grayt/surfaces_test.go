@@ -24,3 +24,18 @@ func TestAlignedBoxIntersection(t *testing.T) {
 		t.Errorf("wrong normal")
 	}
 }
+
+func BenchmarkTriangleIntersect(b *testing.B) {
+
+	t := newTriangle(
+		Vect(+0, 0, +0),
+		Vect(-1, 1, -1),
+		Vect(+1, 1, -1),
+	)
+	r := ray{start: Vect(0, 0.5, 5), dir: Vect(0, 0, -1)}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		t.intersect(r)
+	}
+}
