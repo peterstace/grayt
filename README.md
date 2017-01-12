@@ -34,4 +34,4 @@ Go RAY Tracer
 
 ### Sphere Tree
 
-![Sphere Tree](/gallery/sphere_tree[1Fq0zJkUpGk]_820x410_q5000.png)
+![Sphere Tree](/gallery/sphere_tree[T35GCh3Lpj4]_1024x512_q100000.png)
