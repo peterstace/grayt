@@ -39,7 +39,7 @@ func traceImage(pxWide, pxHigh int, scene Scene, quality, numWorkers int, comple
 	}
 	wg.Wait()
 
-	return accum.toImage(1.0)
+	return createImage(accum)
 }
 
 func tracePath(accel accelerationStructure, r ray, rng *rand.Rand) Colour {
