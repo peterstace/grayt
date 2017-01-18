@@ -36,12 +36,12 @@ func Run(baseName string, scene Scene) {
 		}
 	}
 
-	pxHigh := *pxWide * scene.Camera.aspectHigh / scene.Camera.aspectWide
+	pxHigh := scene.Camera.pxHigh(*pxWide)
 
 	img := make(chan image.Image)
 	completed := new(uint64)
 	go func() {
-		img <- traceImage(*pxWide, pxHigh, scene, *quality, *numWorkers, completed)
+		img <- TraceImage(*pxWide, scene, *quality, *numWorkers, completed)
 	}()
 
 	total := *pxWide * pxHigh * *quality

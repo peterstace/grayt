@@ -7,7 +7,9 @@ import (
 	"sync/atomic"
 )
 
-func traceImage(pxWide, pxHigh int, scene Scene, quality, numWorkers int, completed *uint64) image.Image {
+func TraceImage(pxWide int, scene Scene, quality, numWorkers int, completed *uint64) image.Image {
+
+	pxHigh := scene.Camera.pxHigh(pxWide)
 
 	cam := newCamera(scene.Camera)
 	accum := newAccumulator(pxWide, pxHigh)

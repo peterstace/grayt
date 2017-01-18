@@ -5,8 +5,8 @@ import (
 	. "github.com/peterstace/grayt/grayt"
 )
 
-func main() {
-	Run("cornellbox_classic", Scene{
+func scene() Scene {
+	return Scene{
 		Camera: Cam(1.3),
 		Objects: Group(
 			ShortBlock(),
@@ -18,5 +18,9 @@ func main() {
 			RightWall.With(ColourRGB(Green)),
 			CeilingLight().With(Emittance(5.0)),
 		),
-	})
+	}
+}
+
+func main() {
+	Run("cornellbox_classic", scene())
 }
