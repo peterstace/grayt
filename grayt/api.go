@@ -30,6 +30,10 @@ func (c CameraBlueprint) String() string {
 	)
 }
 
+func (c CameraBlueprint) pxHigh(pxWide int) int {
+	return pxWide * c.aspectHigh / c.aspectWide
+}
+
 func Camera() CameraBlueprint {
 	return CameraBlueprint{
 		location:             Vect(0, 10, 10),

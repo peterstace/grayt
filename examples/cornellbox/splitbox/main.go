@@ -8,8 +8,12 @@ import (
 )
 
 func main() {
+	Run("splitbox", scene())
+}
+
+func scene() Scene {
 	c := Cam(1.3)
-	Run("splitbox", Scene{
+	return Scene{
 		Camera: c.With(
 			LookingAt(Vect(0.5, initialBoxRadius, -0.5)),
 			ScaleFieldOfView(0.5),
@@ -23,7 +27,7 @@ func main() {
 			CeilingLight().With(Emittance(1)),
 			splitBox(),
 		),
-	})
+	}
 }
 
 const (
