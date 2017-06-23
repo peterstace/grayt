@@ -71,17 +71,26 @@ func tracePath(accel accelerationStructure, r ray, rng *rand.Rand) Colour {
 		intersection.unitNormal = intersection.unitNormal.Scale(-1.0)
 	}
 
-	// Create a random vector on the hemisphere towards the normal.
-	rnd := Vector{rng.NormFloat64(), rng.NormFloat64(), rng.NormFloat64()}
-	rnd = rnd.Unit()
-	if rnd.dot(intersection.unitNormal) < 0 {
-		rnd = rnd.Scale(-1.0)
+	if material.mirror {
+
+		reflected := r.dir.Sub(intersection.unitNormal.Scale(2 * intersection.unitNormal.dot(r.dir)))
+		return tracePath(accel, ray{start: hitLoc, dir: reflected}, rng)
+
+	} else {
+
+		// Create a random vector on the hemisphere towards the normal.
+		rnd := Vector{rng.NormFloat64(), rng.NormFloat64(), rng.NormFloat64()}
+		rnd = rnd.Unit()
+		if rnd.dot(intersection.unitNormal) < 0 {
+			rnd = rnd.Scale(-1.0)
+		}
+
+		// Apply the BRDF (bidirectional reflection distribution function).
+		brdf := rnd.dot(intersection.unitNormal)
+
+		return tracePath(accel, ray{start: hitLoc, dir: rnd}, rng).
+			scale(brdf / (1 - pEmit)).
+			mul(material.colour)
 	}
 
-	// Apply the BRDF (bidirectional reflection distribution function).
-	brdf := rnd.dot(intersection.unitNormal)
-
-	return tracePath(accel, ray{start: hitLoc, dir: rnd}, rng).
-		scale(brdf / (1 - pEmit)).
-		mul(material.colour)
 }

@@ -13,6 +13,7 @@ type surface interface {
 type material struct {
 	colour    Colour
 	emittance float64
+	mirror    bool
 }
 
 type Object struct {

@@ -153,6 +153,12 @@ func Emittance(e float64) func(*Object) {
 	}
 }
 
+func Mirror() func(*Object) {
+	return func(o *Object) {
+		o.material.mirror = true
+	}
+}
+
 func Triangle(a, b, c Vector) ObjectList {
 	return defaultObject(newTriangle(a, b, c))
 }
