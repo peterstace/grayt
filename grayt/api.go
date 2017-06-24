@@ -153,6 +153,12 @@ func Emittance(e float64) func(*Object) {
 	}
 }
 
+func Translate(v Vector) func(*Object) {
+	return func(o *Object) {
+		o.surface.translate(v)
+	}
+}
+
 func Triangle(a, b, c Vector) ObjectList {
 	return defaultObject(newTriangle(a, b, c))
 }

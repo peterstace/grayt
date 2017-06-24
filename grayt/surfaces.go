@@ -8,6 +8,7 @@ import (
 type surface interface {
 	intersect(r ray) (intersection, bool)
 	bound() (Vector, Vector)
+	translate(Vector)
 }
 
 type material struct {
@@ -39,7 +40,7 @@ func (t *triangle) String() string {
 	return fmt.Sprintf("Type=triangle A=%v B=%v C=%v", t.a, t.a.Add(t.u), t.a.Add(t.v))
 }
 
-func newTriangle(a, b, c Vector) surface {
+func newTriangle(a, b, c Vector) *triangle {
 	u := b.Sub(a)
 	v := c.Sub(a)
 	return &triangle{
@@ -97,6 +98,13 @@ func (t *triangle) bound() (Vector, Vector) {
 	min := t.a.Min(b.Min(c)).addULPs(-ulpFudgeFactor)
 	max := t.a.Max(b.Max(c)).addULPs(+ulpFudgeFactor)
 	return min, max
+}
+
+func (t *triangle) translate(v Vector) {
+	a := t.a.Add(v)
+	b := t.u.Add(t.a).Add(v)
+	c := t.v.Add(t.a).Add(v)
+	*t = *newTriangle(a, b, c)
 }
 
 type alignedBox struct {
@@ -199,6 +207,11 @@ func (b *alignedBox) bound() (Vector, Vector) {
 	return b.min, b.max
 }
 
+func (b *alignedBox) translate(v Vector) {
+	b.min = b.min.Add(v)
+	b.max = b.max.Add(v)
+}
+
 type sphere struct {
 	centre Vector
 	radius float64
@@ -251,6 +264,10 @@ func (s *sphere) bound() (Vector, Vector) {
 	return min.addULPs(-ulpFudgeFactor), max.addULPs(ulpFudgeFactor)
 }
 
+func (s *sphere) translate(v Vector) {
+	s.centre = s.centre.Add(v)
+}
+
 type alignXSquare struct {
 	x, y1, y2, z1, z2 float64
 }
@@ -269,6 +286,14 @@ func (s *alignXSquare) intersect(r ray) (intersection, bool) {
 
 func (s *alignXSquare) bound() (Vector, Vector) {
 	return Vect(s.x, s.y1, s.z1), Vect(s.x, s.y2, s.z2)
+}
+
+func (s *alignXSquare) translate(v Vector) {
+	s.x += v.X
+	s.y1 += v.Y
+	s.y2 += v.Y
+	s.z1 += v.Z
+	s.z2 += v.Z
 }
 
 type alignYSquare struct {
@@ -291,6 +316,14 @@ func (s *alignYSquare) bound() (Vector, Vector) {
 	return Vect(s.x1, s.y, s.z1), Vect(s.x2, s.y, s.z2)
 }
 
+func (s *alignYSquare) translate(v Vector) {
+	s.x1 += v.X
+	s.x2 += v.X
+	s.y += v.Y
+	s.z1 += v.Z
+	s.z2 += v.Z
+}
+
 type alignZSquare struct {
 	x1, x2, y1, y2, z float64
 }
@@ -309,4 +342,12 @@ func (s *alignZSquare) intersect(r ray) (intersection, bool) {
 
 func (s *alignZSquare) bound() (Vector, Vector) {
 	return Vect(s.x1, s.y1, s.z), Vect(s.x2, s.y2, s.z)
+}
+
+func (s *alignZSquare) translate(v Vector) {
+	s.x1 += v.X
+	s.x2 += v.X
+	s.y1 += v.Y
+	s.y2 += v.Y
+	s.z += v.Z
 }
