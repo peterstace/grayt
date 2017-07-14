@@ -67,7 +67,7 @@ func (v Vector) div(u Vector) Vector {
 	}
 }
 
-func (v Vector) dot(u Vector) float64 {
+func (v Vector) Dot(u Vector) float64 {
 	return v.X*u.X + v.Y*u.Y + v.Z*u.Z
 }
 
@@ -125,6 +125,27 @@ func (v Vector) addULPs(ulps int64) Vector {
 		addULPs(v.Y, ulps),
 		addULPs(v.Z, ulps),
 	}
+}
+
+func (v Vector) rotate(u Vector, rads float64) Vector {
+	cos := math.Cos(rads)
+	sin := math.Sin(rads)
+	i := Vect(
+		cos+u.X*u.X*(1-cos),
+		u.X*u.Y*(1-cos)-u.Z*sin,
+		u.X*u.Z*(1-cos)+u.Y*sin,
+	)
+	j := Vect(
+		u.Y*u.X*(1-cos)+u.Z*sin,
+		cos+u.Y*u.Y*(1-cos),
+		u.Y*u.Z*(1-cos)-u.X*sin,
+	)
+	k := Vect(
+		u.Z*u.X*(1-cos)-u.Y*sin,
+		u.Z*u.Y*(1-cos)+u.X*sin,
+		cos+u.Z*u.Z*(1-cos),
+	)
+	return Vect(i.Dot(v), j.Dot(v), k.Dot(v))
 }
 
 type ray struct {

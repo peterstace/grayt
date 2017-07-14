@@ -9,6 +9,8 @@ type surface interface {
 	intersect(r ray) (intersection, bool)
 	bound() (Vector, Vector)
 	translate(Vector)
+	rotate(Vector, float64)
+	scale(float64)
 }
 
 type material struct {
@@ -48,16 +50,16 @@ func newTriangle(a, b, c Vector) *triangle {
 		u:        u,
 		v:        v,
 		unitNorm: u.cross(v).Unit(),
-		dotUV:    u.dot(v),
-		dotUU:    u.dot(u),
-		dotVV:    v.dot(v),
+		dotUV:    u.Dot(v),
+		dotUU:    u.Dot(u),
+		dotVV:    v.Dot(v),
 	}
 }
 
 func (t *triangle) intersect(r ray) (intersection, bool) {
 
 	// Check if there's a hit with the plane.
-	h := t.unitNorm.dot(t.a.Sub(r.start)) / t.unitNorm.dot(r.dir)
+	h := t.unitNorm.Dot(t.a.Sub(r.start)) / t.unitNorm.Dot(r.dir)
 	if h <= 0 {
 		// Hit was behind the camera.
 		return intersection{}, false
@@ -75,8 +77,8 @@ func (t *triangle) intersect(r ray) (intersection, bool) {
 	// beta  = [(u.v)(w.u) - (u.u)(w.v)] / [(u.v)^2 - (u.u)(v.v)]
 
 	w := r.at(h).Sub(t.a)
-	dotWV := w.dot(t.v)
-	dotWU := w.dot(t.u)
+	dotWV := w.Dot(t.v)
+	dotWU := w.Dot(t.u)
 	alpha := t.dotUV*dotWV - t.dotVV*dotWU
 	beta := t.dotUV*dotWU - t.dotUU*dotWV
 	denom := t.dotUV*t.dotUV - t.dotUU*t.dotVV
@@ -104,6 +106,20 @@ func (t *triangle) translate(v Vector) {
 	a := t.a.Add(v)
 	b := t.u.Add(t.a).Add(v)
 	c := t.v.Add(t.a).Add(v)
+	*t = *newTriangle(a, b, c)
+}
+
+func (t *triangle) rotate(v Vector, rads float64) {
+	a := t.a.rotate(v, rads)
+	b := t.u.Add(t.a).rotate(v, rads)
+	c := t.v.Add(t.a).rotate(v, rads)
+	*t = *newTriangle(a, b, c)
+}
+
+func (t *triangle) scale(f float64) {
+	a := t.a.Scale(f)
+	b := t.u.Add(t.a).Scale(f)
+	c := t.v.Add(t.a).Scale(f)
 	*t = *newTriangle(a, b, c)
 }
 
@@ -212,6 +228,15 @@ func (b *alignedBox) translate(v Vector) {
 	b.max = b.max.Add(v)
 }
 
+func (b *alignedBox) rotate(Vector, float64) {
+	panic("cannot rotate aligned box")
+}
+
+func (b *alignedBox) scale(f float64) {
+	b.min = b.min.Scale(f)
+	b.max = b.max.Scale(f)
+}
+
 type sphere struct {
 	centre Vector
 	radius float64
@@ -226,7 +251,7 @@ func (s *sphere) intersect(r ray) (intersection, bool) {
 	// Get coeficients to a.x^2 + b.x + c = 0
 	emc := r.start.Sub(s.centre)
 	a := r.dir.LengthSq()
-	b := 2 * emc.dot(r.dir)
+	b := 2 * emc.Dot(r.dir)
 	c := emc.LengthSq() - s.radius*s.radius
 
 	// Find discrimenant b*b - 4*a*c
@@ -268,6 +293,15 @@ func (s *sphere) translate(v Vector) {
 	s.centre = s.centre.Add(v)
 }
 
+func (s *sphere) rotate(v Vector, rads float64) {
+	// NO-OP
+}
+
+func (s *sphere) scale(f float64) {
+	s.radius *= f
+	s.centre = s.centre.Scale(f)
+}
+
 type alignXSquare struct {
 	x, y1, y2, z1, z2 float64
 }
@@ -294,6 +328,18 @@ func (s *alignXSquare) translate(v Vector) {
 	s.y2 += v.Y
 	s.z1 += v.Z
 	s.z2 += v.Z
+}
+
+func (a *alignXSquare) rotate(Vector, float64) {
+	panic("cannot rotate aligned square")
+}
+
+func (a *alignXSquare) scale(f float64) {
+	a.x *= f
+	a.y1 *= f
+	a.y2 *= f
+	a.z1 *= f
+	a.z2 *= f
 }
 
 type alignYSquare struct {
@@ -324,6 +370,18 @@ func (s *alignYSquare) translate(v Vector) {
 	s.z2 += v.Z
 }
 
+func (a *alignYSquare) rotate(Vector, float64) {
+	panic("cannot rotate aligned square")
+}
+
+func (a *alignYSquare) scale(f float64) {
+	a.x1 *= f
+	a.x2 *= f
+	a.y *= f
+	a.z1 *= f
+	a.z2 *= f
+}
+
 type alignZSquare struct {
 	x1, x2, y1, y2, z float64
 }
@@ -350,4 +408,16 @@ func (s *alignZSquare) translate(v Vector) {
 	s.y1 += v.Y
 	s.y2 += v.Y
 	s.z += v.Z
+}
+
+func (a *alignZSquare) rotate(Vector, float64) {
+	panic("cannot rotate aligned square")
+}
+
+func (a *alignZSquare) scale(f float64) {
+	a.x1 *= f
+	a.x2 *= f
+	a.y1 *= f
+	a.y2 *= f
+	a.z *= f
 }
