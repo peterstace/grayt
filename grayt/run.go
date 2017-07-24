@@ -53,7 +53,8 @@ func Run(baseName string, scene Scene) {
 		case img := <-img:
 			cli.finished()
 			if *output == "" {
-				*output = fmt.Sprintf("%s[%s]_%dx%d_q%d.png",
+				*output = fmt.Sprintf("%s_%s_%s_%dx%d_q%d.png",
+					time.Now().Format("20060102-150405"),
 					baseName, hashScene(scene), *pxWide, pxHigh, *quality)
 			}
 			outFile, err := os.Create(*output)
