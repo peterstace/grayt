@@ -159,6 +159,24 @@ func Mirror() func(*Object) {
 	}
 }
 
+func Translate(v Vector) func(*Object) {
+	return func(o *Object) {
+		o.surface.translate(v)
+	}
+}
+
+func RotateDegrees(v Vector, degs float64) func(*Object) {
+	return func(o *Object) {
+		o.surface.rotate(v, degs/180*math.Pi)
+	}
+}
+
+func Scale(f float64) func(*Object) {
+	return func(o *Object) {
+		o.surface.scale(f)
+	}
+}
+
 func Triangle(a, b, c Vector) ObjectList {
 	return defaultObject(newTriangle(a, b, c))
 }
