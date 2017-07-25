@@ -8,7 +8,7 @@ Go RAY Tracer
 
 - [X] Path tracing via rendering equation simulation (Monte Carlo method).
 - [X] Diffuse reflections (matte surfaces).
-- [ ] Specular reflections (mirror surfaces).
+- [X] Specular reflections (mirror surfaces).
 - [ ] Light transmission (transparent surfaces).
 - [X] Depth of field effects.
 - [X] Multithreading support.
@@ -17,10 +17,7 @@ Go RAY Tracer
 ## TODO
 
 - Use terminology for focal distance / focal ratio correctly.
-- Use Ginkgo and Gomega for testing.
-- Automatic Lambda Detection
 - Voxel Geometry
-- Profiling
 
 ## Gallery
 
