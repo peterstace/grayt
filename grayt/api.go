@@ -103,6 +103,7 @@ func AspectRatioWidthAndHeight(wide, high int) cameraOption {
 type Scene struct {
 	Camera  CameraBlueprint
 	Objects ObjectList
+	Sky     Skymap
 }
 
 type ObjectList []Object

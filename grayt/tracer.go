@@ -25,13 +25,14 @@ func TraceImage(pxWide int, scene Scene, quality, numWorkers int, completed *uin
 		sem <- struct{}{}
 		go func(q int) {
 			rng := rand.New(rand.NewSource(int64(q)))
+			tracer := &tracer{accel, rng, scene.Sky}
 			for pxY := 0; pxY < pxHigh; pxY++ {
 				for pxX := 0; pxX < pxWide; pxX++ {
 					x := (float64(pxX-pxWide/2) + rng.Float64()) * pxPitch
 					y := (float64(pxY-pxHigh/2) + rng.Float64()) * pxPitch * -1.0
 					r := cam.makeRay(x, y, rng)
 					r.dir = r.dir.Unit()
-					accum.add(pxX, pxY, tracePath(accel, r, rng), q)
+					accum.add(pxX, pxY, tracer.tracePath(r), q)
 					atomic.AddUint64(completed, 1)
 				}
 			}
@@ -44,11 +45,17 @@ func TraceImage(pxWide int, scene Scene, quality, numWorkers int, completed *uin
 	return accum.toImage(1.0)
 }
 
-func tracePath(accel accelerationStructure, r ray, rng *rand.Rand) Colour {
+type tracer struct {
+	accel accelerationStructure
+	rng   *rand.Rand
+	sky   Skymap
+}
 
-	intersection, material, hit := accel.closestHit(r)
+func (t *tracer) tracePath(r ray) Colour {
+
+	intersection, material, hit := t.accel.closestHit(r)
 	if !hit {
-		return Colour{0, 0, 0}
+		return t.sky.intersect(r.dir)
 	}
 
 	// Calculate probability of emitting.
@@ -58,7 +65,7 @@ func tracePath(accel accelerationStructure, r ray, rng *rand.Rand) Colour {
 	}
 
 	// Handle emit case.
-	if rng.Float64() < pEmit {
+	if t.rng.Float64() < pEmit {
 		return material.colour.scale(material.emittance / pEmit)
 	}
 
@@ -74,12 +81,12 @@ func tracePath(accel accelerationStructure, r ray, rng *rand.Rand) Colour {
 	if material.mirror {
 
 		reflected := r.dir.Sub(intersection.unitNormal.Scale(2 * intersection.unitNormal.Dot(r.dir)))
-		return tracePath(accel, ray{start: hitLoc, dir: reflected}, rng)
+		return t.tracePath(ray{start: hitLoc, dir: reflected})
 
 	} else {
 
 		// Create a random vector on the hemisphere towards the normal.
-		rnd := Vector{rng.NormFloat64(), rng.NormFloat64(), rng.NormFloat64()}
+		rnd := Vector{t.rng.NormFloat64(), t.rng.NormFloat64(), t.rng.NormFloat64()}
 		rnd = rnd.Unit()
 		if rnd.Dot(intersection.unitNormal) < 0 {
 			rnd = rnd.Scale(-1.0)
@@ -88,7 +95,7 @@ func tracePath(accel accelerationStructure, r ray, rng *rand.Rand) Colour {
 		// Apply the BRDF (bidirectional reflection distribution function).
 		brdf := rnd.Dot(intersection.unitNormal)
 
-		return tracePath(accel, ray{start: hitLoc, dir: rnd}, rng).
+		return t.tracePath(ray{start: hitLoc, dir: rnd}).
 			scale(brdf / (1 - pEmit)).
 			mul(material.colour)
 	}
