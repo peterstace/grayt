@@ -43,17 +43,26 @@ func (s Skymap) intersect(dir Vector) Colour {
 
 	dir = dir.Unit()
 
-	// Between -pi and +pi
-	azimuthAngle := math.Atan2(-dir.Z, -dir.X)
-
-	x := int((azimuthAngle + math.Pi) / (2 * math.Pi) * float64(len(s.data)))
+	x := int(azimuth(dir) * float64(len(s.data)))
 	x = intMax(0, intMin(x, len(s.data)-1))
 
-	// Between +pi/2 and -pi/2
-	altitudeAngle := math.Asin(dir.Y)
-
-	y := int((altitudeAngle + math.Pi/2) / math.Pi * float64(len(s.data)) / 2)
-	y = len(s.data)/2 - 1 - intMax(0, intMin(y, len(s.data)/2-1))
+	y := int(altitude(dir) * float64(len(s.data)/2))
+	y = intMax(0, intMin(y, len(s.data)/2-1))
 
 	return s.data[x][y]
+}
+
+// Calculates the azimuth as a fraction (0 <= azimuth < 1).
+func azimuth(unitDir Vector) float64 {
+	azimuthAngle := 1.5*math.Pi - math.Atan2(-unitDir.Z, unitDir.X) // 0.5*pi to 2.5*pi
+	if azimuthAngle > 2*math.Pi {
+		azimuthAngle -= 2 * math.Pi // 0 to 2*pi
+	}
+	return azimuthAngle / (2 * math.Pi)
+}
+
+// Calculates the altitude as a fraction (0 <= alt < 1)
+func altitude(unitDir Vector) float64 {
+	alt := math.Asin(unitDir.Y) // -pi/2 to +pi/2
+	return 1.0 - (alt+math.Pi/2)/math.Pi
 }
