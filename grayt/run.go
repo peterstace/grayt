@@ -52,6 +52,7 @@ func Run(baseName string, scene Scene) {
 			cli.update(int(atomic.LoadUint64(completed)))
 		case img := <-img:
 			cli.finished()
+			scene.Sky = Skymap{} // Release skymap memory before writing to file.
 			if *output == "" {
 				*output = fmt.Sprintf("%s_%s_%s_%dx%d_q%d.png",
 					time.Now().Format("20060102-150405"),
