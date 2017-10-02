@@ -223,6 +223,10 @@ func Sphere(c Vector, r float64) ObjectList {
 	return defaultObject(&sphere{c, r})
 }
 
+func Disc(c Vector, r float64, n Vector) ObjectList {
+	return defaultObject(&disc{c, r * r, n.Unit()})
+}
+
 func defaultObject(s surface) ObjectList {
 	return ObjectList{{
 		s, material{colour: newColourFromRGB(White)},

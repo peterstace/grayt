@@ -11,6 +11,7 @@ import (
 	"image/png"
 	"log"
 	"os"
+	"runtime"
 	"sync/atomic"
 	"time"
 )
@@ -20,7 +21,7 @@ var (
 	quality    = flag.Int("q", 10, "quality (samples per pixel)")
 	verbose    = flag.Bool("v", false, "verbose model")
 	output     = flag.String("o", "", "output file override")
-	numWorkers = flag.Int("j", 1, "number of worker goroutines")
+	numWorkers = flag.Int("j", runtime.GOMAXPROCS(0), "number of worker goroutines")
 )
 
 // Run should be the single call made from main().

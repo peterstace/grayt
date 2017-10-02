@@ -422,3 +422,44 @@ func (a *alignZSquare) scale(f float64) {
 	a.y2 *= f
 	a.z *= f
 }
+
+type disc struct {
+	center   Vector
+	radiusSq float64
+	unitNorm Vector
+}
+
+func (d *disc) intersect(r ray) (intersection, bool) {
+	h := d.unitNorm.Dot(d.center.Sub(r.start)) / d.unitNorm.Dot(r.dir)
+	if h <= 0 {
+		// Hit was behind the camera.
+		return intersection{}, false
+	}
+	hitLoc := r.at(h)
+	if hitLoc.Sub(d.center).LengthSq() > d.radiusSq {
+		return intersection{}, false
+	}
+	return intersection{
+		unitNormal: d.unitNorm,
+		distance:   h,
+	}, true
+}
+
+func (d *disc) bound() (Vector, Vector) {
+	r := math.Sqrt(d.radiusSq)
+	return d.center.Sub(Vect(r, r, r)), d.center.Add(Vect(r, r, r))
+}
+
+func (d *disc) translate(v Vector) {
+	d.center = d.center.Add(v)
+}
+
+func (d *disc) rotate(u Vector, rads float64) {
+	d.center = d.center.rotate(u, rads)
+	d.unitNorm = d.center.rotate(u, rads)
+}
+
+func (d *disc) scale(s float64) {
+	d.center = d.center.Scale(s)
+	d.radiusSq *= s * s
+}
