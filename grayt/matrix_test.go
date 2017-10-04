@@ -107,3 +107,18 @@ func BenchmarkMatrixMul(b *testing.B) {
 		_ = m3
 	}
 }
+
+func BenchmarkMatrixInv(b *testing.B) {
+	rnd := rand.New(rand.NewSource(0))
+	var m matrix4
+	for i := 0; i < 4; i++ {
+		for j := 0; j < 4; j++ {
+			m[i][j] = rnd.Float64()
+		}
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		inv, _ := m.inv()
+		_ = inv
+	}
+}
