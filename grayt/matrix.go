@@ -2,9 +2,13 @@ package grayt
 
 type vect4 [4]float64
 
+func (v vect4) dot(u vect4) float64 {
+	return v[0]*u[0] + v[1]*u[1] + v[2]*u[2] + v[3]*u[3]
+}
+
 type matrix4 [4]vect4
 
-func (m matrix4) mul(n matrix4) matrix4 {
+func (m matrix4) mulm(n matrix4) matrix4 {
 	var c matrix4
 	for i := 0; i < 4; i++ {
 		for j := 0; j < 4; j++ {
@@ -14,6 +18,15 @@ func (m matrix4) mul(n matrix4) matrix4 {
 		}
 	}
 	return c
+}
+
+func (m matrix4) mulv(v vect4) vect4 {
+	return vect4{
+		m[0].dot(v),
+		m[1].dot(v),
+		m[2].dot(v),
+		m[3].dot(v),
+	}
 }
 
 func (m matrix4) inv() (matrix4, bool) {
