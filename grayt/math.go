@@ -10,6 +10,10 @@ func Vect(x, y, z float64) Vector {
 	return Vector{x, y, z}
 }
 
+func (v Vector) extend() vect4 {
+	return vect4{v.X, v.Y, v.Z, 1}
+}
+
 func (v Vector) Length() float64 {
 	return math.Sqrt(v.X*v.X + v.Y*v.Y + v.Z*v.Z)
 }

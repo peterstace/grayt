@@ -6,6 +6,10 @@ func (v vect4) dot(u vect4) float64 {
 	return v[0]*u[0] + v[1]*u[1] + v[2]*u[2] + v[3]*u[3]
 }
 
+func (v vect4) reduce() Vector {
+	return Vector{v[0], v[1], v[2]}
+}
+
 type matrix4 [4]vect4
 
 func (m matrix4) mulm(n matrix4) matrix4 {
