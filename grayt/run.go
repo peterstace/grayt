@@ -66,6 +66,6 @@ type flags struct {
 func (f *flags) parse() {
 	flag.IntVar(&f.pxWide, "w", 640, "width in pixels")
 	flag.IntVar(&f.quality, "q", 10, "quality (samples per pixel)")
-	flag.IntVar(&f.pxWide, "j", runtime.GOMAXPROCS(0), "number of worker goroutines")
+	flag.IntVar(&f.workers, "j", runtime.GOMAXPROCS(0), "number of worker goroutines")
 	flag.Parse()
 }
