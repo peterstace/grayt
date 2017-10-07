@@ -1,4 +1,4 @@
-package grayt
+package main
 
 import (
 	"fmt"
@@ -7,8 +7,7 @@ import (
 )
 
 type cli struct {
-	pos   int
-	total int
+	pos int
 
 	lastDone      int
 	lastUpdate    time.Time
@@ -17,18 +16,11 @@ type cli struct {
 	elapsed time.Duration
 }
 
-func newCLI(total int) *cli {
-	return &cli{
-		total: total,
-	}
-}
-
 var posStrs = []string{`)`, `|`, `(`, `|`}
 
 const updateInterval = 100 * time.Millisecond
 
-func (c *cli) update(done int) {
-
+func (c *cli) update(done int, total int) {
 	now := time.Now()
 	timeDelta := now.Sub(c.lastUpdate)
 	c.lastUpdate = now
@@ -50,15 +42,15 @@ func (c *cli) update(done int) {
 		c.smoothedSpeed = float64(done) / elapsedInSeconds
 	}
 
-	eta := time.Duration(float64(c.total-done)/c.smoothedSpeed) * time.Second
+	eta := time.Duration(float64(total-done)/c.smoothedSpeed) * time.Second
 
 	c.pos = (c.pos + 1) % len(posStrs)
 	posStr := posStrs[c.pos]
-	if done == c.total {
+	if done == total {
 		posStr = strings.Repeat(" ", len(posStr))
 	}
 
-	pctDone := float64(done) / float64(c.total) * 100
+	pctDone := float64(done) / float64(total) * 100
 
 	fmt.Print("\x1b[1G") // Move to column 1.
 	fmt.Print("\x1b[2K") // Clear line.
@@ -72,8 +64,8 @@ func (c *cli) update(done int) {
 	)
 }
 
-func (c *cli) finished() {
-	c.update(c.total)
+func (c *cli) finished(total int) {
+	c.update(total, total)
 	fmt.Printf("\n")
 }
 

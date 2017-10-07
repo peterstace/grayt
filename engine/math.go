@@ -1,6 +1,36 @@
-package grayt
+package engine
 
 type vect2 [2]int
+
+type vect3 [3]float64
+
+func (v vect3) add(u vect3) vect3 {
+	return vect3{
+		v[0] + u[0],
+		v[1] + u[1],
+		v[2] + u[2],
+	}
+}
+
+func (v vect3) scale(f float64) vect3 {
+	return vect3{
+		v[0] * f,
+		v[1] * f,
+		v[2] * f,
+	}
+}
+
+func (v vect3) sub(u vect3) vect3 {
+	return vect3{
+		v[0] - u[0],
+		v[1] - u[1],
+		v[2] - u[2],
+	}
+}
+
+func (v vect3) dot(u vect3) float64 {
+	return v[0]*u[0] + v[1]*u[1] + v[2]*u[2]
+}
 
 type vect4 [4]float64
 
