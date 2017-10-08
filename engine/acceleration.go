@@ -1,7 +1,7 @@
 package engine
 
 type accelList struct {
-	surfs []surface
+	objs []object
 }
 
 func (a accelList) closestHit(e, d vect3) (n, h vect3, illum float64, ok bool) {
@@ -11,31 +11,19 @@ func (a accelList) closestHit(e, d vect3) (n, h vect3, illum float64, ok bool) {
 		distSq float64
 		ok     bool
 	}
-	for i := range a.surfs {
+	for i := range a.objs {
 
-		trans := a.surfs[i].transform
-		transInv, ok := trans.inv()
-		if !ok {
-			panic("could not invert transformation matrix")
-		}
-
-		ePrime := transInv.mulv(e.extend(1)).trunc()
-		dPrime := transInv.mulv(d.extend(0)).trunc()
-
-		nPrime, hPrime, ok := triangle(ePrime, dPrime)
+		n, h, ok := a.objs[i].surf.intersect(e, d)
 		if !ok {
 			continue
 		}
-
-		n := transInv.transpose().mulv(nPrime.extend(0)).trunc()
-		h := trans.mulv(hPrime.extend(1)).trunc()
 
 		distSq := h.sub(e).norm2()
 
 		if !closest.ok || distSq < closest.distSq {
 			closest.n = n
 			closest.h = h
-			closest.illum = a.surfs[i].illumination
+			closest.illum = a.objs[i].illum
 			closest.distSq = distSq
 			closest.ok = true
 		}

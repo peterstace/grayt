@@ -41,9 +41,9 @@ func newAPI() *API {
 	}
 }
 
-type surface struct {
-	transform    matrix4
-	illumination float64
+type object struct {
+	surf  surface
+	illum float64
 }
 
 type API struct {
@@ -59,7 +59,7 @@ type API struct {
 
 	illumination float64
 
-	surfaces []surface
+	objs []object
 }
 
 // CameraLocation sets the cameras location. It must be set.
@@ -123,11 +123,11 @@ func (a *API) Tri(ax, ay, az, bx, by, bz, cx, cy, cz float64) {
 		vect4{ax, bx, cx, 0},
 		vect4{ay, by, cy, 0},
 		vect4{az, bz, cz, 0},
-		vect4{0, 0, 0, 1},
+		vect4{1, 1, 1, 1},
 	}
-	a.surfaces = append(a.surfaces, surface{
-		transform:    m,
-		illumination: a.illumination,
+	a.objs = append(a.objs, object{
+		surf:  surface{transform: m, primitive: triangle},
+		illum: a.illumination,
 	})
 }
 

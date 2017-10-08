@@ -1,6 +1,8 @@
 package engine
 
-import "math"
+import (
+	"math"
+)
 
 type vect2 [2]int
 
@@ -44,7 +46,11 @@ func (v vect3) cross(u vect3) vect3 {
 
 func (v vect3) unit() vect3 {
 	norm := v.norm()
-	return vect3{v[0] / norm, v[1] / norm, v[2] / norm}
+	return vect3{
+		v[0] / norm,
+		v[1] / norm,
+		v[2] / norm,
+	}
 }
 
 func (v vect3) norm2() float64 {
@@ -61,12 +67,24 @@ func (v vect3) extend(w float64) vect4 {
 
 type vect4 [4]float64
 
-func (v vect4) trunc() vect3 {
-	return vect3{v[0] / v[3], v[1] / v[3], v[2] / v[3]}
+func (v vect4) truncPoint() vect3 {
+	//return vect3{
+	//v[0] / v[3],
+	//v[1] / v[3],
+	//v[2] / v[3],
+	//}
+	return vect3{
+		v[0],
+		v[1],
+		v[2],
+	}
 }
 
-func (v vect4) dot(u vect4) float64 {
-	return v[0]*u[0] + v[1]*u[1] + v[2]*u[2] + v[3]*u[3]
+func (v vect4) truncVect() vect3 {
+	//if v[3] != 0 {
+	//panic(fmt.Sprintf("bad w: %v", v[3]))
+	//}
+	return vect3{v[0], v[1], v[2]}
 }
 
 type matrix4 [4]vect4
@@ -85,10 +103,10 @@ func (m matrix4) mulm(n matrix4) matrix4 {
 
 func (m matrix4) mulv(v vect4) vect4 {
 	return vect4{
-		m[0].dot(v),
-		m[1].dot(v),
-		m[2].dot(v),
-		m[3].dot(v),
+		m[0][0]*v[0] + m[1][0]*v[1] + m[2][0]*v[2] + m[3][0]*v[3],
+		m[0][1]*v[0] + m[1][1]*v[1] + m[2][1]*v[2] + m[3][1]*v[3],
+		m[0][2]*v[0] + m[1][2]*v[1] + m[2][2]*v[2] + m[3][2]*v[3],
+		m[0][3]*v[0] + m[1][3]*v[1] + m[2][3]*v[2] + m[3][3]*v[3],
 	}
 }
 
