@@ -1,5 +1,7 @@
 package engine
 
+import "math"
+
 type vect2 [2]int
 
 type vect3 [3]float64
@@ -12,14 +14,6 @@ func (v vect3) add(u vect3) vect3 {
 	}
 }
 
-func (v vect3) scale(f float64) vect3 {
-	return vect3{
-		v[0] * f,
-		v[1] * f,
-		v[2] * f,
-	}
-}
-
 func (v vect3) sub(u vect3) vect3 {
 	return vect3{
 		v[0] - u[0],
@@ -28,11 +22,48 @@ func (v vect3) sub(u vect3) vect3 {
 	}
 }
 
+func (v vect3) scale(f float64) vect3 {
+	return vect3{
+		v[0] * f,
+		v[1] * f,
+		v[2] * f,
+	}
+}
+
 func (v vect3) dot(u vect3) float64 {
 	return v[0]*u[0] + v[1]*u[1] + v[2]*u[2]
 }
 
+func (v vect3) cross(u vect3) vect3 {
+	return vect3{
+		v[1]*u[2] - v[2]*u[1],
+		v[2]*u[0] - v[0]*u[2],
+		v[0]*u[1] - v[1]*u[0],
+	}
+}
+
+func (v vect3) unit() vect3 {
+	norm := v.norm()
+	return vect3{v[0] / norm, v[1] / norm, v[2] / norm}
+}
+
+func (v vect3) norm2() float64 {
+	return v[0]*v[0] + v[1]*v[1] + v[2]*v[2]
+}
+
+func (v vect3) norm() float64 {
+	return math.Sqrt(v.norm2())
+}
+
+func (v vect3) extend(w float64) vect4 {
+	return vect4{v[0], v[1], v[2], w}
+}
+
 type vect4 [4]float64
+
+func (v vect4) trunc() vect3 {
+	return vect3{v[0] / v[3], v[1] / v[3], v[2] / v[3]}
+}
 
 func (v vect4) dot(u vect4) float64 {
 	return v[0]*u[0] + v[1]*u[1] + v[2]*u[2] + v[3]*u[3]
@@ -189,6 +220,16 @@ func (m matrix4) inv() (matrix4, bool) {
 		}
 	}
 	return r, true
+}
+
+func (m matrix4) transpose() matrix4 {
+	var r matrix4
+	for i := 0; i < 4; i++ {
+		for j := 0; j < 4; j++ {
+			r[j][i] = m[i][j]
+		}
+	}
+	return r
 }
 
 func translation(x, y, z float64) matrix4 {

@@ -57,7 +57,7 @@ func run(scene func(*engine.API), opt options) error {
 	img := make(chan image.Image)
 	var status engine.Status
 	go func() {
-		img <- engine.TraceImage(opt.pxWide, scene, &status)
+		img <- engine.TraceImage(opt.pxWide, scene, opt.quality, &status)
 	}()
 	var display cli
 	for {
