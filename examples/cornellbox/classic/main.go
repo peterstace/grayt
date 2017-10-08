@@ -17,6 +17,11 @@ func scene() Scene {
 			LeftWall.With(ColourRGB(Red)),
 			RightWall.With(ColourRGB(Green)),
 			CeilingLight().With(Emittance(5.0)),
+			Tube(
+				Vect(0.5, 0, -0.5),
+				Vect(0.5, 1, -0.5),
+				0.2,
+			),
 		),
 	}
 }

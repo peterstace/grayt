@@ -249,13 +249,13 @@ func (s *sphere) String() string {
 
 func (s *sphere) intersect(r ray) (intersection, bool) {
 
-	// Get coeficients to a.x^2 + b.x + c = 0
+	// Get coefficients to a.x^2 + b.x + c = 0
 	emc := r.start.Sub(s.centre)
 	a := r.dir.LengthSq()
 	b := 2 * emc.Dot(r.dir)
 	c := emc.LengthSq() - s.radius*s.radius
 
-	// Find discrimenant b*b - 4*a*c
+	// Find discriminant b*b - 4*a*c
 	disc := b*b - 4*a*c
 	if disc < 0 {
 		return intersection{}, false
@@ -462,4 +462,32 @@ func (d *disc) rotate(u Vector, rads float64) {
 func (d *disc) scale(s float64) {
 	d.center = d.center.Scale(s)
 	d.radiusSq *= s * s
+}
+
+type tube struct {
+	a, b   Vector
+	radius float64
+}
+
+func (t *tube) intersect(r ray) (intersection, bool) {
+	d := (t.a.Dot(t.a) -
+		t.a.Dot(t.a) -
+		t.b.Dot(r.start) +
+		t.a.Dot(r.start) +
+		t.radius*t.b.Sub(t.a).LengthSq()) / (t.b.Sub(t.a).Dot(r.dir))
+}
+
+func (t *tube) bound() (Vector, Vector) {
+	// TODO
+	return Vector{-10, -10, -10}, Vector{10, 10, 10}
+
+}
+
+func (t *tube) translate(Vector) {
+}
+
+func (t *tube) rotate(Vector, float64) {
+}
+
+func (t *tube) scale(float64) {
 }
