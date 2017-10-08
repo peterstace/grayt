@@ -18,8 +18,8 @@ func scene() Scene {
 			RightWall.With(ColourRGB(Green)),
 			CeilingLight().With(Emittance(5.0)),
 			Tube(
-				Vect(0.5, 0, -0.5),
-				Vect(0.5, 1, -0.5),
+				Vect(0.1, 0.1, -0.5),
+				Vect(0.9, 0.9, -0.5),
 				0.2,
 			),
 		),

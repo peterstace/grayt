@@ -469,12 +469,59 @@ type tube struct {
 	radius float64
 }
 
-func (t *tube) intersect(r ray) (intersection, bool) {
-	d := (t.a.Dot(t.a) -
-		t.a.Dot(t.a) -
-		t.b.Dot(r.start) +
-		t.a.Dot(r.start) +
-		t.radius*t.b.Sub(t.a).LengthSq()) / (t.b.Sub(t.a).Dot(r.dir))
+func (p *tube) intersect(r ray) (intersection, bool) {
+	// P - point on the cylinder.
+	// C - one end of the cylinder.
+	// H - other end of the cylinder.
+	// r - radius
+	//
+	// ((P - C) x H)^2 = r^2 * (H.Dot(H))
+	//
+	// P = E + D.t
+	//
+	// ((E + D.t - C) x H)^2 = r^2 * H.H
+	// ((E-C)xH + t.DxH)^2 = r^2 * H.H
+	// ((E-C)xH)^2 + 2t.((E-C)xH).(DxH) + t^2.(DxH)^2 = r^2 * H.H
+	// t^2 . (DxH)^2 + t . 2.(E-C)xH.(DxH) + ((E-C)xH)^2 - (H.H).r^2
+	// a := (DxH)^2
+	// b := 2 . ((E-C)xH).(DxH)
+	// c := ((E-C)xH)^2 - (H.H).r^2
+
+	h := p.b.Sub(p.a)
+	a := r.dir.cross(h).LengthSq()
+	b := 2 * r.start.Sub(p.a).cross(h).Dot(r.dir.cross(h))
+	c := r.start.Sub(p.a).cross(h).LengthSq() - h.Dot(h)*p.radius*p.radius
+
+	// Find discriminant b*b - 4*a*c
+	disc := b*b - 4*a*c
+	if disc < 0 {
+		return intersection{}, false
+	}
+
+	// Find x1 and x2 using a numerically stable algorithm.
+	var signOfB float64
+	signOfB = math.Copysign(1.0, b)
+	q := -0.5 * (b + signOfB*math.Sqrt(disc))
+	x1 := q / a
+	x2 := c / q
+
+	var t float64
+	if x1 > 0 && x2 > 0 {
+		// Both are positive, so take the smaller one.
+		t = math.Min(x1, x2)
+	} else {
+		// At least one is negative, take the larger one (which is either
+		// negative or positive).
+		t = math.Max(x1, x2)
+	}
+
+	hitAt := r.at(t)
+	return intersection{
+		unitNormal: hitAt.Sub(h.Scale(hitAt.Dot(h.Unit()))).Unit(),
+		distance:   t,
+	}, t > 0
+
+	return intersection{}, false
 }
 
 func (t *tube) bound() (Vector, Vector) {
