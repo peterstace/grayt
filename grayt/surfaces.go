@@ -464,46 +464,21 @@ func (d *disc) scale(s float64) {
 	d.radiusSq *= s * s
 }
 
-type tube struct {
-	a, b   Vector
-	radius float64
+type pipe struct {
+	c1, c2 Vector // two endpoints
+	r      float64
 }
 
-func (p *tube) intersect(r ray) (intersection, bool) {
-	// P - point on the cylinder.
-	// C - one end of the cylinder.
-	// H - other end of the cylinder.
-	// r - radius
-	//
-	// ((P - C) x H)^2 = r^2 * (H.Dot(H))
-	//
-	// P = E + D.t
-	//
-	// ((E + D.t - C) x H)^2 = r^2 * H.H
-	// ((E-C)xH + t.DxH)^2 = r^2 * H.H
-	// ((E-C)xH)^2 + 2t.((E-C)xH).(DxH) + t^2.(DxH)^2 = r^2 * H.H
-	// t^2 . (DxH)^2 + t . 2.(E-C)xH.(DxH) + ((E-C)xH)^2 - (H.H).r^2
-	// a := (DxH)^2
-	// b := 2 . ((E-C)xH).(DxH)
-	// c := ((E-C)xH)^2 - (H.H).r^2
-
-	h := p.b.Sub(p.a)
-	a := r.dir.cross(h).LengthSq()
-	b := 2 * r.start.Sub(p.a).cross(h).Dot(r.dir.cross(h))
-	c := r.start.Sub(p.a).cross(h).LengthSq() - h.Dot(h)*p.radius*p.radius
-
-	// Find discriminant b*b - 4*a*c
-	disc := b*b - 4*a*c
-	if disc < 0 {
-		return intersection{}, false
-	}
-
-	// Find x1 and x2 using a numerically stable algorithm.
-	var signOfB float64
-	signOfB = math.Copysign(1.0, b)
-	q := -0.5 * (b + signOfB*math.Sqrt(disc))
-	x1 := q / a
-	x2 := c / q
+func (p *pipe) intersect(r ray) (intersection, bool) {
+	h := p.c2.Sub(p.c1).Unit()
+	dCrossH := r.dir.cross(h)
+	emc := r.start.Sub(p.c1)
+	emcCrossH := emc.cross(h)
+	x1, x2 := solveQuadraticEqn(
+		dCrossH.LengthSq(),
+		2*dCrossH.Dot(emcCrossH),
+		emcCrossH.LengthSq()-p.r*p.r,
+	)
 
 	var t float64
 	if x1 > 0 && x2 > 0 {
@@ -517,24 +492,43 @@ func (p *tube) intersect(r ray) (intersection, bool) {
 
 	hitAt := r.at(t)
 	return intersection{
-		unitNormal: hitAt.Sub(h.Scale(hitAt.Dot(h.Unit()))).Unit(),
+		unitNormal: hitAt.Sub(p.c1).rej(h).Unit(),
 		distance:   t,
 	}, t > 0
-
-	return intersection{}, false
 }
 
-func (t *tube) bound() (Vector, Vector) {
+func (v Vector) proj(unit Vector) Vector {
+	return unit.Scale(v.Dot(unit))
+}
+
+func (v Vector) rej(unit Vector) Vector {
+	return v.Sub(v.proj(unit))
+}
+
+func (t *pipe) bound() (Vector, Vector) {
 	// TODO
 	return Vector{-10, -10, -10}, Vector{10, 10, 10}
 
 }
 
-func (t *tube) translate(Vector) {
+func (t *pipe) translate(Vector) {
 }
 
-func (t *tube) rotate(Vector, float64) {
+func (t *pipe) rotate(Vector, float64) {
 }
 
-func (t *tube) scale(float64) {
+func (t *pipe) scale(float64) {
+}
+
+func solveQuadraticEqn(a, b, c float64) (float64, float64) {
+	disc := b*b - 4*a*c
+	if disc < 0 {
+		return -1, -1
+	}
+
+	// Find x1 and x2 using a numerically stable algorithm.
+	var signOfB float64
+	signOfB = math.Copysign(1.0, b)
+	q := -0.5 * (b + signOfB*math.Sqrt(disc))
+	return q / a, c / q
 }

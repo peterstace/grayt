@@ -44,9 +44,17 @@ func TraceImage(pxWide int, scene Scene, quality, numWorkers int, completed *uin
 	return accum.toImage(1.0)
 }
 
+const debug = false
+
 func tracePath(accel accelerationStructure, r ray, rng *rand.Rand) Colour {
 
 	intersection, material, hit := accel.closestHit(r)
+	if debug {
+		n2 := intersection.unitNormal.LengthSq()
+		if n2 > 1.001 || n2 < 0.999 {
+			panic("bad size normal")
+		}
+	}
 	if !hit {
 		return Colour{0, 0, 0}
 	}

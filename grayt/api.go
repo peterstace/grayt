@@ -227,8 +227,8 @@ func Disc(c Vector, r float64, n Vector) ObjectList {
 	return defaultObject(&disc{c, r * r, n.Unit()})
 }
 
-func Tube(a, b Vector, r float64) ObjectList {
-	return defaultObject(&tube{a, b, r})
+func Pipe(a, b Vector, r float64) ObjectList {
+	return defaultObject(&pipe{a, b, r})
 }
 
 func defaultObject(s surface) ObjectList {
