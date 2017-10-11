@@ -480,21 +480,24 @@ func (p *pipe) intersect(r ray) (intersection, bool) {
 		emcCrossH.LengthSq()-p.r*p.r,
 	)
 
-	var t float64
-	if x1 > 0 && x2 > 0 {
-		// Both are positive, so take the smaller one.
-		t = math.Min(x1, x2)
-	} else {
-		// At least one is negative, take the larger one (which is either
-		// negative or positive).
-		t = math.Max(x1, x2)
+	if x1 > x2 {
+		x1, x2 = x2, x1
 	}
-
-	hitAt := r.at(t)
-	return intersection{
-		unitNormal: hitAt.Sub(p.c1).rej(h).Unit(),
-		distance:   t,
-	}, t > 0
+	for _, x := range [...]float64{x1, x2} {
+		if x < 0 {
+			continue
+		}
+		hitAt := r.at(x)
+		s := hitAt.Sub(p.c1).Dot(h)
+		if s < 0 || s*s > p.c2.Sub(p.c1).LengthSq() {
+			continue
+		}
+		return intersection{
+			unitNormal: hitAt.Sub(p.c1).rej(h).Unit(),
+			distance:   x,
+		}, true
+	}
+	return intersection{}, false
 }
 
 func (v Vector) proj(unit Vector) Vector {
