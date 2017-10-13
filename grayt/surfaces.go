@@ -500,18 +500,16 @@ func (p *pipe) intersect(r ray) (intersection, bool) {
 	return intersection{}, false
 }
 
-func (v Vector) proj(unit Vector) Vector {
-	return unit.Scale(v.Dot(unit))
-}
-
-func (v Vector) rej(unit Vector) Vector {
-	return v.Sub(v.proj(unit))
-}
-
 func (t *pipe) bound() (Vector, Vector) {
-	// TODO
-	return Vector{-10, -10, -10}, Vector{10, 10, 10}
-
+	h := t.c2.Sub(t.c1).Unit()
+	hx := h
+	hx.X = 0
+	hy := h
+	hy.Y = 0
+	hz := h
+	hz.Z = 0
+	hm := Vect(hx.Length(), hy.Length(), hz.Length())
+	return t.c1.Min(t.c2).Sub(hm.Scale(t.r)), t.c1.Max(t.c2).Add(hm.Scale(t.r))
 }
 
 func (t *pipe) translate(Vector) {

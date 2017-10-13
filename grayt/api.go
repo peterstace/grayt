@@ -177,6 +177,13 @@ func Scale(f float64) func(*Object) {
 	}
 }
 
+func BoundingBox() func(*Object) {
+	return func(o *Object) {
+		a, b := o.surface.bound()
+		o.surface = newAlignedBox(a, b)
+	}
+}
+
 func Triangle(a, b, c Vector) ObjectList {
 	return defaultObject(newTriangle(a, b, c))
 }

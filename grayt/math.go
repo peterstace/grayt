@@ -148,6 +148,14 @@ func (v Vector) rotate(u Vector, rads float64) Vector {
 	return Vect(i.Dot(v), j.Dot(v), k.Dot(v))
 }
 
+func (v Vector) proj(unit Vector) Vector {
+	return unit.Scale(v.Dot(unit))
+}
+
+func (v Vector) rej(unit Vector) Vector {
+	return v.Sub(v.proj(unit))
+}
+
 type ray struct {
 	start, dir Vector
 }
