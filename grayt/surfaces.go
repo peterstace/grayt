@@ -446,6 +446,7 @@ func (d *disc) intersect(r ray) (intersection, bool) {
 }
 
 func (d *disc) bound() (Vector, Vector) {
+	// TODO: This could be much better. Need a similar approach to the tube.
 	r := math.Sqrt(d.radiusSq)
 	return d.center.Sub(Vect(r, r, r)), d.center.Add(Vect(r, r, r))
 }
@@ -500,8 +501,8 @@ func (p *pipe) intersect(r ray) (intersection, bool) {
 	return intersection{}, false
 }
 
-func (t *pipe) bound() (Vector, Vector) {
-	h := t.c2.Sub(t.c1).Unit()
+func (p *pipe) bound() (Vector, Vector) {
+	h := p.c2.Sub(p.c1).Unit()
 	hx := h
 	hx.X = 0
 	hy := h
@@ -509,16 +510,22 @@ func (t *pipe) bound() (Vector, Vector) {
 	hz := h
 	hz.Z = 0
 	hm := Vect(hx.Length(), hy.Length(), hz.Length())
-	return t.c1.Min(t.c2).Sub(hm.Scale(t.r)), t.c1.Max(t.c2).Add(hm.Scale(t.r))
+	return p.c1.Min(p.c2).Sub(hm.Scale(p.r)), p.c1.Max(p.c2).Add(hm.Scale(p.r))
 }
 
-func (t *pipe) translate(Vector) {
+func (p *pipe) translate(v Vector) {
+	p.c1 = p.c1.Add(v)
+	p.c2 = p.c2.Add(v)
 }
 
-func (t *pipe) rotate(Vector, float64) {
+func (p *pipe) rotate(v Vector, rads float64) {
+	p.c1 = p.c1.rotate(v, rads)
+	p.c2 = p.c2.rotate(v, rads)
 }
 
-func (t *pipe) scale(float64) {
+func (p *pipe) scale(s float64) {
+	p.c1 = p.c1.Scale(s)
+	p.c2 = p.c2.Scale(s)
 }
 
 func solveQuadraticEqn(a, b, c float64) (float64, float64) {
