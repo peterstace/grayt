@@ -16,15 +16,6 @@ func scene() Scene {
 			RightWall.With(ColourRGB(Green)),
 			CeilingLight().With(Emittance(5.0)),
 			Group(
-				//Sphere(
-				//Vect(0.4, 0.3, -0.5),
-				//0.35,
-				//),
-				Pipe(
-					Vect(0.4, 0.1, -0.8),
-					Vect(0.5, 0.6, -0.6),
-					0.15,
-				).With(BoundingBox()),
 				Pipe(
 					Vect(0.4, 0.1, -0.8),
 					Vect(0.5, 0.6, -0.6),

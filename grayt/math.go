@@ -156,6 +156,10 @@ func (v Vector) rej(unit Vector) Vector {
 	return v.Sub(v.proj(unit))
 }
 
+func (v Vector) x0() Vector { return Vect(0, v.Y, v.Z) }
+func (v Vector) y0() Vector { return Vect(v.X, 0, v.Z) }
+func (v Vector) z0() Vector { return Vect(v.X, v.Y, 0) }
+
 type ray struct {
 	start, dir Vector
 }

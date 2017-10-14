@@ -446,9 +446,14 @@ func (d *disc) intersect(r ray) (intersection, bool) {
 }
 
 func (d *disc) bound() (Vector, Vector) {
-	// TODO: This could be much better. Need a similar approach to the tube.
-	r := math.Sqrt(d.radiusSq)
-	return d.center.Sub(Vect(r, r, r)), d.center.Add(Vect(r, r, r))
+	n := d.unitNorm
+	offset := discBoundOffset(n, math.Sqrt(d.radiusSq))
+	return d.center.Sub(offset), d.center.Add(offset)
+}
+
+func discBoundOffset(n Vector, r float64) Vector {
+	assertUnit(n)
+	return Vect(n.x0().Length(), n.y0().Length(), n.z0().Length()).Scale(r)
 }
 
 func (d *disc) translate(v Vector) {
@@ -468,6 +473,10 @@ func (d *disc) scale(s float64) {
 type pipe struct {
 	c1, c2 Vector // two endpoints
 	r      float64
+}
+
+func (p *pipe) String() string {
+	return fmt.Sprintf("Type=pipe r=%v c1=%v c2=%v", p.r, p.c1, p.c2)
 }
 
 func (p *pipe) intersect(r ray) (intersection, bool) {
@@ -503,14 +512,8 @@ func (p *pipe) intersect(r ray) (intersection, bool) {
 
 func (p *pipe) bound() (Vector, Vector) {
 	h := p.c2.Sub(p.c1).Unit()
-	hx := h
-	hx.X = 0
-	hy := h
-	hy.Y = 0
-	hz := h
-	hz.Z = 0
-	hm := Vect(hx.Length(), hy.Length(), hz.Length())
-	return p.c1.Min(p.c2).Sub(hm.Scale(p.r)), p.c1.Max(p.c2).Add(hm.Scale(p.r))
+	offset := discBoundOffset(h, p.r)
+	return p.c1.Min(p.c2).Sub(offset), p.c1.Max(p.c2).Add(offset)
 }
 
 func (p *pipe) translate(v Vector) {
