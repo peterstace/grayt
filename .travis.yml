@@ -1,2 +1,4 @@
 language: go
-script: ./ci.sh
+script:
+        - go test -v ./...
+        - ./systemtest/run.sh
