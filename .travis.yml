@@ -1,4 +1,1 @@
-language: go
-build:
-        - go test ./...
-        - ./systemtest/run.sh
+script: ci.sh
