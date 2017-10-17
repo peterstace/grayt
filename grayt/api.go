@@ -103,6 +103,7 @@ func AspectRatioWidthAndHeight(wide, high int) cameraOption {
 type Scene struct {
 	Camera  CameraBlueprint
 	Objects ObjectList
+	Sky     func(Vector) Colour
 }
 
 type ObjectList []Object
