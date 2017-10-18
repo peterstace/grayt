@@ -56,19 +56,13 @@ type tracer struct {
 
 func (t *tracer) tracePath(r ray) Colour {
 	intersection, material, hit := t.accel.closestHit(r)
-	assertUnit(intersection.unitNormal)
-	if debug {
-		n2 := intersection.unitNormal.LengthSq()
-		if n2 > 1.001 || n2 < 0.999 {
-			panic("bad size normal")
-		}
-	}
 	if !hit {
 		if t.sky == nil {
 			return Colour{0, 0, 0}
 		}
 		return t.sky(r.dir)
 	}
+	assertUnit(intersection.unitNormal)
 
 	// Calculate probability of emitting.
 	pEmit := 0.1

@@ -5,10 +5,8 @@ import (
 	db "runtime/debug"
 )
 
-const debug = false // TODO: Should be set as a flag, false by default
-
 func assertUnit(v Vector) {
-	if !debug {
+	if !*debug {
 		return
 	}
 	n2 := v.LengthSq()
