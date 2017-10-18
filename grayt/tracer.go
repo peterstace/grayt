@@ -60,6 +60,7 @@ func (t *tracer) tracePath(r ray) Colour {
 		if t.sky == nil {
 			return Colour{0, 0, 0}
 		}
+		assertUnit(r.dir)
 		return t.sky(r.dir)
 	}
 	assertUnit(intersection.unitNormal)

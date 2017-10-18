@@ -7,22 +7,11 @@ import (
 )
 
 func scene() Scene {
-
-	lightPos := Vect(4, 6, 1)
-	light := Disc(
-		lightPos,
-		3,
-		lightPos.Unit(),
-	).With(Emittance(1.0))
-
-	outerSphere := Sphere(Vector{}, 20).With(Emittance(0.05))
-
 	platform := AlignedBox(
 		Vect(-3, -1, -6),
 		Vect(+1, 0, +2),
 	)
 
-	// Uses space of (-0.5, 0, -0.5) to (0.5, 1, 0.5)
 	placeholder := Sphere(
 		Vect(0, 0.5, 0),
 		0.5,
@@ -38,7 +27,6 @@ func scene() Scene {
 	)
 
 	return Scene{
-		//https://en.wikipedia.org/wiki/Relative_neighborhood_graph
 		Camera: Camera().With(
 			Location(Vect(3, 5, 15)),
 			LookingAt(Vect(0, 0.5, 0)),
@@ -47,9 +35,8 @@ func scene() Scene {
 		Objects: Group(
 			placeholder,
 			platform,
-			outerSphere,
-			light,
 		),
+		Sky: Sky(Colour{0.05, 0.05, 0.05}, Colour{4, 4, 4}, Vect(4, 6, 1), 15),
 	}
 }
 

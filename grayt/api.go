@@ -106,6 +106,17 @@ type Scene struct {
 	Sky     func(Vector) Colour
 }
 
+func Sky(background Colour, sun Colour, sunDir Vector, sunDegrees float64) func(Vector) Colour {
+	sunUnit := sunDir.Unit()
+	limit := math.Cos(sunDegrees / 180 * math.Pi / 2)
+	return func(v Vector) Colour {
+		if sunUnit.Dot(v) > limit {
+			return sun
+		}
+		return background
+	}
+}
+
 type ObjectList []Object
 
 func Group(objLists ...ObjectList) ObjectList {

@@ -27,7 +27,6 @@ var (
 
 // Run should be the single call made from main().
 func Run(baseName string, scene Scene) {
-
 	flag.Parse()
 
 	if *verbose {
