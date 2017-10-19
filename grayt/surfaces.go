@@ -494,7 +494,7 @@ func (p *pipe) intersect(r ray) (intersection, bool) {
 		x1, x2 = x2, x1
 	}
 	for _, x := range [...]float64{x1, x2} {
-		if x < 0 {
+		if x <= 0 {
 			continue
 		}
 		hitAt := r.at(x)
