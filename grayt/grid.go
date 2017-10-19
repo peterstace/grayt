@@ -14,13 +14,12 @@ type grid struct {
 }
 
 func newGrid(lambda float64, objs ObjectList) *grid {
-
 	minBound, maxBound := bounds(objs)
 	boundDiff := maxBound.Sub(minBound)
 	volume := boundDiff.X * boundDiff.Y * boundDiff.Z
 
 	resolutionFactor := math.Pow(lambda*float64(len(objs))/volume, 1.0/3.0)
-	resolution := truncate(boundDiff.Scale(resolutionFactor))
+	resolution := truncate(boundDiff.Scale(resolutionFactor)).max(triple{1, 1, 1})
 	stride := boundDiff.div(resolution.asVector())
 	data := make([]*link, resolution.x*resolution.y*resolution.z)
 
