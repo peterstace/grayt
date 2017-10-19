@@ -2,9 +2,12 @@ package main
 
 import (
 	"math/rand"
+	"sort"
 
 	. "github.com/peterstace/grayt/grayt"
 )
+
+var focus = Vect(-0.3099026210985629, 0.12024389688673498, 0.48822368691539886)
 
 func scene() Scene {
 	platform := AlignedBox(
@@ -21,16 +24,17 @@ func scene() Scene {
 		Vect(+0.5, 1, +0.5),
 	)
 	pts := points()
+	sort.Slice(pts, func(i, j int) bool { return focus.Sub(pts[i]).LengthSq() < focus.Sub(pts[j]).LengthSq() })
 	placeholder = Group(
-		balls(pts),
-		edges(pts),
+		balls(pts, pts[0]),
+		edges(pts, pts[0]),
 	)
 
 	return Scene{
 		Camera: Camera().With(
 			Location(Vect(3, 5, 15)),
-			LookingAt(Vect(0, 0.5, 0)),
-			FieldOfViewInDegrees(6),
+			LookingAt(focus),
+			FieldOfViewInDegrees(0.25),
 		),
 		Objects: Group(
 			placeholder,
@@ -40,7 +44,7 @@ func scene() Scene {
 	}
 }
 
-func edges(pts []Vector) ObjectList {
+func edges(pts []Vector, f Vector) ObjectList {
 	type edge struct {
 		a Vector
 		b Vector
@@ -58,7 +62,7 @@ func edges(pts []Vector) ObjectList {
 					break
 				}
 			}
-			if !closer {
+			if !closer && (pts[i] == f || pts[j] == f) {
 				edges = Group(edges, Pipe(pts[i], pts[j], 0.01))
 			}
 		}
@@ -66,10 +70,13 @@ func edges(pts []Vector) ObjectList {
 	return edges
 }
 
-func balls(pts []Vector) ObjectList {
+func balls(pts []Vector, f Vector) ObjectList {
+	// TODO: Just select one ball
 	var objs ObjectList
 	for _, p := range pts {
-		objs = Group(objs, Sphere(p, 0.01))
+		if p == f {
+			objs = Group(objs, Sphere(p, 0.01))
+		}
 	}
 	return objs
 }
