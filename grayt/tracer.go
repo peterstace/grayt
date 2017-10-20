@@ -35,7 +35,13 @@ func TraceImage(pxWide int, scene Scene, quality, numWorkers int, completed *uin
 					y := (float64(pxY-pxHigh/2) + tr.rng.Float64()) * pxPitch * -1.0
 					r := cam.makeRay(x, y, tr.rng)
 					r.dir = r.dir.Unit()
-					accum.add(pxX, pxY, tr.tracePath(r), q)
+					var c Colour
+					if !*normals {
+						c = tr.tracePath(r)
+					} else {
+						c = tr.traceNormal(r)
+					}
+					accum.add(pxX, pxY, c, q)
 					atomic.AddUint64(completed, 1)
 				}
 			}
@@ -106,4 +112,13 @@ func (t *tracer) tracePath(r ray) Colour {
 			scale(brdf / (1 - pEmit)).
 			mul(material.colour)
 	}
+}
+
+func (t *tracer) traceNormal(r ray) Colour {
+	intersection, _, hit := t.accel.closestHit(r)
+	if !hit {
+		return Colour{}
+	}
+	norm := intersection.unitNormal.Add(Vect(1, 1, 1)).Scale(0.5)
+	return Colour{norm.X, norm.Y, norm.Z}
 }
