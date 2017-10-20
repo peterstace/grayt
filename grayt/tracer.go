@@ -84,7 +84,7 @@ func (t *tracer) tracePath(r ray) Colour {
 		return material.colour.scale(material.emittance / pEmit)
 	}
 
-	offsetScale := -math.Copysign(addULPs(1.0, 100)-1.0, r.dir.Dot(intersection.unitNormal))
+	offsetScale := -math.Copysign(addULPs(1.0, 1e5)-1.0, r.dir.Dot(intersection.unitNormal))
 	offset := intersection.unitNormal.Scale(offsetScale)
 	hitLoc := r.at(intersection.distance).Add(offset)
 
