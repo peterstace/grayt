@@ -23,6 +23,7 @@ var (
 	output     = flag.String("o", "", "output file override")
 	numWorkers = flag.Int("j", runtime.GOMAXPROCS(0), "number of worker goroutines")
 	debug      = flag.Bool("d", false, "debug mode (enable assertions)")
+	normals    = flag.Bool("n", false, "plot normals")
 )
 
 // Run should be the single call made from main().
