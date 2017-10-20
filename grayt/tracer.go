@@ -2,6 +2,7 @@ package grayt
 
 import (
 	"image"
+	"math"
 	"math/rand"
 	"sync"
 	"sync/atomic"
@@ -61,6 +62,7 @@ type tracer struct {
 }
 
 func (t *tracer) tracePath(r ray) Colour {
+	assertUnit(r.dir)
 	intersection, material, hit := t.accel.closestHit(r)
 	if !hit {
 		if t.sky == nil {
@@ -82,9 +84,9 @@ func (t *tracer) tracePath(r ray) Colour {
 		return material.colour.scale(material.emittance / pEmit)
 	}
 
-	// Find where the ray hit. Reduce the intersection distance by a small
-	// amount so that reflected rays don't intersect with it immediately.
-	hitLoc := r.at(addULPs(intersection.distance, -ulpFudgeFactor))
+	offsetScale := -math.Copysign(addULPs(1.0, 100)-1.0, r.dir.Dot(intersection.unitNormal))
+	offset := intersection.unitNormal.Scale(offsetScale)
+	hitLoc := r.at(intersection.distance).Add(offset)
 
 	// Orient the unit normal towards the ray origin.
 	if intersection.unitNormal.Dot(r.dir) > 0 {
