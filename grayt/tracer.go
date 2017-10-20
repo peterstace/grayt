@@ -3,6 +3,7 @@ package grayt
 import (
 	"fmt"
 	"image"
+	"math"
 	"math/rand"
 	"sync"
 	"sync/atomic"
@@ -91,6 +92,7 @@ func (t *tracer) tracePath(r ray) Colour {
 		fmt.Println("r:", r)
 	}
 
+	assertUnit(r.dir)
 	intersection, material, hit := t.accel.closestHit(r)
 	if !hit {
 		if t.sky == nil {
@@ -118,9 +120,9 @@ func (t *tracer) tracePath(r ray) Colour {
 		return material.colour.scale(material.emittance / pEmit)
 	}
 
-	// Find where the ray hit. Reduce the intersection distance by a small
-	// amount so that reflected rays don't intersect with it immediately.
-	hitLoc := r.at(addULPs(intersection.distance, -ulpFudgeFactor))
+	offsetScale := -math.Copysign(addULPs(1.0, 100)-1.0, r.dir.Dot(intersection.unitNormal))
+	offset := intersection.unitNormal.Scale(offsetScale)
+	hitLoc := r.at(intersection.distance).Add(offset)
 
 	//light := Vect(0, 10, 0)
 	//toLight := light.Sub(hitLoc).Unit()
