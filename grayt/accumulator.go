@@ -61,3 +61,14 @@ func (a *accumulator) toImage(exposure float64) image.Image {
 	}
 	return img
 }
+
+func (a *accumulator) toRawImage() image.Image {
+	const gamma = 2.2
+	img := image.NewNRGBA(image.Rect(0, 0, a.wide, a.high))
+	for x := 0; x < a.wide; x++ {
+		for y := 0; y < a.high; y++ {
+			img.Set(x, y, a.get(x, y).toNRGBA())
+		}
+	}
+	return img
+}

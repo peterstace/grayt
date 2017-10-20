@@ -1,11 +1,14 @@
 package grayt
 
 import (
+	"fmt"
 	"image"
 	"math/rand"
 	"sync"
 	"sync/atomic"
 )
+
+var aoeu = false
 
 func TraceImage(pxWide int, scene Scene, quality, numWorkers int, completed *uint64) image.Image {
 
@@ -31,10 +34,28 @@ func TraceImage(pxWide int, scene Scene, quality, numWorkers int, completed *uin
 			}
 			for pxY := 0; pxY < pxHigh; pxY++ {
 				for pxX := 0; pxX < pxWide; pxX++ {
+
+					aoeu = false
+					if pxX == 424 && pxY == 308 {
+						fmt.Println()
+						fmt.Println("DARK")
+						fmt.Println()
+						aoeu = true
+
+					}
+					if pxX == 419 && pxY == 308 {
+						fmt.Println()
+						fmt.Println("LIGHT")
+						fmt.Println()
+						aoeu = true
+					}
+
 					x := (float64(pxX-pxWide/2) + tr.rng.Float64()) * pxPitch
 					y := (float64(pxY-pxHigh/2) + tr.rng.Float64()) * pxPitch * -1.0
 					r := cam.makeRay(x, y, tr.rng)
+
 					r.dir = r.dir.Unit()
+
 					var c Colour
 					if !*normals {
 						c = tr.tracePath(r)
@@ -51,7 +72,11 @@ func TraceImage(pxWide int, scene Scene, quality, numWorkers int, completed *uin
 	}
 	wg.Wait()
 
-	return accum.toImage(1.0)
+	if !*normals {
+		return accum.toImage(1.0)
+	} else {
+		return accum.toRawImage()
+	}
 }
 
 type tracer struct {
@@ -61,6 +86,11 @@ type tracer struct {
 }
 
 func (t *tracer) tracePath(r ray) Colour {
+	if aoeu {
+		fmt.Println()
+		fmt.Println("r:", r)
+	}
+
 	intersection, material, hit := t.accel.closestHit(r)
 	if !hit {
 		if t.sky == nil {
@@ -70,6 +100,12 @@ func (t *tracer) tracePath(r ray) Colour {
 		return t.sky(r.dir)
 	}
 	assertUnit(intersection.unitNormal)
+
+	if aoeu {
+		fmt.Println("inters:", intersection)
+		fmt.Println("material:", material)
+		fmt.Println("hit:", hit)
+	}
 
 	// Calculate probability of emitting.
 	pEmit := 0.1
@@ -85,6 +121,12 @@ func (t *tracer) tracePath(r ray) Colour {
 	// Find where the ray hit. Reduce the intersection distance by a small
 	// amount so that reflected rays don't intersect with it immediately.
 	hitLoc := r.at(addULPs(intersection.distance, -ulpFudgeFactor))
+
+	//light := Vect(0, 10, 0)
+	//toLight := light.Sub(hitLoc).Unit()
+	//str := toLight.Dot(intersection.unitNormal)
+	//str = math.Pow(str, 6)
+	//return Colour{str, str, str}
 
 	// Orient the unit normal towards the ray origin.
 	if intersection.unitNormal.Dot(r.dir) > 0 {
@@ -104,6 +146,9 @@ func (t *tracer) tracePath(r ray) Colour {
 		if rnd.Dot(intersection.unitNormal) < 0 {
 			rnd = rnd.Scale(-1.0)
 		}
+		if aoeu {
+			fmt.Println("rnd:", rnd)
+		}
 
 		// Apply the BRDF (bidirectional reflection distribution function).
 		brdf := rnd.Dot(intersection.unitNormal)
@@ -117,7 +162,7 @@ func (t *tracer) tracePath(r ray) Colour {
 func (t *tracer) traceNormal(r ray) Colour {
 	intersection, _, hit := t.accel.closestHit(r)
 	if !hit {
-		return Colour{}
+		return Colour{0.5, 0.5, 0.5}
 	}
 	norm := intersection.unitNormal.Add(Vect(1, 1, 1)).Scale(0.5)
 	return Colour{norm.X, norm.Y, norm.Z}

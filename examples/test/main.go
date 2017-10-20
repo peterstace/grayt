@@ -29,11 +29,14 @@ func scene() Scene {
 			0.4834468154653815,
 		), 0.01)
 
+	_ = sp
+	_ = p1
+
 	return Scene{
 		Camera: Camera().With(
 			Location(Vect(3, 5, 15)),
 			LookingAt(focus),
-			FieldOfViewInDegrees(0.5),
+			FieldOfViewInDegrees(0.1),
 		),
 		Objects: Group(
 			p1,
