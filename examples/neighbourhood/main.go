@@ -12,19 +12,11 @@ func scene() Scene {
 		Vect(+1, 0, +2),
 	)
 
-	placeholder := Sphere(
-		Vect(0, 0.5, 0),
-		0.5,
-	)
-	placeholder = AlignedBox(
-		Vect(-0.5, 0, -0.5),
-		Vect(+0.5, 1, +0.5),
-	)
 	pts := points()
-	placeholder = Group(
+	structure := Group(
 		balls(pts),
 		edges(pts),
-	)
+	).With(ColourRGB(0x00aaaaaa))
 
 	return Scene{
 		Camera: Camera().With(
@@ -33,7 +25,7 @@ func scene() Scene {
 			FieldOfViewInDegrees(6),
 		),
 		Objects: Group(
-			placeholder,
+			structure,
 			platform,
 		),
 		Sky: Sky(Colour{0.05, 0.05, 0.05}, Colour{4, 4, 4}, Vect(4, 6, 1), 15),
