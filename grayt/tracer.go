@@ -42,7 +42,7 @@ func TraceImage(pxWide int, scene Scene, quality, numWorkers int, completed *uin
 					} else {
 						c = tr.traceNormal(r)
 					}
-					accum.add(pxX, pxY, c, q)
+					accum.add(pxX, pxY, c)
 					atomic.AddUint64(completed, 1)
 				}
 			}

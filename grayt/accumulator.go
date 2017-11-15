@@ -24,7 +24,7 @@ func newAccumulator(wide, high int) *accumulator {
 	}
 }
 
-func (a *accumulator) add(x, y int, c Colour, index int) {
+func (a *accumulator) add(x, y int, c Colour) {
 	i := y*a.wide + x
 	a.pixels[i].Lock()
 	a.pixels[i].Colour = a.pixels[i].add(c)
