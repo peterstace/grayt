@@ -24,20 +24,9 @@ func (a *accumulator) merge(other *accumulator) {
 	}
 }
 
-func (a *accumulator) clear() {
-	for i := range a.pixels {
-		a.pixels[i] = Colour{}
-	}
-}
-
 func (a *accumulator) set(x, y int, c Colour) {
 	i := y*a.wide + x
 	a.pixels[i] = c
-}
-
-func (a *accumulator) get(x, y int) Colour {
-	i := y*a.wide + x
-	return a.pixels[i]
 }
 
 func (a *accumulator) mean() float64 {
@@ -57,7 +46,8 @@ func (a *accumulator) toImage(exposure float64) image.Image {
 	img := image.NewNRGBA(image.Rect(0, 0, a.wide, a.high))
 	for x := 0; x < a.wide; x++ {
 		for y := 0; y < a.high; y++ {
-			img.Set(x, y, a.get(x, y).
+			i := y*a.wide + x
+			img.Set(x, y, a.pixels[i].
 				scale(0.5*exposure/mean).
 				pow(1.0/gamma).
 				toNRGBA())
