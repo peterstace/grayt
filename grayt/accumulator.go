@@ -2,38 +2,42 @@ package grayt
 
 import (
 	"image"
-	"sync"
 )
 
 type accumulator struct {
-	pixels []pixel
+	pixels []Colour
 	wide   int
 	high   int
 }
 
-type pixel struct {
-	sync.Mutex
-	Colour
-}
-
 func newAccumulator(wide, high int) *accumulator {
 	return &accumulator{
-		pixels: make([]pixel, wide*high),
+		pixels: make([]Colour, wide*high),
 		wide:   wide,
 		high:   high,
 	}
 }
 
-func (a *accumulator) add(x, y int, c Colour) {
+func (a *accumulator) merge(other *accumulator) {
+	for i, c := range a.pixels {
+		a.pixels[i] = c.add(other.pixels[i])
+	}
+}
+
+func (a *accumulator) clear() {
+	for i := range a.pixels {
+		a.pixels[i] = Colour{}
+	}
+}
+
+func (a *accumulator) set(x, y int, c Colour) {
 	i := y*a.wide + x
-	a.pixels[i].Lock()
-	a.pixels[i].Colour = a.pixels[i].add(c)
-	a.pixels[i].Unlock()
+	a.pixels[i] = c
 }
 
 func (a *accumulator) get(x, y int) Colour {
 	i := y*a.wide + x
-	return a.pixels[i].Colour
+	return a.pixels[i]
 }
 
 func (a *accumulator) mean() float64 {

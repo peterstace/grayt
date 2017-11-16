@@ -4,55 +4,57 @@ import (
 	"image"
 	"math"
 	"math/rand"
-	"sync"
 	"sync/atomic"
 )
 
 func TraceImage(pxWide int, scene Scene, quality, numWorkers int, completed *uint64) image.Image {
-
 	pxHigh := scene.Camera.pxHigh(pxWide)
-
 	cam := newCamera(scene.Camera)
-	accum := newAccumulator(pxWide, pxHigh)
 	accel := newGrid(4, scene.Objects)
 
-	var wg sync.WaitGroup
-	wg.Add(quality)
-
-	sem := make(chan struct{}, numWorkers)
-
-	pxPitch := 2.0 / float64(pxWide)
-	for q := 0; q < quality; q++ {
-		sem <- struct{}{}
-		go func(q int) {
-			tr := tracer{
-				accel: accel,
-				sky:   scene.Sky,
-				rng:   rand.New(rand.NewSource(int64(q))),
-			}
-			for pxY := 0; pxY < pxHigh; pxY++ {
-				for pxX := 0; pxX < pxWide; pxX++ {
-					x := (float64(pxX-pxWide/2) + tr.rng.Float64()) * pxPitch
-					y := (float64(pxY-pxHigh/2) + tr.rng.Float64()) * pxPitch * -1.0
-					r := cam.makeRay(x, y, tr.rng)
-					r.dir = r.dir.Unit()
-					var c Colour
-					if !*normals {
-						c = tr.tracePath(r)
-					} else {
-						c = tr.traceNormal(r)
-					}
-					accum.add(pxX, pxY, c)
-					atomic.AddUint64(completed, 1)
-				}
-			}
-			<-sem
-			wg.Done()
-		}(q)
+	finished := make(chan *accumulator)
+	accPool := make(chan *accumulator, numWorkers)
+	for i := 0; i < numWorkers; i++ {
+		accPool <- newAccumulator(pxWide, pxHigh)
 	}
-	wg.Wait()
 
-	return accum.toImage(1.0)
+	go func() {
+		pxPitch := 2.0 / float64(pxWide)
+		for q := 0; q < quality; q++ {
+			go func(q int, acc *accumulator) {
+				tr := tracer{
+					accel: accel,
+					sky:   scene.Sky,
+					rng:   rand.New(rand.NewSource(int64(q))),
+				}
+				for pxY := 0; pxY < pxHigh; pxY++ {
+					for pxX := 0; pxX < pxWide; pxX++ {
+						x := (float64(pxX-pxWide/2) + tr.rng.Float64()) * pxPitch
+						y := (float64(pxY-pxHigh/2) + tr.rng.Float64()) * pxPitch * -1.0
+						r := cam.makeRay(x, y, tr.rng)
+						r.dir = r.dir.Unit()
+						var c Colour
+						if !*normals {
+							c = tr.tracePath(r)
+						} else {
+							c = tr.traceNormal(r)
+						}
+						acc.set(pxX, pxY, c)
+						atomic.AddUint64(completed, 1)
+					}
+				}
+				finished <- acc
+			}(q, <-accPool)
+		}
+	}()
+
+	aggregate := newAccumulator(pxWide, pxHigh)
+	for q := 0; q < quality; q++ {
+		acc := <-finished
+		aggregate.merge(acc)
+		accPool <- acc
+	}
+	return aggregate.toImage(1.0)
 }
 
 type tracer struct {
