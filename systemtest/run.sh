@@ -1,7 +1,5 @@
 #!/bin/bash
 
-exit 1
-
 SCRIPT_PATH=$(dirname $(readlink -f $0))
 
 function run_test()
@@ -18,7 +16,7 @@ function run_test()
   else
     compare $SCRIPT_PATH/actual_$name.png $SCRIPT_PATH/expect_$name.png $SCRIPT_PATH/diff_$name.png
     echo -e "\nFAILED"
-    return 1
+    exit 1
   fi
 }
 
