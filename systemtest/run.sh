@@ -1,5 +1,7 @@
 #!/bin/bash
 
+exit 1
+
 SCRIPT_PATH=$(dirname $(readlink -f $0))
 
 function run_test()
