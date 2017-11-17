@@ -16,7 +16,7 @@ function run_test()
   else
     compare $SCRIPT_PATH/actual_$name.png $SCRIPT_PATH/expect_$name.png $SCRIPT_PATH/diff_$name.png
     echo -e "\nFAILED"
-    exit 1
+    return 1
   fi
 }
 
