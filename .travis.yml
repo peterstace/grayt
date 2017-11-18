@@ -1,4 +1,8 @@
 language: go
+before_install:
+        - sudo add-apt-repository ppa:isage-dna/imagick
+        - sudo apt-get update
+        - sudo apt-get upgrade
 script:
         - go test -v ./...
         - ./systemtest/run.sh
