@@ -53,5 +53,6 @@ func (a *accumulator) toImage(exposure float64) image.Image {
 				toNRGBA())
 		}
 	}
+	img.Set(0, 0, Colour{}.toNRGBA())
 	return img
 }
