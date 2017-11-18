@@ -1,6 +1,6 @@
 language: go
 before_install:
-        - sudo add-apt-repository ppa:isage-dna/imagick
+        - sudo add-apt-repository ppa:isage-dna/imagick -y
         - sudo apt-get update
         - sudo apt-get upgrade
 script:
