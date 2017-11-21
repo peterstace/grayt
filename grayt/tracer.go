@@ -12,16 +12,20 @@ func TraceImage(pxWide int, scene Scene, quality, numWorkers int, completed *uin
 	cam := newCamera(scene.Camera)
 	accel := newGrid(4, scene.Objects)
 
-	finished := make(chan *accumulator)
-	accPool := make(chan *accumulator, numWorkers)
+	finished := make(chan *pixelGrid)
+	gridPool := make(chan *pixelGrid, numWorkers)
 	for i := 0; i < numWorkers; i++ {
-		accPool <- newAccumulator(pxWide, pxHigh)
+		gridPool <- &pixelGrid{
+			pixels: make([]Colour, pxWide*pxHigh),
+			wide:   pxWide,
+			high:   pxHigh,
+		}
 	}
 
 	go func() {
 		pxPitch := 2.0 / float64(pxWide)
 		for q := 0; q < quality; q++ {
-			go func(q int, acc *accumulator) {
+			go func(q int, grid *pixelGrid) {
 				tr := tracer{
 					accel: accel,
 					sky:   scene.Sky,
@@ -39,20 +43,26 @@ func TraceImage(pxWide int, scene Scene, quality, numWorkers int, completed *uin
 						} else {
 							c = tr.traceNormal(r)
 						}
-						acc.set(pxX, pxY, c)
+						grid.set(pxX, pxY, c)
 						atomic.AddUint64(completed, 1)
 					}
 				}
-				finished <- acc
-			}(q, <-accPool)
+				finished <- grid
+			}(q, <-gridPool)
 		}
 	}()
 
-	aggregate := newAccumulator(pxWide, pxHigh)
+	aggregate := &accumulator{
+		pixelGrid: pixelGrid{
+			pixels: make([]Colour, pxWide*pxHigh),
+			wide:   pxWide,
+			high:   pxHigh,
+		},
+	}
 	for q := 0; q < quality; q++ {
-		acc := <-finished
-		aggregate.merge(acc)
-		accPool <- acc
+		grid := <-finished
+		aggregate.merge(grid)
+		gridPool <- grid
 	}
 	return aggregate.toImage(1.0)
 }

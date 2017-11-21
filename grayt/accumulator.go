@@ -4,29 +4,27 @@ import (
 	"image"
 )
 
-type accumulator struct {
+type pixelGrid struct {
 	pixels []Colour
 	wide   int
 	high   int
 }
 
-func newAccumulator(wide, high int) *accumulator {
-	return &accumulator{
-		pixels: make([]Colour, wide*high),
-		wide:   wide,
-		high:   high,
-	}
+func (g *pixelGrid) set(x, y int, c Colour) {
+	i := y*g.wide + x
+	g.pixels[i] = c
 }
 
-func (a *accumulator) merge(other *accumulator) {
+type accumulator struct {
+	pixelGrid
+	count int
+}
+
+func (a *accumulator) merge(g *pixelGrid) {
+	a.count++
 	for i, c := range a.pixels {
-		a.pixels[i] = c.add(other.pixels[i])
+		a.pixels[i] = c.add(g.pixels[i])
 	}
-}
-
-func (a *accumulator) set(x, y int, c Colour) {
-	i := y*a.wide + x
-	a.pixels[i] = c
 }
 
 func (a *accumulator) mean() float64 {
