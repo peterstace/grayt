@@ -63,6 +63,7 @@ func TraceImage(pxWide int, scene Scene, quality, numWorkers int, completed *uin
 		grid := <-finished
 		aggregate.merge(grid)
 		gridPool <- grid
+		// TODO: Save checkpoint
 	}
 	return aggregate.toImage(1.0)
 }

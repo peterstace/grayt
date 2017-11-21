@@ -53,3 +53,13 @@ func (a *accumulator) toImage(exposure float64) image.Image {
 	}
 	return img
 }
+
+func (a *accumulator) load() error {
+	// TODO
+	return nil
+}
+
+func (a *accumulator) save() error {
+	// TODO
+	return nil
+}
