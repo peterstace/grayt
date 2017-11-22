@@ -1,7 +1,6 @@
 package grayt
 
 import (
-	"fmt"
 	"image"
 	"log"
 	"math"
@@ -10,7 +9,7 @@ import (
 	"time"
 )
 
-func TraceImage(pxWide int, scene Scene, quality, numWorkers int, completed *uint64) image.Image {
+func TraceImage(pxWide int, scene Scene, quality, numWorkers int, accum *accumulator, completed *uint64) image.Image {
 	pxHigh := scene.Camera.pxHigh(pxWide)
 	cam := newCamera(scene.Camera)
 	accel := newGrid(4, scene.Objects)
@@ -25,24 +24,9 @@ func TraceImage(pxWide int, scene Scene, quality, numWorkers int, completed *uin
 		}
 	}
 
-	aggregate := new(accumulator)
-	if ok, err := aggregate.load(); err != nil {
-		log.Fatal("could not load checkpoint:", err)
-	} else if ok {
-		if pxHigh*pxWide != len(aggregate.pixels) {
-			log.Fatalf("checkpoint size doesn't match settings: %v vs %v\n", pxHigh*pxWide, len(aggregate.pixels))
-		}
-		atomic.AddUint64(completed, uint64(aggregate.count*pxWide*pxHigh))
-		fmt.Println("Loaded:", aggregate.count)
-	} else {
-		aggregate.pixels = make([]Colour, pxWide*pxHigh)
-		aggregate.wide = pxWide
-		aggregate.high = pxHigh
-	}
-
 	go func() {
 		pxPitch := 2.0 / float64(pxWide)
-		for q := aggregate.count; q < quality; q++ {
+		for q := accum.count; q < quality; q++ {
 			go func(q int, grid *pixelGrid) {
 				tr := tracer{
 					accel: accel,
@@ -71,18 +55,18 @@ func TraceImage(pxWide int, scene Scene, quality, numWorkers int, completed *uin
 	}()
 
 	ticker := time.NewTicker(time.Second)
-	for q := aggregate.count; q < quality; q++ {
+	for q := accum.count; q < quality; q++ {
 		select {
 		case grid := <-finished:
-			aggregate.merge(grid)
+			accum.merge(grid)
 			gridPool <- grid
 		case <-ticker.C:
-			if err := aggregate.save(); err != nil {
+			if err := accum.save(); err != nil {
 				log.Fatal("could not save snapshot:", err)
 			}
 		}
 	}
-	return aggregate.toImage(1.0)
+	return accum.toImage(1.0)
 }
 
 type tracer struct {
