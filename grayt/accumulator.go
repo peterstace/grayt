@@ -1,7 +1,10 @@
 package grayt
 
 import (
+	"encoding/binary"
 	"image"
+	"io/ioutil"
+	"os"
 )
 
 type pixelGrid struct {
@@ -54,12 +57,42 @@ func (a *accumulator) toImage(exposure float64) image.Image {
 	return img
 }
 
-func (a *accumulator) load() error {
-	// TODO
-	return nil
+func (a *accumulator) load() (bool, error) {
+	f, err := os.Open("checkpoint")
+	if err != nil {
+		if _, ok := err.(*os.PathError); ok {
+			return false, nil
+		}
+		return false, err
+	}
+	defer f.Close()
+	var count int64
+	if err := binary.Read(f, binary.LittleEndian, &count); err != nil {
+		return false, err
+	}
+	a.count = int(count)
+	if err := binary.Read(f, binary.LittleEndian, &a.pixels); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (a *accumulator) save() error {
-	// TODO
-	return nil
+	f, err := ioutil.TempFile(".", "")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(f.Name())
+	if err := binary.Write(f, binary.LittleEndian, int64(a.count)); err != nil {
+		f.Close()
+		return err
+	}
+	if err := binary.Write(f, binary.LittleEndian, a.pixels); err != nil {
+		f.Close()
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+	return os.Rename(f.Name(), "checkpoint")
 }

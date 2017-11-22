@@ -1,10 +1,13 @@
 package grayt
 
 import (
+	"fmt"
 	"image"
+	"log"
 	"math"
 	"math/rand"
 	"sync/atomic"
+	"time"
 )
 
 func TraceImage(pxWide int, scene Scene, quality, numWorkers int, completed *uint64) image.Image {
@@ -22,9 +25,28 @@ func TraceImage(pxWide int, scene Scene, quality, numWorkers int, completed *uin
 		}
 	}
 
+	aggregate := new(accumulator)
+	aggregate.pixels = make([]Colour, pxWide*pxHigh)
+	if ok, err := aggregate.load(); err != nil {
+		log.Fatal("could not load checkpoint:", err)
+	} else if ok {
+		// TODO: This doesn't really work, since we allocate the dimensions of
+		// pixels ourselves rather than getting it from the file.
+		if pxHigh*pxWide != len(aggregate.pixels) {
+			log.Fatalf("checkpoint size doesn't match settings: %v vs %v\n", pxHigh*pxWide, len(aggregate.pixels))
+		}
+		aggregate.wide = pxWide
+		aggregate.high = pxHigh
+		atomic.AddUint64(completed, uint64(aggregate.count*pxWide*pxHigh))
+		fmt.Println("Loaded:", aggregate.count)
+	} else {
+		aggregate.wide = pxWide
+		aggregate.high = pxHigh
+	}
+
 	go func() {
 		pxPitch := 2.0 / float64(pxWide)
-		for q := 0; q < quality; q++ {
+		for q := aggregate.count; q < quality; q++ {
 			go func(q int, grid *pixelGrid) {
 				tr := tracer{
 					accel: accel,
@@ -52,18 +74,17 @@ func TraceImage(pxWide int, scene Scene, quality, numWorkers int, completed *uin
 		}
 	}()
 
-	aggregate := &accumulator{
-		pixelGrid: pixelGrid{
-			pixels: make([]Colour, pxWide*pxHigh),
-			wide:   pxWide,
-			high:   pxHigh,
-		},
-	}
-	for q := 0; q < quality; q++ {
-		grid := <-finished
-		aggregate.merge(grid)
-		gridPool <- grid
-		// TODO: Save checkpoint
+	ticker := time.NewTicker(time.Second)
+	for q := aggregate.count; q < quality; q++ {
+		select {
+		case grid := <-finished:
+			aggregate.merge(grid)
+			gridPool <- grid
+		case <-ticker.C:
+			if err := aggregate.save(); err != nil {
+				log.Fatal("could not save snapshot:", err)
+			}
+		}
 	}
 	return aggregate.toImage(1.0)
 }
