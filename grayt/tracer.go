@@ -26,20 +26,16 @@ func TraceImage(pxWide int, scene Scene, quality, numWorkers int, completed *uin
 	}
 
 	aggregate := new(accumulator)
-	aggregate.pixels = make([]Colour, pxWide*pxHigh)
 	if ok, err := aggregate.load(); err != nil {
 		log.Fatal("could not load checkpoint:", err)
 	} else if ok {
-		// TODO: This doesn't really work, since we allocate the dimensions of
-		// pixels ourselves rather than getting it from the file.
 		if pxHigh*pxWide != len(aggregate.pixels) {
 			log.Fatalf("checkpoint size doesn't match settings: %v vs %v\n", pxHigh*pxWide, len(aggregate.pixels))
 		}
-		aggregate.wide = pxWide
-		aggregate.high = pxHigh
 		atomic.AddUint64(completed, uint64(aggregate.count*pxWide*pxHigh))
 		fmt.Println("Loaded:", aggregate.count)
 	} else {
+		aggregate.pixels = make([]Colour, pxWide*pxHigh)
 		aggregate.wide = pxWide
 		aggregate.high = pxHigh
 	}

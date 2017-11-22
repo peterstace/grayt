@@ -2,15 +2,16 @@ package grayt
 
 import (
 	"encoding/binary"
+	"fmt"
 	"image"
 	"io/ioutil"
 	"os"
 )
 
 type pixelGrid struct {
-	pixels []Colour
 	wide   int
 	high   int
+	pixels []Colour
 }
 
 func (g *pixelGrid) set(x, y int, c Colour) {
@@ -19,8 +20,9 @@ func (g *pixelGrid) set(x, y int, c Colour) {
 }
 
 type accumulator struct {
-	pixelGrid
+	// TODO: Store hash as well so scenes don't get mixed up.
 	count int
+	pixelGrid
 }
 
 func (a *accumulator) merge(g *pixelGrid) {
@@ -66,11 +68,27 @@ func (a *accumulator) load() (bool, error) {
 		return false, err
 	}
 	defer f.Close()
+
 	var count int64
 	if err := binary.Read(f, binary.LittleEndian, &count); err != nil {
 		return false, err
 	}
 	a.count = int(count)
+
+	var wide int64
+	if err := binary.Read(f, binary.LittleEndian, &wide); err != nil {
+		return false, err
+	}
+	a.wide = int(wide)
+
+	var high int64
+	if err := binary.Read(f, binary.LittleEndian, &high); err != nil {
+		return false, err
+	}
+	a.high = int(high)
+
+	fmt.Println(wide, high)
+	a.pixels = make([]Colour, wide*high)
 	if err := binary.Read(f, binary.LittleEndian, &a.pixels); err != nil {
 		return false, err
 	}
@@ -84,6 +102,14 @@ func (a *accumulator) save() error {
 	}
 	defer os.Remove(f.Name())
 	if err := binary.Write(f, binary.LittleEndian, int64(a.count)); err != nil {
+		f.Close()
+		return err
+	}
+	if err := binary.Write(f, binary.LittleEndian, int64(a.wide)); err != nil {
+		f.Close()
+		return err
+	}
+	if err := binary.Write(f, binary.LittleEndian, int64(a.high)); err != nil {
 		f.Close()
 		return err
 	}
