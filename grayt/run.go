@@ -92,12 +92,13 @@ func initAccumulator(wide, high int) *accumulator {
 	accum := new(accumulator)
 	n := wide * high
 	if ok, err := accum.load(); err != nil {
-		log.Fatal("could not load checkpoint:", err)
+		log.Fatal("Could not load checkpoint:", err)
 	} else if ok {
-		if n != len(accum.pixels) {
-			log.Fatalf("checkpoint size doesn't match settings: %v vs %v\n", n, len(accum.pixels))
+		// TODO: Check checkpoint hash.
+		if accum.wide != wide || accum.high != high {
+			log.Fatalf("Checkpoint size doesn't match settings: checkpoint=%dx%d settings=%dx%d",
+				accum.wide, accum.high, wide, high)
 		}
-		fmt.Println("Loaded:", accum.count)
 	} else {
 		accum.pixels = make([]Colour, n)
 		accum.wide = wide
