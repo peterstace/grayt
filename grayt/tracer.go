@@ -55,11 +55,12 @@ func TraceImage(pxWide int, scene Scene, quality, numWorkers int, accum *accumul
 	}()
 
 	ticker := time.NewTicker(time.Second)
-	for q := accum.count; q < quality; q++ {
+	for q := accum.count; q < quality; {
 		select {
 		case grid := <-finished:
 			accum.merge(grid)
 			gridPool <- grid
+			q++
 		case <-ticker.C:
 			if err := accum.save(); err != nil {
 				log.Fatal("could not save snapshot:", err)
