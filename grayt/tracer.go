@@ -2,12 +2,14 @@ package grayt
 
 import (
 	"image"
+	"log"
 	"math"
 	"math/rand"
 	"sync/atomic"
+	"time"
 )
 
-func TraceImage(pxWide int, scene Scene, quality, numWorkers int, completed *uint64) image.Image {
+func TraceImage(pxWide int, scene Scene, quality, numWorkers int, accum *accumulator, completed *uint64) image.Image {
 	pxHigh := scene.Camera.pxHigh(pxWide)
 	cam := newCamera(scene.Camera)
 	accel := newGrid(4, scene.Objects)
@@ -24,7 +26,7 @@ func TraceImage(pxWide int, scene Scene, quality, numWorkers int, completed *uin
 
 	go func() {
 		pxPitch := 2.0 / float64(pxWide)
-		for q := 0; q < quality; q++ {
+		for q := accum.count; q < quality; q++ {
 			go func(q int, grid *pixelGrid) {
 				tr := tracer{
 					accel: accel,
@@ -52,19 +54,20 @@ func TraceImage(pxWide int, scene Scene, quality, numWorkers int, completed *uin
 		}
 	}()
 
-	aggregate := &accumulator{
-		pixelGrid: pixelGrid{
-			pixels: make([]Colour, pxWide*pxHigh),
-			wide:   pxWide,
-			high:   pxHigh,
-		},
+	ticker := time.NewTicker(10 * time.Minute)
+	for q := accum.count; q < quality; {
+		select {
+		case grid := <-finished:
+			accum.merge(grid)
+			gridPool <- grid
+			q++
+		case <-ticker.C:
+			if err := accum.save(); err != nil {
+				log.Fatal("could not save snapshot:", err)
+			}
+		}
 	}
-	for q := 0; q < quality; q++ {
-		grid := <-finished
-		aggregate.merge(grid)
-		gridPool <- grid
-	}
-	return aggregate.toImage(1.0)
+	return accum.toImage(1.0)
 }
 
 type tracer struct {

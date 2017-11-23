@@ -30,6 +30,8 @@ var (
 func Run(baseName string, scene Scene) {
 	flag.Parse()
 
+	fmt.Println(os.Args[0])
+
 	if *verbose {
 		fmt.Printf("Camera: %v\n", scene.Camera)
 		for i, o := range scene.Objects {
@@ -38,11 +40,11 @@ func Run(baseName string, scene Scene) {
 	}
 
 	pxHigh := scene.Camera.pxHigh(*pxWide)
-
+	accum := initAccumulator(*pxWide, pxHigh)
 	img := make(chan image.Image)
-	completed := new(uint64)
+	completed := uint64(accum.count * (*pxWide) * pxHigh)
 	go func() {
-		img <- TraceImage(*pxWide, scene, *quality, *numWorkers, completed)
+		img <- TraceImage(*pxWide, scene, *quality, *numWorkers, accum, &completed)
 	}()
 
 	total := *pxWide * pxHigh * *quality
@@ -51,7 +53,7 @@ func Run(baseName string, scene Scene) {
 	for {
 		select {
 		case <-time.After(updateInterval):
-			cli.update(int(atomic.LoadUint64(completed)))
+			cli.update(int(atomic.LoadUint64(&completed)))
 		case img := <-img:
 			cli.finished()
 			if *output == "" {
@@ -68,6 +70,7 @@ func Run(baseName string, scene Scene) {
 			if err != nil {
 				log.Fatal(err)
 			}
+			os.Remove("checkpoint") // Ignore error.
 			os.Exit(0)
 		}
 	}
@@ -86,4 +89,23 @@ func hashScene(s Scene) string {
 	)
 	enc.Close()
 	return buf.String()
+}
+
+func initAccumulator(wide, high int) *accumulator {
+	accum := new(accumulator)
+	n := wide * high
+	if ok, err := accum.load(); err != nil {
+		log.Fatal("Could not load checkpoint:", err)
+	} else if ok {
+		// TODO: Check other properties, such as appropriate flags and scene hash.
+		if accum.wide != wide || accum.high != high {
+			log.Fatalf("Checkpoint size doesn't match settings: checkpoint=%dx%d settings=%dx%d",
+				accum.wide, accum.high, wide, high)
+		}
+	} else {
+		accum.pixels = make([]Colour, n)
+		accum.wide = wide
+		accum.high = high
+	}
+	return accum
 }
