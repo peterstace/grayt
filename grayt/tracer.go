@@ -54,7 +54,7 @@ func TraceImage(pxWide int, scene Scene, quality, numWorkers int, accum *accumul
 		}
 	}()
 
-	ticker := time.NewTicker(time.Second)
+	ticker := time.NewTicker(10 * time.Minute)
 	for q := accum.count; q < quality; {
 		select {
 		case grid := <-finished:
