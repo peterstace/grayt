@@ -15,8 +15,9 @@ func scene() Scene {
 	c := Cam(1.3)
 	return Scene{
 		Camera: c.With(
-			LookingAt(Vect(0.5, initialBoxRadius, -0.5)),
+			LookingAt(Vect(0.5, initialBoxRadius.Y+0.03, -0.5)),
 			ScaleFieldOfView(0.5),
+			AspectRatioWidthAndHeight(1920, 1080),
 		),
 		Objects: Group(
 			Floor,
@@ -31,9 +32,10 @@ func scene() Scene {
 }
 
 const (
-	initialBoxRadius = 0.2
-	numMovements     = 30
+	numMovements = 50
 )
+
+var initialBoxRadius = Vect(0.22, 0.1, 0.1)
 
 type box struct {
 	min, max Vector
@@ -41,8 +43,8 @@ type box struct {
 
 func splitBox() ObjectList {
 
-	v1 := Vect(0.5-initialBoxRadius, 0, -0.5+initialBoxRadius)
-	v2 := Vect(0.5+initialBoxRadius, 2*initialBoxRadius, -0.5-initialBoxRadius)
+	v1 := Vect(0.5-initialBoxRadius.X, 0, -0.5+initialBoxRadius.Z)
+	v2 := Vect(0.5+initialBoxRadius.X, 2*initialBoxRadius.Y, -0.5-initialBoxRadius.Z)
 	v1, v2 = v1.Min(v2), v1.Max(v2)
 	boxes := []box{{v1, v2}}
 
@@ -103,7 +105,7 @@ func heightMovementLeftRight(x float64, amount float64, input box) []box {
 		return []box{input}
 	}
 	b1, b2 := splitLeftRight(x, input)
-	scale := amount / (2 * initialBoxRadius)
+	scale := amount / (2 * initialBoxRadius.Y)
 	b1.min.Y *= 1 + scale
 	b1.max.Y *= 1 + scale
 	b2.min.Y *= 1 - scale
@@ -116,7 +118,7 @@ func heightMovementFwdBack(z float64, amount float64, input box) []box {
 		return []box{input}
 	}
 	b1, b2 := splitFwdBack(z, input)
-	scale := amount / (2 * initialBoxRadius)
+	scale := amount / (2 * initialBoxRadius.Y)
 	b1.min.Y *= 1 + scale
 	b1.max.Y *= 1 + scale
 	b2.min.Y *= 1 - scale
