@@ -1,11 +1,11 @@
-package main
+package reflections
 
 import (
 	. "github.com/peterstace/grayt/examples/cornellbox"
 	. "github.com/peterstace/grayt/grayt"
 )
 
-func scene() Scene {
+func SceneFn() Scene {
 
 	const (
 		d = 1.3
@@ -66,8 +66,4 @@ func scene() Scene {
 			).With(Mirror()),
 		),
 	}
-}
-
-func main() {
-	Run("reflections", scene())
 }

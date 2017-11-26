@@ -6,7 +6,7 @@ import (
 )
 
 func assertUnit(v Vector) {
-	if !*debug {
+	if !Config.EnableAssertions {
 		return
 	}
 	n2 := v.LengthSq()
