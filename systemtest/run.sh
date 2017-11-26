@@ -28,7 +28,7 @@ function run_test()
 }
 
 set -e
-go install $SCRIPT_PATH/../cmd
+go install github.com/peterstace/grayt/cmd/grayt
 exit 0
 
 run_test "go run -race $SCRIPT_PATH/../examples/cornellbox/classic/main.go       -d -w 1024 -q 1"    "classic_single"
