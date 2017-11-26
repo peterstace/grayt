@@ -1,11 +1,11 @@
-package main
+package classic
 
 import (
 	. "github.com/peterstace/grayt/examples/cornellbox"
 	. "github.com/peterstace/grayt/grayt"
 )
 
-func scene() Scene {
+func SceneFn() Scene {
 	return Scene{
 		Camera: Cam(1.3),
 		Objects: Group(
@@ -19,8 +19,4 @@ func scene() Scene {
 			CeilingLight().With(Emittance(5.0)),
 		),
 	}
-}
-
-func main() {
-	Run("cornellbox_classic", scene())
 }

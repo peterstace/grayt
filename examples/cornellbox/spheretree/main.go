@@ -1,4 +1,4 @@
-package main
+package spheretree
 
 import (
 	"math/rand"
@@ -7,11 +7,7 @@ import (
 	. "github.com/peterstace/grayt/grayt"
 )
 
-func main() {
-	Run("sphere_tree", scene())
-}
-
-func scene() Scene {
+func SceneFn() Scene {
 	c := Cam(1.3)
 	return Scene{
 		Camera: c.With(

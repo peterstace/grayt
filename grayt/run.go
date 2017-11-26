@@ -4,50 +4,49 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/binary"
-	"flag"
 	"fmt"
 	"hash/crc64"
 	"image"
 	"image/png"
 	"log"
 	"os"
-	"runtime"
 	"sync/atomic"
 	"time"
 )
 
-var (
-	pxWide     = flag.Int("w", 640, "width in pixels")
-	quality    = flag.Int("q", 10, "quality (samples per pixel)")
-	verbose    = flag.Bool("v", false, "verbose model")
-	output     = flag.String("o", "", "output file override")
-	numWorkers = flag.Int("j", runtime.GOMAXPROCS(0), "number of worker goroutines")
-	debug      = flag.Bool("d", false, "debug mode (enable assertions)")
-	normals    = flag.Bool("n", false, "plot normals")
-)
+var scenes = map[string]func() Scene{}
+
+func Register(name string, fn func() Scene) {
+	scenes[name] = fn
+}
+
+func RunScene() error {
+	if fn, ok := scenes[Config.Scene]; ok {
+		Run(Config.Scene, fn())
+		return nil
+	} else {
+		return fmt.Errorf("could not find scene %q", Config.Scene)
+	}
+}
 
 // Run should be the single call made from main().
 func Run(baseName string, scene Scene) {
-	flag.Parse()
-
-	fmt.Println(os.Args[0])
-
-	if *verbose {
+	if Config.Verbose {
 		fmt.Printf("Camera: %v\n", scene.Camera)
 		for i, o := range scene.Objects {
 			fmt.Printf("Object %d:\n%v\n", i, o)
 		}
 	}
 
-	pxHigh := scene.Camera.pxHigh(*pxWide)
-	accum := initAccumulator(*pxWide, pxHigh)
+	pxHigh := scene.Camera.pxHigh(Config.PxWide)
+	accum := initAccumulator(Config.PxWide, pxHigh)
 	img := make(chan image.Image)
-	completed := uint64(accum.count * (*pxWide) * pxHigh)
+	completed := uint64(accum.count * (Config.PxWide) * pxHigh)
 	go func() {
-		img <- TraceImage(*pxWide, scene, *quality, *numWorkers, accum, &completed)
+		img <- TraceImage(Config.PxWide, scene, Config.Quality, Config.NumWorkers, accum, &completed)
 	}()
 
-	total := *pxWide * pxHigh * *quality
+	total := Config.PxWide * pxHigh * Config.Quality
 	cli := newCLI(total)
 
 	for {
@@ -56,12 +55,12 @@ func Run(baseName string, scene Scene) {
 			cli.update(int(atomic.LoadUint64(&completed)))
 		case img := <-img:
 			cli.finished()
-			if *output == "" {
-				*output = fmt.Sprintf("%s_%s_%s_%dx%d_q%d.png",
+			if Config.Output == "" {
+				Config.Output = fmt.Sprintf("%s_%s_%s_%dx%d_q%d.png",
 					time.Now().Format("20060102-150405"),
-					baseName, hashScene(scene), *pxWide, pxHigh, *quality)
+					baseName, hashScene(scene), Config.PxWide, pxHigh, Config.Quality)
 			}
-			outFile, err := os.Create(*output)
+			outFile, err := os.Create(Config.Output)
 			if err != nil {
 				log.Fatal(err)
 			}

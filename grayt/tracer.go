@@ -40,7 +40,7 @@ func TraceImage(pxWide int, scene Scene, quality, numWorkers int, accum *accumul
 						r := cam.makeRay(x, y, tr.rng)
 						r.dir = r.dir.Unit()
 						var c Colour
-						if !*normals {
+						if !Config.Normals {
 							c = tr.tracePath(r)
 						} else {
 							c = tr.traceNormal(r)

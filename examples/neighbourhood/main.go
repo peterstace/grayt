@@ -1,4 +1,4 @@
-package main
+package neighbourhood
 
 import (
 	"math/rand"
@@ -6,7 +6,7 @@ import (
 	. "github.com/peterstace/grayt/grayt"
 )
 
-func scene() Scene {
+func SceneFn() Scene {
 	platform := AlignedBox(
 		Vect(-3, -1, -6),
 		Vect(+1, 0, +2),
@@ -77,8 +77,4 @@ func points() []Vector {
 		})
 	}
 	return pp
-}
-
-func main() {
-	Run("neighbourhood", scene())
 }
