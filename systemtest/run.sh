@@ -6,11 +6,10 @@ function run_test()
 {
   cmd=$1
   name=$2
+  echo -e "\n *** $cmd $name ***"
 
-  echo -e "\n *** $name ***"
-
-  if ! $cmd -o $SCRIPT_PATH/actual_$name.png; then
-    echo -e "\nCOMPILE ERROR"
+  if ! $GOPATH/bin/grayt $cmd -o $SCRIPT_PATH/actual_$name.png; then
+    echo -e "\nERROR"
     return 1
   fi
 
@@ -29,11 +28,9 @@ function run_test()
 
 set -e
 go install github.com/peterstace/grayt/cmd/grayt
-exit 0
-
-run_test "go run -race $SCRIPT_PATH/../examples/cornellbox/classic/main.go       -d -w 1024 -q 1"    "classic_single"
-run_test "go run       $SCRIPT_PATH/../examples/cornellbox/classic/main.go       -d -w 128  -q 1000" "classic"
-run_test "go run       $SCRIPT_PATH/../examples/cornellbox/spheretree/main.go    -d -w 256  -q 1"    "sphere_tree_single"
-run_test "go run       $SCRIPT_PATH/../examples/cornellbox/spheretree/main.go    -d -w 256  -q 100"  "sphere_tree"
-run_test "go run       $SCRIPT_PATH/../examples/cornellbox/splitbox/main.go      -d -w 128  -q 50"   "split_box"
-run_test "go run       $SCRIPT_PATH/../examples/cornellbox/reflections/main.go   -d -w 64   -q 1000" "reflection"
+run_test "-s cornellbox_classic     -d -w 1024 -q 1    " "classic_single"
+run_test "-s cornellbox_classic     -d -w 128  -q 1000 " "classic"
+run_test "-s spheretree             -d -w 256  -q 1    " "sphere_tree_single"
+run_test "-s spheretree             -d -w 256  -q 100  " "sphere_tree"
+run_test "-s splitbox               -d -w 128  -q 50   " "split_box"
+run_test "-s cornellbox_reflections -d -w 64   -q 1000 " "reflection"
