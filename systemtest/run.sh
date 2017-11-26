@@ -28,6 +28,9 @@ function run_test()
 }
 
 set -e
+go install $SCRIPT_PATH/../cmd
+exit 0
+
 run_test "go run -race $SCRIPT_PATH/../examples/cornellbox/classic/main.go       -d -w 1024 -q 1"    "classic_single"
 run_test "go run       $SCRIPT_PATH/../examples/cornellbox/classic/main.go       -d -w 128  -q 1000" "classic"
 run_test "go run       $SCRIPT_PATH/../examples/cornellbox/spheretree/main.go    -d -w 256  -q 1"    "sphere_tree_single"
