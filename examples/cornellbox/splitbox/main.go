@@ -32,7 +32,7 @@ func scene() Scene {
 }
 
 const (
-	numMovements = 50
+	numMovements = 100
 )
 
 var initialBoxRadius = Vect(0.22, 0.1, 0.1)
