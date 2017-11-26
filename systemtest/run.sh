@@ -11,7 +11,7 @@ function run_test()
 
   if ! $cmd -o $SCRIPT_PATH/actual_$name.png; then
     echo -e "\nCOMPILE ERROR"
-    return 0
+    return 1
   fi
 
   cmp_output=$(compare -metric rmse $SCRIPT_PATH/actual_$name.png $SCRIPT_PATH/expect_$name.png null: 2>&1)
