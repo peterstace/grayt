@@ -10,10 +10,10 @@ import (
 )
 
 func ListenAndServe(addr string) error {
-	mux := http.NewServeMux()
 	s := new(server)
-	mux.HandleFunc("/", s.handleHome)
-	mux.HandleFunc("/status", s.handleStatus)
+
+	http.HandleFunc("/", s.handleHome)
+	http.HandleFunc("/status", s.handleStatus)
 
 	// Run scene in background. TODO Eventually this will be trigged using
 	// a /start endpoint.
@@ -24,7 +24,7 @@ func ListenAndServe(addr string) error {
 		os.Exit(0)
 	}()
 
-	return http.ListenAndServe(addr, mux)
+	return http.ListenAndServe(addr, nil)
 }
 
 type server struct {
