@@ -2,6 +2,7 @@ package grayt
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
@@ -32,7 +33,17 @@ type server struct {
 }
 
 func (s *server) handleHome(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "hello world")
+	f, err := os.Open("assets/index.html")
+	if err != nil {
+		fmt.Fprintf(w, "%v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer f.Close()
+	if _, err := io.Copy(w, f); err != nil {
+		fmt.Fprintf(w, "%v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 func (s *server) handleStatus(w http.ResponseWriter, r *http.Request) {
