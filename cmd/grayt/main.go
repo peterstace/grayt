@@ -5,8 +5,6 @@ import (
 	"log"
 	"runtime"
 
-	_ "net/http/pprof"
-
 	"github.com/peterstace/grayt/examples/cornellbox/classic"
 	"github.com/peterstace/grayt/examples/cornellbox/reflections"
 	"github.com/peterstace/grayt/examples/cornellbox/spheretree"
