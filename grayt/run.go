@@ -20,17 +20,16 @@ func Register(name string, fn func() Scene) {
 	scenes[name] = fn
 }
 
-func RunScene() error {
+func RunScene(completed *uint64) error {
 	if fn, ok := scenes[Config.Scene]; ok {
-		Run(Config.Scene, fn())
+		Run(Config.Scene, fn(), completed)
 		return nil
 	} else {
 		return fmt.Errorf("could not find scene %q", Config.Scene)
 	}
 }
 
-// Run should be the single call made from main().
-func Run(baseName string, scene Scene) {
+func Run(baseName string, scene Scene, completed *uint64) {
 	if Config.Verbose {
 		fmt.Printf("Camera: %v\n", scene.Camera)
 		for i, o := range scene.Objects {
@@ -41,9 +40,9 @@ func Run(baseName string, scene Scene) {
 	pxHigh := scene.Camera.pxHigh(Config.PxWide)
 	accum := initAccumulator(Config.PxWide, pxHigh)
 	img := make(chan image.Image)
-	completed := uint64(accum.count * (Config.PxWide) * pxHigh)
+	atomic.AddUint64(completed, uint64(accum.count*(Config.PxWide)*pxHigh))
 	go func() {
-		img <- TraceImage(Config.PxWide, scene, Config.Quality, Config.NumWorkers, accum, &completed)
+		img <- TraceImage(Config.PxWide, scene, Config.Quality, Config.NumWorkers, accum, completed)
 	}()
 
 	total := Config.PxWide * pxHigh * Config.Quality
@@ -52,7 +51,7 @@ func Run(baseName string, scene Scene) {
 	for {
 		select {
 		case <-time.After(updateInterval):
-			cli.update(int(atomic.LoadUint64(&completed)))
+			cli.update(int(atomic.LoadUint64(completed)))
 		case img := <-img:
 			cli.finished()
 			if Config.Output == "" {

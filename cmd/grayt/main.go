@@ -5,6 +5,8 @@ import (
 	"log"
 	"runtime"
 
+	_ "net/http/pprof"
+
 	"github.com/peterstace/grayt/examples/cornellbox/classic"
 	"github.com/peterstace/grayt/examples/cornellbox/reflections"
 	"github.com/peterstace/grayt/examples/cornellbox/spheretree"
@@ -22,6 +24,7 @@ var (
 	debug      = flag.Bool("d", false, "debug mode (enable assertions)")
 	normals    = flag.Bool("n", false, "plot normals")
 	scene      = flag.String("s", "", "scene to render")
+	httpAddr   = flag.String("h", ":8080", "http address to listen on")
 )
 
 func main() {
@@ -41,7 +44,7 @@ func main() {
 	grayt.Register("splitbox", splitbox.SceneFn)
 	grayt.Register("neighbourhood", neighbourhood.SceneFn)
 
-	if err := grayt.RunScene(); err != nil {
+	if err := grayt.ListenAndServe(*httpAddr); err != nil {
 		log.Fatal(err)
 	}
 }
