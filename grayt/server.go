@@ -2,7 +2,6 @@ package grayt
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
@@ -13,7 +12,7 @@ import (
 func ListenAndServe(addr string) error {
 	s := new(server)
 
-	http.HandleFunc("/", s.handleHome)
+	http.Handle("/", http.FileServer(http.Dir("assets")))
 	http.HandleFunc("/status", s.handleStatus)
 
 	// Run scene in background. TODO Eventually this will be trigged using
@@ -33,17 +32,7 @@ type server struct {
 }
 
 func (s *server) handleHome(w http.ResponseWriter, r *http.Request) {
-	f, err := os.Open("assets/index.html")
-	if err != nil {
-		fmt.Fprintf(w, "%v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	defer f.Close()
-	if _, err := io.Copy(w, f); err != nil {
-		fmt.Fprintf(w, "%v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	http.ServeFile(w, r, "assets/index.html")
 }
 
 func (s *server) handleStatus(w http.ResponseWriter, r *http.Request) {
