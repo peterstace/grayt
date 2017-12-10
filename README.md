@@ -21,10 +21,6 @@ Go RAY Tracer
 
 ## Gallery
 
-### Cornell Box
-
-![Cornell Box](/gallery/out_q100000.png)
-
 ### Split Box
 
 ![Split Box](/gallery/splitbox[KQRdZO3e8KI]_1024x1024_q100000.png)
@@ -32,3 +28,8 @@ Go RAY Tracer
 ### Sphere Tree
 
 ![Sphere Tree](/gallery/sphere_tree[T35GCh3Lpj4]_1024x512_q100000.png)
+
+### Cornell Box
+
+![Cornell Box](/gallery/out_q100000.png)
+
