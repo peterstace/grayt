@@ -9,7 +9,18 @@ import (
 	"time"
 )
 
-func TraceImage(pxWide int, scene Scene, quality, numWorkers int, accum *accumulator, completed *uint64) image.Image {
+type render struct {
+	completed uint64
+
+	// Static configuration.
+	// TODO: Should ensure that these are not modified once the render is started.
+	PxWide     int
+	Quality    int
+	NumWorkers int
+	Scene      string
+}
+
+func (r *render) traceImage(pxWide int, scene Scene, quality, numWorkers int, accum *accumulator) image.Image {
 	pxHigh := scene.Camera.pxHigh(pxWide)
 	cam := newCamera(scene.Camera)
 	accel := newGrid(4, scene.Objects)
@@ -37,16 +48,11 @@ func TraceImage(pxWide int, scene Scene, quality, numWorkers int, accum *accumul
 					for pxX := 0; pxX < pxWide; pxX++ {
 						x := (float64(pxX-pxWide/2) + tr.rng.Float64()) * pxPitch
 						y := (float64(pxY-pxHigh/2) + tr.rng.Float64()) * pxPitch * -1.0
-						r := cam.makeRay(x, y, tr.rng)
-						r.dir = r.dir.Unit()
-						var c Colour
-						if !Config.Normals {
-							c = tr.tracePath(r)
-						} else {
-							c = tr.traceNormal(r)
-						}
+						cr := cam.makeRay(x, y, tr.rng)
+						cr.dir = cr.dir.Unit()
+						c := tr.tracePath(cr)
 						grid.set(pxX, pxY, c)
-						atomic.AddUint64(completed, 1)
+						atomic.AddUint64(&r.completed, 1)
 					}
 				}
 				finished <- grid
@@ -129,13 +135,4 @@ func (t *tracer) tracePath(r ray) Colour {
 			scale(brdf / (1 - pEmit)).
 			mul(material.colour)
 	}
-}
-
-func (t *tracer) traceNormal(r ray) Colour {
-	intersection, _, hit := t.accel.closestHit(r)
-	if !hit {
-		return Colour{}
-	}
-	norm := intersection.unitNormal.Add(Vect(1, 1, 1)).Scale(0.5)
-	return Colour{norm.X, norm.Y, norm.Z}
 }

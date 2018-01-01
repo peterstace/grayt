@@ -5,8 +5,10 @@ import (
 	db "runtime/debug"
 )
 
+const enableAssertions = true
+
 func assertUnit(v Vector) {
-	if !Config.EnableAssertions {
+	if !enableAssertions {
 		return
 	}
 	n2 := v.LengthSq()

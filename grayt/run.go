@@ -1,25 +1,12 @@
 package grayt
 
-import (
-	"bytes"
-	"encoding/base64"
-	"encoding/binary"
-	"fmt"
-	"hash/crc64"
-	"image"
-	"image/png"
-	"log"
-	"os"
-	"sync/atomic"
-	"time"
-)
-
 var scenes = map[string]func() Scene{}
 
 func Register(name string, fn func() Scene) {
 	scenes[name] = fn
 }
 
+/*
 func RunScene(completed *uint64) error {
 	if fn, ok := scenes[Config.Scene]; ok {
 		Run(Config.Scene, fn(), completed)
@@ -107,3 +94,4 @@ func initAccumulator(wide, high int) *accumulator {
 	}
 	return accum
 }
+*/
