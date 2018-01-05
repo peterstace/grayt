@@ -18,6 +18,8 @@ type render struct {
 	Quality    int
 	NumWorkers int
 	Scene      string
+
+	UUID string
 }
 
 func (r *render) traceImage(pxWide int, scene Scene, quality, numWorkers int, accum *accumulator) image.Image {

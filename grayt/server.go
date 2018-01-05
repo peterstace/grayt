@@ -25,22 +25,27 @@ func ListenAndServe(addr string) error {
 	GET   /renders/{uuid}/image       - Creates an image.
 */
 
+func writeError(w http.ResponseWriter, status int) {
+	http.Error(w, http.StatusText(status), status)
+}
+
 func handlePostRendersCollection(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %q\n", r.Method, r.URL.Path)
 
 	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
+		writeError(w, http.StatusMethodNotAllowed)
 		return
 	}
 
+	uuid := fmt.Sprintf("%d", time.Now().UnixNano())
 	rn := &render{
 		completed:  0,
 		PxWide:     320,
 		Quality:    10,
 		NumWorkers: 0,  // Rendering starts when this is set greater than 0.
 		Scene:      "", // Must be set, no default.
+		UUID:       uuid,
 	}
-	uuid := fmt.Sprintf("%d", time.Now().UnixNano())
 	fmt.Fprintf(w, `{"uuid":%q}`, uuid)
 
 	http.HandleFunc("/renders/"+uuid, rn.handleGetAll)
@@ -52,34 +57,39 @@ func handlePostRendersCollection(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rn *render) handleGetAll(w http.ResponseWriter, r *http.Request) {
-	// TODO
+	fmt.Fprintf(w, `{"uuid":%q}`, rn.UUID)
+	// TODO: Add other properties to the response.
 }
+
 func (rn *render) handleGetImage(w http.ResponseWriter, r *http.Request) {
 	// TODO
 	// Will need to stop the tracer, then get the image?
 }
+
 func (rn *render) handlePutPxWide(w http.ResponseWriter, r *http.Request) {
 	// TODO
 }
+
 func (rn *render) handlePutQuality(w http.ResponseWriter, r *http.Request) {
 	buf, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		writeError(w, http.StatusInternalServerError)
 		return
 	}
 	q, err := strconv.Atoi(string(buf))
 	if err != nil {
-		fmt.Fprintf(w, "%v", err)
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// TODO: Some kind of locking around this?
 	rn.Quality = q
 }
+
 func (rn *render) handlePutNumWorkers(w http.ResponseWriter, r *http.Request) {
 	// TODO
 }
+
 func (rn *render) handlePutScene(w http.ResponseWriter, r *http.Request) {
 	// TODO
 }
