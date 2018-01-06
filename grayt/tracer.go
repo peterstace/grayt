@@ -2,7 +2,6 @@ package grayt
 
 import (
 	"context"
-	"fmt"
 	"math"
 	"math/rand"
 	"sync/atomic"
@@ -20,8 +19,6 @@ type render struct {
 }
 
 func (r *render) traceImage(ctx context.Context) {
-	fmt.Printf("%p\n", &r.scene.Camera)
-	fmt.Printf("%+v\n", r.scene.Camera)
 	pxHigh := r.scene.Camera.pxHigh(r.pxWide)
 	cam := newCamera(r.scene.Camera)
 	accel := newGrid(4, r.scene.Objects)

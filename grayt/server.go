@@ -29,12 +29,13 @@ func ListenAndServe(addr string) error {
 	GET   /renders/{uuid}/image       - Creates an image.
 */
 
-// TODO: Rename?
 type resource struct {
 	sync.Mutex
-	uuid string
-	render
+	uuid   string
+	render *render
 	cancel func() // set to nil if the render isn't running
+
+	sceneFunc func() Scene
 }
 
 func writeError(w http.ResponseWriter, status int) {
@@ -114,15 +115,12 @@ func (rsrc *resource) handlePutScene(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sceneFn, ok := scenes[string(buf)]
+	sceneName := string(buf)
+	var ok bool
+	rsrc.sceneFunc, ok = scenes[sceneName]
 	if !ok {
 		http.Error(w, fmt.Sprintf("scene %q not found", string(buf)), http.StatusBadRequest)
-		return
 	}
-
-	rsrc.scene = sceneFn() // TODO: This function could take some time...
-	fmt.Printf("%p\n", &rsrc.scene.Camera)
-	fmt.Printf("%+v\n", rsrc.scene.Camera)
 }
 
 func (rsrc *resource) handlePutRunning(w http.ResponseWriter, r *http.Request) {
@@ -154,17 +152,23 @@ func (rsrc *resource) handlePutRunning(w http.ResponseWriter, r *http.Request) {
 	if !b {
 		rsrc.cancel()
 		rsrc.cancel = nil
-	} else {
-		const pxWide = 320
-		rsrc.render.pxWide = pxWide
-		rsrc.render.numWorkers = 1
-		high := pxWide * rsrc.scene.Camera.aspectHigh / rsrc.scene.Camera.aspectWide
-		rsrc.render.accum = newAccumulator(pxWide, high)
-
-		var ctx context.Context
-		ctx, rsrc.cancel = context.WithCancel(context.Background())
-		go func() {
-			rsrc.render.traceImage(ctx)
-		}()
+		return
 	}
+
+	if rsrc.render == nil {
+		scene := rsrc.sceneFunc() // TODO: This could take some time to run.
+		const pxWide = 320
+		pxHigh := pxWide * scene.Camera.aspectHigh / scene.Camera.aspectWide
+		rsrc.render = &render{
+			pxWide:     pxWide,
+			numWorkers: 1,
+			scene:      scene,
+			accum:      newAccumulator(pxWide, pxHigh),
+		}
+	}
+	var ctx context.Context
+	ctx, rsrc.cancel = context.WithCancel(context.Background())
+	go func() {
+		rsrc.render.traceImage(ctx)
+	}()
 }
