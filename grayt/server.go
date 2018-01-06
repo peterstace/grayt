@@ -11,6 +11,7 @@ import (
 	_ "net/http/pprof"
 	"strconv"
 	"sync"
+	"sync/atomic"
 )
 
 func ListenAndServe(addr string) error {
@@ -36,6 +37,7 @@ type resource struct {
 	cancel func() // set to nil if the render isn't running
 
 	sceneFunc func() Scene
+	sceneName string
 }
 
 func writeError(w http.ResponseWriter, status int) {
@@ -84,8 +86,26 @@ func (rsrc *resource) handleGetAll(w http.ResponseWriter, r *http.Request) {
 	rsrc.Lock()
 	defer rsrc.Unlock()
 
-	fmt.Fprintf(w, `{"uuid":%q}`, rsrc.uuid)
-	// TODO: Add other properties to the response.
+	var completed uint64
+	if rsrc.render != nil {
+		completed = atomic.LoadUint64(&rsrc.render.completed)
+	}
+
+	props := struct {
+		UUID      string `json:"uuid"`
+		Running   bool   `json:"running"`
+		Scene     string `json:"sceen"`
+		Completed uint64 `json:"completed"`
+	}{
+		rsrc.uuid,
+		rsrc.render != nil,
+		rsrc.sceneName,
+		completed,
+	}
+
+	if err := json.NewEncoder(w).Encode(props); err != nil {
+		internalError(w, err)
+	}
 }
 
 func (rsrc *resource) handleGetImage(w http.ResponseWriter, r *http.Request) {
@@ -116,11 +136,13 @@ func (rsrc *resource) handlePutScene(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sceneName := string(buf)
-	var ok bool
-	rsrc.sceneFunc, ok = scenes[sceneName]
+	sceneFunc, ok := scenes[sceneName]
 	if !ok {
 		http.Error(w, fmt.Sprintf("scene %q not found", string(buf)), http.StatusBadRequest)
+		return
 	}
+	rsrc.sceneFunc = sceneFunc
+	rsrc.sceneName = sceneName
 }
 
 func (rsrc *resource) handlePutRunning(w http.ResponseWriter, r *http.Request) {
