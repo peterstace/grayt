@@ -1,11 +1,8 @@
 package grayt
 
 import (
-	"encoding/binary"
-	"fmt"
 	"image"
-	"io/ioutil"
-	"os"
+	"sync"
 )
 
 type pixelGrid struct {
@@ -20,30 +17,36 @@ func (g *pixelGrid) set(x, y int, c Colour) {
 }
 
 type accumulator struct {
-	// TODO: Store hash as well so scenes don't get mixed up.
+	sync.Mutex
 	count int
 	pixelGrid
 }
 
+func newAccumulator(pxWide, pxHigh int) *accumulator {
+	acc := new(accumulator)
+	acc.wide = pxWide
+	acc.high = pxHigh
+	acc.pixels = make([]Colour, pxWide*pxHigh)
+	return acc
+}
+
 func (a *accumulator) merge(g *pixelGrid) {
+	a.Lock()
+	defer a.Unlock()
+
 	a.count++
 	for i, c := range a.pixels {
 		a.pixels[i] = c.add(g.pixels[i])
 	}
 }
 
-func (a *accumulator) mean() float64 {
-	var sum float64
-	for _, c := range a.pixels {
-		sum += c.R + c.G + c.B
-	}
-	return sum / float64(len(a.pixels)) / 3.0
-}
-
-// ToImage converts the accumulator into an image. Exposure controls how bright
+// toImage converts the accumulator into an image. Exposure controls how bright
 // the arithmetic mean brightness in the image is. A value of 1.0 results in a
 // mean brightness half way between black and white.
 func (a *accumulator) toImage(exposure float64) image.Image {
+	a.Lock()
+	defer a.Unlock()
+
 	const gamma = 2.2
 	mean := a.mean()
 	img := image.NewNRGBA(image.Rect(0, 0, a.wide, a.high))
@@ -59,6 +62,15 @@ func (a *accumulator) toImage(exposure float64) image.Image {
 	return img
 }
 
+func (a *accumulator) mean() float64 {
+	var sum float64
+	for _, c := range a.pixels {
+		sum += c.R + c.G + c.B
+	}
+	return sum / float64(len(a.pixels)) / 3.0
+}
+
+/*
 func (a *accumulator) load() (bool, error) {
 	f, err := os.Open("checkpoint")
 	if err != nil {
@@ -122,3 +134,4 @@ func (a *accumulator) save() error {
 	}
 	return os.Rename(f.Name(), "checkpoint")
 }
+*/

@@ -1,16 +1,16 @@
 package grayt
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"image"
 	"image/png"
 	"io/ioutil"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
 	"strconv"
-	"time"
+	"sync"
 )
 
 func ListenAndServe(addr string) error {
@@ -31,9 +31,10 @@ func ListenAndServe(addr string) error {
 
 // TODO: Rename?
 type resource struct {
+	sync.Mutex
 	uuid string
 	render
-	img image.Image
+	cancel func() // set to nil if the render isn't running
 }
 
 func writeError(w http.ResponseWriter, status int) {
@@ -54,6 +55,8 @@ func handleGetScenesCollection(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+var lastUUID int
+
 func handlePostRendersCollection(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %q\n", r.Method, r.URL.Path)
 
@@ -62,16 +65,12 @@ func handlePostRendersCollection(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uuid := fmt.Sprintf("%d", time.Now().UnixNano())
-	rsrc := &resource{
-		uuid: uuid,
-		render: render{
-			completed:  0,
-			pxWide:     320,
-			quality:    10,
-			numWorkers: 1,
-		},
-	}
+	//uuid := fmt.Sprintf("%d", time.Now().UnixNano())
+	lastUUID++
+	uuid := fmt.Sprintf("%d", lastUUID)
+
+	rsrc := &resource{uuid: uuid}
+
 	fmt.Fprintf(w, `{"uuid":%q}`, uuid)
 
 	http.HandleFunc("/renders/"+uuid, rsrc.handleGetAll)
@@ -81,17 +80,29 @@ func handlePostRendersCollection(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rsrc *resource) handleGetAll(w http.ResponseWriter, r *http.Request) {
+	rsrc.Lock()
+	defer rsrc.Unlock()
+
 	fmt.Fprintf(w, `{"uuid":%q}`, rsrc.uuid)
 	// TODO: Add other properties to the response.
 }
 
 func (rsrc *resource) handleGetImage(w http.ResponseWriter, r *http.Request) {
-	if err := png.Encode(w, rsrc.img); err != nil {
+	rsrc.Lock()
+	defer rsrc.Unlock()
+
+	img := rsrc.render.accum.toImage(1.0)
+	if err := png.Encode(w, img); err != nil {
 		internalError(w, err)
+		return
 	}
+
 }
 
 func (rsrc *resource) handlePutScene(w http.ResponseWriter, r *http.Request) {
+	rsrc.Lock()
+	defer rsrc.Unlock()
+
 	if r.Method != http.MethodPut {
 		writeError(w, http.StatusMethodNotAllowed)
 		return
@@ -110,9 +121,14 @@ func (rsrc *resource) handlePutScene(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rsrc.scene = sceneFn() // TODO: This function could take some time...
+	fmt.Printf("%p\n", &rsrc.scene.Camera)
+	fmt.Printf("%+v\n", rsrc.scene.Camera)
 }
 
 func (rsrc *resource) handlePutRunning(w http.ResponseWriter, r *http.Request) {
+	rsrc.Lock()
+	defer rsrc.Unlock()
+
 	if r.Method != http.MethodPut {
 		writeError(w, http.StatusMethodNotAllowed)
 		return
@@ -130,17 +146,25 @@ func (rsrc *resource) handlePutRunning(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Handle starting and stopping properly.
-	if b {
-		go func() {
-			acc := new(accumulator)
-			pxHigh := rsrc.pxWide * rsrc.scene.Camera.aspectHigh / rsrc.scene.Camera.aspectWide
-			n := rsrc.pxWide * pxHigh
-			acc.pixels = make([]Colour, n)
-			acc.wide = rsrc.pxWide
-			acc.high = pxHigh
+	if (rsrc.cancel != nil) == b {
+		// Already in the correct state.
+		return
+	}
 
-			rsrc.img = rsrc.render.traceImage(acc)
+	if !b {
+		rsrc.cancel()
+		rsrc.cancel = nil
+	} else {
+		const pxWide = 320
+		rsrc.render.pxWide = pxWide
+		rsrc.render.numWorkers = 1
+		high := pxWide * rsrc.scene.Camera.aspectHigh / rsrc.scene.Camera.aspectWide
+		rsrc.render.accum = newAccumulator(pxWide, high)
+
+		var ctx context.Context
+		ctx, rsrc.cancel = context.WithCancel(context.Background())
+		go func() {
+			rsrc.render.traceImage(ctx)
 		}()
 	}
 }

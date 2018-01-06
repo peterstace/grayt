@@ -1,12 +1,11 @@
 package grayt
 
 import (
-	"image"
-	"log"
+	"context"
+	"fmt"
 	"math"
 	"math/rand"
 	"sync/atomic"
-	"time"
 )
 
 type render struct {
@@ -15,12 +14,14 @@ type render struct {
 	// Static configuration.
 	// TODO: Should ensure that these are not modified once the render is started.
 	pxWide     int
-	quality    int
 	numWorkers int
 	scene      Scene
+	accum      *accumulator
 }
 
-func (r *render) traceImage(accum *accumulator) image.Image {
+func (r *render) traceImage(ctx context.Context) {
+	fmt.Printf("%p\n", &r.scene.Camera)
+	fmt.Printf("%+v\n", r.scene.Camera)
 	pxHigh := r.scene.Camera.pxHigh(r.pxWide)
 	cam := newCamera(r.scene.Camera)
 	accel := newGrid(4, r.scene.Objects)
@@ -35,14 +36,20 @@ func (r *render) traceImage(accum *accumulator) image.Image {
 		}
 	}
 
+	// Launch workers.
 	go func() {
 		pxPitch := 2.0 / float64(r.pxWide)
-		for q := accum.count; q < r.quality; q++ {
-			go func(q int, grid *pixelGrid) {
+		for i := 0; true; i++ {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+			go func(i int, grid *pixelGrid) {
 				tr := tracer{
 					accel: accel,
 					sky:   r.scene.Sky,
-					rng:   rand.New(rand.NewSource(int64(q))),
+					rng:   rand.New(rand.NewSource(int64(i))),
 				}
 				for pxY := 0; pxY < pxHigh; pxY++ {
 					for pxX := 0; pxX < r.pxWide; pxX++ {
@@ -56,24 +63,30 @@ func (r *render) traceImage(accum *accumulator) image.Image {
 					}
 				}
 				finished <- grid
-			}(q, <-gridPool)
+			}(i, <-gridPool)
 		}
 	}()
 
-	ticker := time.NewTicker(10 * time.Minute)
-	for q := accum.count; q < r.quality; {
+	// Coordination point for merging worker results.
+	doneCount := 0
+	for doneCount < r.numWorkers {
 		select {
+		case <-ctx.Done():
+			select {
+			case <-gridPool:
+			case <-finished:
+			}
+			doneCount++
 		case grid := <-finished:
-			accum.merge(grid)
-			gridPool <- grid
-			q++
-		case <-ticker.C:
-			if err := accum.save(); err != nil {
-				log.Fatal("could not save snapshot:", err)
+			select {
+			case <-ctx.Done():
+				doneCount++
+			default:
+				r.accum.merge(grid)
+				gridPool <- grid
 			}
 		}
 	}
-	return accum.toImage(1.0)
 }
 
 type tracer struct {
