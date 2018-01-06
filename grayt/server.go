@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"image"
 	"image/png"
 	"io/ioutil"
 	"log"
@@ -12,15 +13,25 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 func ListenAndServe(addr string) error {
 	http.Handle("/", http.FileServer(http.Dir("assets")))
-	http.HandleFunc("/scenes", handleGetScenesCollection)
-	http.HandleFunc("/renders", handlePostRendersCollection)
+	http.HandleFunc("/scenes", middleware(handleGetScenesCollection))
+	http.HandleFunc("/renders", middleware(handlePostRendersCollection))
 
 	log.Printf("Listening for HTTP on %v", addr)
 	return http.ListenAndServe(addr, nil)
+}
+
+func middleware(fn http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		log.Printf(`info="handling request" method=%q path=%q`, r.Method, r.URL.Path)
+		fn(w, r)
+		log.Printf(`info="finished" duration=%q`, time.Since(start))
+	}
 }
 
 /*
@@ -61,14 +72,13 @@ func handleGetScenesCollection(w http.ResponseWriter, r *http.Request) {
 var lastUUID int
 
 func handlePostRendersCollection(w http.ResponseWriter, r *http.Request) {
-	log.Printf("%s %q\n", r.Method, r.URL.Path)
-
 	if r.Method != http.MethodPost {
 		writeError(w, http.StatusMethodNotAllowed)
 		return
 	}
 
-	//uuid := fmt.Sprintf("%d", time.Now().UnixNano())
+	// TODO: Switch to proper UUIDs once the UI is up and running (while using
+	// cURL for interaction, deterministic UUIDs are nice).
 	lastUUID++
 	uuid := fmt.Sprintf("%d", lastUUID)
 
@@ -76,10 +86,10 @@ func handlePostRendersCollection(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprintf(w, `{"uuid":%q}`, uuid)
 
-	http.HandleFunc("/renders/"+uuid, rsrc.handleGetAll)
-	http.HandleFunc("/renders/"+uuid+"/image", rsrc.handleGetImage)
-	http.HandleFunc("/renders/"+uuid+"/scene", rsrc.handlePutScene)
-	http.HandleFunc("/renders/"+uuid+"/running", rsrc.handlePutRunning)
+	http.HandleFunc("/renders/"+uuid, middleware(rsrc.handleGetAll))
+	http.HandleFunc("/renders/"+uuid+"/image", middleware(rsrc.handleGetImage))
+	http.HandleFunc("/renders/"+uuid+"/scene", middleware(rsrc.handlePutScene))
+	http.HandleFunc("/renders/"+uuid+"/running", middleware(rsrc.handlePutRunning))
 }
 
 func (rsrc *resource) handleGetAll(w http.ResponseWriter, r *http.Request) {
@@ -111,6 +121,14 @@ func (rsrc *resource) handleGetAll(w http.ResponseWriter, r *http.Request) {
 func (rsrc *resource) handleGetImage(w http.ResponseWriter, r *http.Request) {
 	rsrc.Lock()
 	defer rsrc.Unlock()
+
+	if rsrc.render == nil {
+		img := image.NewGray(image.Rect(0, 0, 320, 240))
+		if err := png.Encode(w, img); err != nil {
+			internalError(w, err)
+		}
+		return
+	}
 
 	img := rsrc.render.accum.toImage(1.0)
 	if err := png.Encode(w, img); err != nil {
