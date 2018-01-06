@@ -14,41 +14,39 @@ type render struct {
 
 	// Static configuration.
 	// TODO: Should ensure that these are not modified once the render is started.
-	PxWide     int
-	Quality    int
-	NumWorkers int
-	Scene      string
-
-	UUID string
+	pxWide     int
+	quality    int
+	numWorkers int
+	scene      Scene
 }
 
-func (r *render) traceImage(pxWide int, scene Scene, quality, numWorkers int, accum *accumulator) image.Image {
-	pxHigh := scene.Camera.pxHigh(pxWide)
-	cam := newCamera(scene.Camera)
-	accel := newGrid(4, scene.Objects)
+func (r *render) traceImage(accum *accumulator) image.Image {
+	pxHigh := r.scene.Camera.pxHigh(r.pxWide)
+	cam := newCamera(r.scene.Camera)
+	accel := newGrid(4, r.scene.Objects)
 
 	finished := make(chan *pixelGrid)
-	gridPool := make(chan *pixelGrid, numWorkers)
-	for i := 0; i < numWorkers; i++ {
+	gridPool := make(chan *pixelGrid, r.numWorkers)
+	for i := 0; i < r.numWorkers; i++ {
 		gridPool <- &pixelGrid{
-			pixels: make([]Colour, pxWide*pxHigh),
-			wide:   pxWide,
+			pixels: make([]Colour, r.pxWide*pxHigh),
+			wide:   r.pxWide,
 			high:   pxHigh,
 		}
 	}
 
 	go func() {
-		pxPitch := 2.0 / float64(pxWide)
-		for q := accum.count; q < quality; q++ {
+		pxPitch := 2.0 / float64(r.pxWide)
+		for q := accum.count; q < r.quality; q++ {
 			go func(q int, grid *pixelGrid) {
 				tr := tracer{
 					accel: accel,
-					sky:   scene.Sky,
+					sky:   r.scene.Sky,
 					rng:   rand.New(rand.NewSource(int64(q))),
 				}
 				for pxY := 0; pxY < pxHigh; pxY++ {
-					for pxX := 0; pxX < pxWide; pxX++ {
-						x := (float64(pxX-pxWide/2) + tr.rng.Float64()) * pxPitch
+					for pxX := 0; pxX < r.pxWide; pxX++ {
+						x := (float64(pxX-r.pxWide/2) + tr.rng.Float64()) * pxPitch
 						y := (float64(pxY-pxHigh/2) + tr.rng.Float64()) * pxPitch * -1.0
 						cr := cam.makeRay(x, y, tr.rng)
 						cr.dir = cr.dir.Unit()
@@ -63,7 +61,7 @@ func (r *render) traceImage(pxWide int, scene Scene, quality, numWorkers int, ac
 	}()
 
 	ticker := time.NewTicker(10 * time.Minute)
-	for q := accum.count; q < quality; {
+	for q := accum.count; q < r.quality; {
 		select {
 		case grid := <-finished:
 			accum.merge(grid)

@@ -1,5 +1,7 @@
 package grayt
 
+// TODO: It's not so nice that this is a global... Are there better ways to do this?
+
 var scenes = map[string]func() Scene{}
 
 func Register(name string, fn func() Scene) {

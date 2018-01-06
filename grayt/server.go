@@ -1,7 +1,10 @@
 package grayt
 
 import (
+	"encoding/json"
 	"fmt"
+	"image"
+	"image/png"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -12,6 +15,7 @@ import (
 
 func ListenAndServe(addr string) error {
 	http.Handle("/", http.FileServer(http.Dir("assets")))
+	http.HandleFunc("/scenes", handleGetScenesCollection)
 	http.HandleFunc("/renders", handlePostRendersCollection)
 
 	log.Printf("Listening for HTTP on %v", addr)
@@ -25,8 +29,29 @@ func ListenAndServe(addr string) error {
 	GET   /renders/{uuid}/image       - Creates an image.
 */
 
+// TODO: Rename?
+type resource struct {
+	uuid string
+	render
+	img image.Image
+}
+
 func writeError(w http.ResponseWriter, status int) {
 	http.Error(w, http.StatusText(status), status)
+}
+
+func internalError(w http.ResponseWriter, err error) {
+	http.Error(w, err.Error(), http.StatusInternalServerError)
+}
+
+func handleGetScenesCollection(w http.ResponseWriter, r *http.Request) {
+	var ss []string
+	for s := range scenes {
+		ss = append(ss, s)
+	}
+	if err := json.NewEncoder(w).Encode(ss); err != nil {
+		internalError(w, err)
+	}
 }
 
 func handlePostRendersCollection(w http.ResponseWriter, r *http.Request) {
@@ -38,58 +63,84 @@ func handlePostRendersCollection(w http.ResponseWriter, r *http.Request) {
 	}
 
 	uuid := fmt.Sprintf("%d", time.Now().UnixNano())
-	rn := &render{
-		completed:  0,
-		PxWide:     320,
-		Quality:    10,
-		NumWorkers: 0,  // Rendering starts when this is set greater than 0.
-		Scene:      "", // Must be set, no default.
-		UUID:       uuid,
+	rsrc := &resource{
+		uuid: uuid,
+		render: render{
+			completed:  0,
+			pxWide:     320,
+			quality:    10,
+			numWorkers: 1,
+		},
 	}
 	fmt.Fprintf(w, `{"uuid":%q}`, uuid)
 
-	http.HandleFunc("/renders/"+uuid, rn.handleGetAll)
-	http.HandleFunc("/renders/"+uuid+"/image", rn.handleGetImage)
-	http.HandleFunc("/renders/"+uuid+"/px_wide", rn.handlePutPxWide)
-	http.HandleFunc("/renders/"+uuid+"/quality", rn.handlePutQuality)
-	http.HandleFunc("/renders/"+uuid+"/num_workers", rn.handlePutNumWorkers)
-	http.HandleFunc("/renders/"+uuid+"/scene", rn.handlePutScene)
+	http.HandleFunc("/renders/"+uuid, rsrc.handleGetAll)
+	http.HandleFunc("/renders/"+uuid+"/image", rsrc.handleGetImage)
+	http.HandleFunc("/renders/"+uuid+"/scene", rsrc.handlePutScene)
+	http.HandleFunc("/renders/"+uuid+"/running", rsrc.handlePutRunning)
 }
 
-func (rn *render) handleGetAll(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, `{"uuid":%q}`, rn.UUID)
+func (rsrc *resource) handleGetAll(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, `{"uuid":%q}`, rsrc.uuid)
 	// TODO: Add other properties to the response.
 }
 
-func (rn *render) handleGetImage(w http.ResponseWriter, r *http.Request) {
-	// TODO
-	// Will need to stop the tracer, then get the image?
+func (rsrc *resource) handleGetImage(w http.ResponseWriter, r *http.Request) {
+	if err := png.Encode(w, rsrc.img); err != nil {
+		internalError(w, err)
+	}
 }
 
-func (rn *render) handlePutPxWide(w http.ResponseWriter, r *http.Request) {
-	// TODO
-}
-
-func (rn *render) handlePutQuality(w http.ResponseWriter, r *http.Request) {
-	buf, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError)
+func (rsrc *resource) handlePutScene(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		writeError(w, http.StatusMethodNotAllowed)
 		return
 	}
-	q, err := strconv.Atoi(string(buf))
+
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		internalError(w, err)
+		return
+	}
+
+	sceneFn, ok := scenes[string(buf)]
+	if !ok {
+		http.Error(w, fmt.Sprintf("scene %q not found", string(buf)), http.StatusBadRequest)
+		return
+	}
+
+	rsrc.scene = sceneFn() // TODO: This function could take some time...
+}
+
+func (rsrc *resource) handlePutRunning(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		writeError(w, http.StatusMethodNotAllowed)
+		return
+	}
+
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		internalError(w, err)
+		return
+	}
+
+	b, err := strconv.ParseBool(string(buf))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// TODO: Some kind of locking around this?
-	rn.Quality = q
-}
+	// TODO: Handle starting and stopping properly.
+	if b {
+		go func() {
+			acc := new(accumulator)
+			pxHigh := rsrc.pxWide * rsrc.scene.Camera.aspectHigh / rsrc.scene.Camera.aspectWide
+			n := rsrc.pxWide * pxHigh
+			acc.pixels = make([]Colour, n)
+			acc.wide = rsrc.pxWide
+			acc.high = pxHigh
 
-func (rn *render) handlePutNumWorkers(w http.ResponseWriter, r *http.Request) {
-	// TODO
-}
-
-func (rn *render) handlePutScene(w http.ResponseWriter, r *http.Request) {
-	// TODO
+			rsrc.img = rsrc.render.traceImage(acc)
+		}()
+	}
 }
