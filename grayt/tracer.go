@@ -9,6 +9,7 @@ import (
 
 type render struct {
 	completed uint64
+	passes    uint64
 
 	// Static configuration.
 	// TODO: Should ensure that these are not modified once the render is started.
@@ -80,6 +81,7 @@ func (r *render) traceImage(ctx context.Context) {
 				doneCount++
 			default:
 				r.accum.merge(grid)
+				atomic.AddUint64(&r.passes, 1)
 				gridPool <- grid
 			}
 		}

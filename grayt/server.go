@@ -96,9 +96,10 @@ func (rsrc *resource) handleGetAll(w http.ResponseWriter, r *http.Request) {
 	rsrc.Lock()
 	defer rsrc.Unlock()
 
-	var completed uint64
+	var completed, passes uint64
 	if rsrc.render != nil {
 		completed = atomic.LoadUint64(&rsrc.render.completed)
+		passes = atomic.LoadUint64(&rsrc.render.passes)
 	}
 
 	props := struct {
@@ -106,11 +107,13 @@ func (rsrc *resource) handleGetAll(w http.ResponseWriter, r *http.Request) {
 		Running   bool   `json:"running"`
 		Scene     string `json:"sceen"`
 		Completed uint64 `json:"completed"`
+		Passes    uint64 `json:"passes"`
 	}{
 		rsrc.uuid,
 		rsrc.render != nil,
 		rsrc.sceneName,
 		completed,
+		passes,
 	}
 
 	if err := json.NewEncoder(w).Encode(props); err != nil {
