@@ -105,7 +105,7 @@ func (rsrc *resource) handleGetAll(w http.ResponseWriter, r *http.Request) {
 	props := struct {
 		UUID      string `json:"uuid"`
 		Running   bool   `json:"running"`
-		Scene     string `json:"sceen"`
+		Scene     string `json:"scene"`
 		Completed uint64 `json:"completed"`
 		Passes    uint64 `json:"passes"`
 	}{
