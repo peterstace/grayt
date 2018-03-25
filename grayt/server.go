@@ -21,7 +21,7 @@ import (
 func ListenAndServe(addr string) error {
 	http.Handle("/", http.FileServer(http.Dir("assets")))
 	http.HandleFunc("/scenes", middleware(handleGetScenesCollection))
-	http.HandleFunc("/renders", middleware(handlePostRendersCollection))
+	http.HandleFunc("/renders", middleware(handleRendersCollection))
 
 	log.Printf("Listening for HTTP on %v", addr)
 	return http.ListenAndServe(addr, nil)
@@ -38,6 +38,7 @@ func middleware(fn http.HandlerFunc) http.HandlerFunc {
 
 /*
 	POST  /renders                    - Adds a new render resource, not started, with default settings.
+	GET   /renders                    - Gets a list of all existing render UUIDs.
 	GET   /renders/{uuid}             - Gets all information about the render resource.
 	PUT   /renders/{uuid}/scene       - Sets the scene property of the render resource.
 	PUT   /renders/{uuid}/running     - Sets the runnig property of the render resource.
@@ -72,22 +73,26 @@ func handleGetScenesCollection(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handlePostRendersCollection(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
+var idList []uuid.UUID = []uuid.UUID{} // TODO: Don't be a global.
+
+func handleRendersCollection(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPost:
+		id := uuid.Must(uuid.NewV4())
+		rsrc := &resource{uuid: id}
+		fmt.Fprintf(w, `{"uuid":%q}`, id)
+		http.HandleFunc("/renders/"+id.String(), middleware(rsrc.handleGetAll))
+		http.HandleFunc("/renders/"+id.String()+"/image", middleware(rsrc.handleGetImage))
+		http.HandleFunc("/renders/"+id.String()+"/scene", middleware(rsrc.handlePutScene))
+		http.HandleFunc("/renders/"+id.String()+"/running", middleware(rsrc.handlePutRunning))
+	case http.MethodGet:
+		if err := json.NewEncoder(w).Encode(idList); err != nil {
+			internalError(w, err)
+		}
+	default:
 		writeError(w, http.StatusMethodNotAllowed)
-		return
 	}
 
-	id := uuid.Must(uuid.NewV4())
-
-	rsrc := &resource{uuid: id}
-
-	fmt.Fprintf(w, `{"uuid":%q}`, id)
-
-	http.HandleFunc("/renders/"+id.String(), middleware(rsrc.handleGetAll))
-	http.HandleFunc("/renders/"+id.String()+"/image", middleware(rsrc.handleGetImage))
-	http.HandleFunc("/renders/"+id.String()+"/scene", middleware(rsrc.handlePutScene))
-	http.HandleFunc("/renders/"+id.String()+"/running", middleware(rsrc.handlePutRunning))
 }
 
 func (rsrc *resource) handleGetAll(w http.ResponseWriter, r *http.Request) {
