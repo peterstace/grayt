@@ -39,7 +39,8 @@ func middleware(fn http.HandlerFunc) http.HandlerFunc {
 /*
 	POST  /renders                    - Adds a new render resource, not started, with default settings.
 	GET   /renders/{uuid}             - Gets all information about the render resource.
-	PUT   /renders/{uuid}/{property}  - Sets property of the render.
+	PUT   /renders/{uuid}/scene       - Sets the scene property of the render resource.
+	PUT   /renders/{uuid}/running     - Sets the runnig property of the render resource.
 	GET   /renders/{uuid}/image       - Creates an image.
 */
 
