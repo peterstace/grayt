@@ -14,6 +14,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 func ListenAndServe(addr string) error {
@@ -43,7 +45,7 @@ func middleware(fn http.HandlerFunc) http.HandlerFunc {
 
 type resource struct {
 	sync.Mutex
-	uuid   string
+	uuid   uuid.UUID
 	render *render
 	cancel func() // set to nil if the render isn't running
 
@@ -69,27 +71,22 @@ func handleGetScenesCollection(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-var lastUUID int
-
 func handlePostRendersCollection(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeError(w, http.StatusMethodNotAllowed)
 		return
 	}
 
-	// TODO: Switch to proper UUIDs once the UI is up and running (while using
-	// cURL for interaction, deterministic UUIDs are nice).
-	lastUUID++
-	uuid := fmt.Sprintf("%d", lastUUID)
+	id := uuid.Must(uuid.NewV4())
 
-	rsrc := &resource{uuid: uuid}
+	rsrc := &resource{uuid: id}
 
-	fmt.Fprintf(w, `{"uuid":%q}`, uuid)
+	fmt.Fprintf(w, `{"uuid":%q}`, id)
 
-	http.HandleFunc("/renders/"+uuid, middleware(rsrc.handleGetAll))
-	http.HandleFunc("/renders/"+uuid+"/image", middleware(rsrc.handleGetImage))
-	http.HandleFunc("/renders/"+uuid+"/scene", middleware(rsrc.handlePutScene))
-	http.HandleFunc("/renders/"+uuid+"/running", middleware(rsrc.handlePutRunning))
+	http.HandleFunc("/renders/"+id.String(), middleware(rsrc.handleGetAll))
+	http.HandleFunc("/renders/"+id.String()+"/image", middleware(rsrc.handleGetImage))
+	http.HandleFunc("/renders/"+id.String()+"/scene", middleware(rsrc.handlePutScene))
+	http.HandleFunc("/renders/"+id.String()+"/running", middleware(rsrc.handlePutRunning))
 }
 
 func (rsrc *resource) handleGetAll(w http.ResponseWriter, r *http.Request) {
@@ -103,11 +100,11 @@ func (rsrc *resource) handleGetAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	props := struct {
-		UUID      string `json:"uuid"`
-		Running   bool   `json:"running"`
-		Scene     string `json:"scene"`
-		Completed uint64 `json:"completed"`
-		Passes    uint64 `json:"passes"`
+		ID        uuid.UUID `json:"uuid"`
+		Running   bool      `json:"running"`
+		Scene     string    `json:"scene"`
+		Completed uint64    `json:"completed"`
+		Passes    uint64    `json:"passes"`
 	}{
 		rsrc.uuid,
 		rsrc.render != nil,
