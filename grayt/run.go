@@ -2,11 +2,11 @@ package grayt
 
 // TODO: It's not so nice that this is a global... Are there better ways to do this?
 
-var scenes = map[string]func() Scene{}
+//var scenes = map[string]func() Scene{}
 
-func Register(name string, fn func() Scene) {
-	scenes[name] = fn
-}
+//func Register(name string, fn func() Scene) {
+//scenes[name] = fn
+//}
 
 /*
 func RunScene(completed *uint64) error {

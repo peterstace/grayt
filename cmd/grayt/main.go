@@ -16,13 +16,15 @@ func main() {
 	httpAddr := flag.String("h", ":8080", "http address to listen on")
 	flag.Parse()
 
-	grayt.Register("cornellbox_classic", classic.SceneFn)
-	grayt.Register("cornellbox_reflections", reflections.SceneFn)
-	grayt.Register("spheretree", spheretree.SceneFn)
-	grayt.Register("splitbox", splitbox.SceneFn)
-	grayt.Register("neighbourhood", neighbourhood.SceneFn)
+	s := grayt.NewServer()
 
-	if err := grayt.ListenAndServe(*httpAddr); err != nil {
+	s.Register("cornellbox_classic", classic.SceneFn)
+	s.Register("cornellbox_reflections", reflections.SceneFn)
+	s.Register("spheretree", spheretree.SceneFn)
+	s.Register("splitbox", splitbox.SceneFn)
+	s.Register("neighbourhood", neighbourhood.SceneFn)
+
+	if err := s.ListenAndServe(*httpAddr); err != nil {
 		log.Fatal(err)
 	}
 }

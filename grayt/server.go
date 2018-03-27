@@ -18,13 +18,29 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-func ListenAndServe(addr string) error {
+type Server struct {
+	scenes map[string]func() Scene
+	idList []uuid.UUID
+}
+
+func NewServer() *Server {
+	return &Server{
+		scenes: map[string]func() Scene{},
+		idList: []uuid.UUID{}, // Get's serialised to JSON, so important it's not nil.
+	}
+}
+
+func (s *Server) ListenAndServe(addr string) error {
 	http.Handle("/", http.FileServer(http.Dir("assets")))
-	http.HandleFunc("/scenes", middleware(handleGetScenesCollection))
-	http.HandleFunc("/renders", middleware(handleRendersCollection))
+	http.HandleFunc("/scenes", middleware(s.handleGetScenesCollection))
+	http.HandleFunc("/renders", middleware(s.handleRendersCollection))
 
 	log.Printf("Listening for HTTP on %v", addr)
 	return http.ListenAndServe(addr, nil)
+}
+
+func (s *Server) Register(name string, fn func() Scene) {
+	s.scenes[name] = fn
 }
 
 func middleware(fn http.HandlerFunc) http.HandlerFunc {
@@ -53,6 +69,8 @@ type resource struct {
 
 	sceneFunc func() Scene
 	sceneName string
+
+	s *Server // TODO: This feels like a hack.
 }
 
 func writeError(w http.ResponseWriter, status int) {
@@ -63,9 +81,9 @@ func internalError(w http.ResponseWriter, err error) {
 	http.Error(w, err.Error(), http.StatusInternalServerError)
 }
 
-func handleGetScenesCollection(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleGetScenesCollection(w http.ResponseWriter, r *http.Request) {
 	var ss []string
-	for s := range scenes {
+	for s := range s.scenes {
 		ss = append(ss, s)
 	}
 	if err := json.NewEncoder(w).Encode(ss); err != nil {
@@ -73,21 +91,19 @@ func handleGetScenesCollection(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-var idList []uuid.UUID = []uuid.UUID{} // TODO: Don't be a global.
-
-func handleRendersCollection(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
 		id := uuid.Must(uuid.NewV4())
-		idList = append(idList, id)
-		rsrc := &resource{uuid: id}
+		s.idList = append(s.idList, id)
+		rsrc := &resource{uuid: id, s: s}
 		fmt.Fprintf(w, `{"uuid":%q}`, id)
 		http.HandleFunc("/renders/"+id.String(), middleware(rsrc.handleGetAll))
 		http.HandleFunc("/renders/"+id.String()+"/image", middleware(rsrc.handleGetImage))
 		http.HandleFunc("/renders/"+id.String()+"/scene", middleware(rsrc.handlePutScene))
 		http.HandleFunc("/renders/"+id.String()+"/running", middleware(rsrc.handlePutRunning))
 	case http.MethodGet:
-		if err := json.NewEncoder(w).Encode(idList); err != nil {
+		if err := json.NewEncoder(w).Encode(s.idList); err != nil {
 			internalError(w, err)
 		}
 	default:
@@ -161,7 +177,7 @@ func (rsrc *resource) handlePutScene(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sceneName := string(buf)
-	sceneFunc, ok := scenes[sceneName]
+	sceneFunc, ok := rsrc.s.scenes[sceneName]
 	if !ok {
 		http.Error(w, fmt.Sprintf("scene %q not found", string(buf)), http.StatusBadRequest)
 		return
