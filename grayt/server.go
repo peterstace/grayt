@@ -79,6 +79,7 @@ func handleRendersCollection(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
 		id := uuid.Must(uuid.NewV4())
+		idList = append(idList, id)
 		rsrc := &resource{uuid: id}
 		fmt.Fprintf(w, `{"uuid":%q}`, id)
 		http.HandleFunc("/renders/"+id.String(), middleware(rsrc.handleGetAll))
