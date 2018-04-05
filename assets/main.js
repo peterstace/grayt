@@ -11,6 +11,20 @@ function updateResourceList() {
   var request = new XMLHttpRequest();
   request.open('GET', 'http://localhost:6060/renders');
   request.onload = function () {
+
+    var mainWin = document.getElementById("main-window");
+    mainWin.innerHTML = '';
+    if (activeUuid != '') {
+      mainWin.innerHTML += '<input id="input-scene-name" type="text"/>';
+      mainWin.innerHTML += '<button id="post-scene-name">POST Scene Name</button>';
+      document.getElementById("post-scene-name").addEventListener("click", function() {
+        // TODO: Send a post
+        //var addr = 'localhost:6060/renders/' + activeUuid + '/scene'
+        //alert(document.getElementById("input-scene-name").value);
+        //alert(addr);
+      });
+    }
+
     var data = JSON.parse(this.response);
     document.getElementById("resource-header").innerHTML = "Resources (" + data.length + ")";
     var resourceList = document.getElementById("resource-list");
