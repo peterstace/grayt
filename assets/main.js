@@ -17,12 +17,18 @@ function updateResourceList() {
     resourceList.innerHTML = "";
     for (var i = 0; i < data.length; i++) {
       if (data[i] == activeUuid) {
-        resourceList.innerHTML += '<li>Selected: ' + data[i] + "</li>"; // TODO: Use a CSS class and highlight.
+        resourceList.innerHTML += '<li class="selected">' + data[i] + "</li>";
       } else {
         resourceList.innerHTML += "<li>" + data[i] + "</li>";
       }
     }
-    // TODO: Add an event to select the UUID.
+    var listItems = resourceList.childNodes;
+    for (var i = 0; i < listItems.length; i++) {
+      listItems[i].addEventListener("click", function() {
+        activeUuid = this.innerHTML;
+        updateResourceList();
+      })
+    }
   }
   request.send();
 }
