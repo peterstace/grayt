@@ -36,7 +36,10 @@ function updateResourceList() {
         request.send('true');
       });
 
-       document.getElementById('img').setAttribute('src', 'http://localhost:6060/renders/' + activeUuid + '/image');
+      document.getElementById('img').setAttribute('src', 'http://localhost:6060/renders/' + activeUuid + '/image');
+      document.getElementById('img-refresh').addEventListener("click", function() {
+        document.getElementById('img').setAttribute('src', 'http://localhost:6060/renders/' + activeUuid + '/image?random' + new Date().getTime());
+      });
     };
 
     let data = JSON.parse(this.response);
