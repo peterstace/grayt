@@ -53,6 +53,7 @@ func middleware(fn http.HandlerFunc) http.HandlerFunc {
 }
 
 /*
+	GET   /scenes                     - Gets a list of all available scenes.
 	POST  /renders                    - Adds a new render resource, not started, with default settings.
 	GET   /renders                    - Gets a list of all existing render UUIDs.
 	GET   /renders/{uuid}             - Gets all information about the render resource.
@@ -82,11 +83,14 @@ func internalError(w http.ResponseWriter, err error) {
 }
 
 func (s *Server) handleGetScenesCollection(w http.ResponseWriter, r *http.Request) {
-	var ss []string
-	for s := range s.scenes {
-		ss = append(ss, s)
+	type scene struct {
+		Code string `json:"code"`
 	}
-	if err := json.NewEncoder(w).Encode(ss); err != nil {
+	var scenes []scene
+	for s := range s.scenes {
+		scenes = append(scenes, scene{Code: s})
+	}
+	if err := json.NewEncoder(w).Encode(scenes); err != nil {
 		internalError(w, err)
 	}
 }
