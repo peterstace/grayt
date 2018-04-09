@@ -7,20 +7,20 @@
   </head>
   <body>
     <div><img id="img-render"/></div>
-    <div id="main-window">
-      <ul id="main-list">
-        <li>
-          <button id="put-scene-name">PUT Scene Name</button>
-          <input id="input-scene-name" type="text"/>
-        </li>
-        <li>
-          <button id="put-running">PUT Running</button>
-        </li>
-      </ul>
+    <hr/>
+    <div id="new-resource">
+      Scene selection:
+      <select id="scene-selection">
+      </select>
+      <br/>
+      <button id="add-resource">Add Resource</button>
     </div>
-    <button id="new-resource-button">New Resource</button>
-    <h1 id="resource-header">Resources (0)</h1>
-    <ul id="resource-list"></ul>
+    <hr/>
+    <div>
+      <span id="resources"></span>
+      <br/>
+      <ul id="resource-list"></ul>
+    </div>
     <script src="main.js"></script>
   </body>
 </html>

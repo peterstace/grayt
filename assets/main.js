@@ -1,51 +1,67 @@
 var activeUuid = '';
 
-document.getElementById("new-resource-button").addEventListener("click", function() {
-  let request = new XMLHttpRequest();
-  request.open('POST', 'http://localhost:6060/renders');
-  request.onload = updateResourceList;
-  request.send();
-});
+function populateSceneSelector() {
+  let xhr = new XMLHttpRequest();
+  xhr.open('GET', 'http://localhost:6060/scenes');
+  xhr.onload = function () {
+    let data = JSON.parse(this.response);
+    let inner = '';
+    for (let i = 0; i < data.length; i++) {
+      inner += '<option value="' + data[i].code + '">' + data[i].code + '</option>';
+    }
+    document.getElementById('scene-selection').innerHTML = inner;
+  }
+  xhr.send();
+}
+
+populateSceneSelector();
+
+function handleAddResource() {
+  let xhr1 = new XMLHttpRequest();
+  xhr1.open('POST', 'http://localhost:6060/renders');
+  xhr1.onload = function() {
+    let data = JSON.parse(this.response);
+    activeUuid = data.uuid;
+    updateResourceList();
+
+    let xhr2 = new XMLHttpRequest();
+    xhr2.open('PUT', 'http://localhost:6060/renders/' + activeUuid + '/scene');
+    xhr2.onload = function() {
+      // TODO
+    }
+    xhr2.send(document.getElementById('scene-selection').value);
+
+    let xhr3 = new XMLHttpRequest();
+    xhr3.open('PUT', 'http://localhost:6060/renders/' + activeUuid + '/running');
+    xhr3.onload = function() {
+      // TODO
+    }
+    xhr3.send('true');
+  }
+  xhr1.send();
+}
+
+document.getElementById("add-resource").addEventListener("click", handleAddResource)
+
+function updateImage() {
+  let imgRender = document.getElementById('img-render');
+  imgRender.setAttribute('src', 'http://localhost:6060/renders/' + activeUuid + '/image');
+  imgRender.addEventListener("click", function() {
+    let url = 'http://localhost:6060/renders/' + activeUuid + '/image?random' + new Date().getTime();
+    imgRender.setAttribute('src', url);
+  });
+}
+
+document.getElementById('img-render').addEventListener("click", updateImage);
 
 function updateResourceList() {
-  let request = new XMLHttpRequest();
-  request.open('GET', 'http://localhost:6060/renders');
-  request.onload = function () {
-
-    // TODO: Remove event handlers.
-    // TODO: Gray out inputs and buttons if nothing active.
-    if (activeUuid != '') {
-
-      document.getElementById("put-scene-name").addEventListener("click", function() {
-        let request = new XMLHttpRequest();
-        let url  = 'http://localhost:6060/renders/' + activeUuid + '/scene';
-        request.open('PUT', url);
-        request.onload = function() {
-          alert('Status: ' + this.status + '\nResponse: ' + this.response);
-        };
-        request.send(document.getElementById('input-scene-name').value);
-      });
-      
-      document.getElementById('put-running').addEventListener("click", function() {
-        let request = new XMLHttpRequest();
-        let url  = 'http://localhost:6060/renders/' + activeUuid + '/running';
-        request.open('PUT', url);
-        request.onload = function() {
-          alert('Response: ' + this.response);
-        };
-        request.send('true');
-      });
-
-      document.getElementById('img-render').setAttribute('src', 'http://localhost:6060/renders/' + activeUuid + '/image');
-      document.getElementById('img-render').addEventListener("click", function() {
-        document.getElementById('img-render').setAttribute('src', 'http://localhost:6060/renders/' + activeUuid + '/image?random' + new Date().getTime());
-      });
-    };
-
+  let xhr = new XMLHttpRequest();
+  xhr.open('GET', 'http://localhost:6060/renders');
+  xhr.onload = function () {
     let data = JSON.parse(this.response);
-    document.getElementById("resource-header").innerHTML = "Resources (" + data.length + ")";
-    let resourceList = document.getElementById("resource-list");
-    resourceList.innerHTML = "";
+    document.getElementById('resources').innerHTML = "Resources (" + data.length + "):";
+    let resourceList = document.getElementById('resource-list');
+    resourceList.innerHTML = '';
     for (let i = 0; i < data.length; i++) {
       if (data[i] == activeUuid) {
         resourceList.innerHTML += '<li class="selected">' + data[i] + "</li>";
@@ -60,8 +76,11 @@ function updateResourceList() {
         updateResourceList();
       })
     }
+    if (activeUuid != '') {
+      updateImage();
+    }
   }
-  request.send();
+  xhr.send();
 }
 
 updateResourceList();
