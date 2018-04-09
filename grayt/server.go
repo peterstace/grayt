@@ -157,12 +157,14 @@ func (rsrc *resource) handleGetImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Disable caching, since this image will update often.
+	w.Header().Set("Cache-Control", "no-cache")
+
 	img := rsrc.render.accum.toImage(1.0)
 	if err := png.Encode(w, img); err != nil {
 		internalError(w, err)
 		return
 	}
-
 }
 
 func (rsrc *resource) handlePutScene(w http.ResponseWriter, r *http.Request) {
@@ -223,6 +225,7 @@ func (rsrc *resource) handlePutRunning(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if rsrc.render == nil {
+		// TODO: sceneFunc might not exist yet.
 		scene := rsrc.sceneFunc() // TODO: This could take some time to run.
 		const pxWide = 320
 		pxHigh := pxWide * scene.Camera.aspectHigh / scene.Camera.aspectWide
