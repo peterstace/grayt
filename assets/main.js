@@ -21,9 +21,9 @@ function populateSceneSelector() {
 populateSceneSelector();
 
 function handleAddResource() {
-  let xhr1 = new XMLHttpRequest();
-  xhr1.open('POST', 'http://localhost:6060/renders', false);
-  xhr1.onload = function() {
+  let xhr = new XMLHttpRequest();
+  xhr.open('POST', 'http://localhost:6060/renders', false);
+  xhr.onload = function() {
     if (this.status != 200) {
       alert(this.status);
       return;
@@ -32,27 +32,27 @@ function handleAddResource() {
     activeUuid = data.uuid;
     updateResourceList();
   }
-  xhr1.send();
+  xhr.send();
 
-  let xhr2 = new XMLHttpRequest();
-  xhr2.open('PUT', 'http://localhost:6060/renders/' + activeUuid + '/scene', false);
-  xhr2.onload = function() {
+  xhr = new XMLHttpRequest();
+  xhr.open('PUT', 'http://localhost:6060/renders/' + activeUuid + '/scene', false);
+  xhr.onload = function() {
     if (this.status != 200) {
       alert(this.status);
       return;
     }
   }
-  xhr2.send(document.getElementById('scene-selection').value);
+  xhr.send(document.getElementById('scene-selection').value);
 
-  let xhr3 = new XMLHttpRequest();
-  xhr3.open('PUT', 'http://localhost:6060/renders/' + activeUuid + '/running', false);
-  xhr3.onload = function() {
+  xhr = new XMLHttpRequest();
+  xhr.open('PUT', 'http://localhost:6060/renders/' + activeUuid + '/running', false);
+  xhr.onload = function() {
     if (this.status != 200) {
       alert(this.status);
       return;
     }
   }
-  xhr3.send('true');
+  xhr.send('true');
 }
 
 document.getElementById("add-resource").addEventListener("click", handleAddResource)
