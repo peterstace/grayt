@@ -1,6 +1,26 @@
-// TODO: Update status on a timer.
-
 var activeUuid = '';
+
+function updateStatus() {
+  let statusSpan = document.getElementById('status');
+  if (activeUuid == '') {
+    statusSpan.innerHTML = '';
+  } else {
+    let xhr = new XMLHttpRequest();
+    xhr.open('GET', 'http://localhost:6060/renders/' + activeUuid);
+    xhr.onload = function() {
+      let statusTxt = '<table>';
+      let obj = JSON.parse(this.response);
+      for (field in obj) {
+        statusTxt += '<tr><td align="right">' + field + '</td><td>' + obj[field] + '</td></tr>';
+      }
+      statusTxt += '</table>';
+      statusSpan.innerHTML = statusTxt;
+    };
+    xhr.send();
+  }
+}
+
+window.setInterval(updateStatus, 250);
 
 function populateSceneSelector() {
   let xhr = new XMLHttpRequest();
