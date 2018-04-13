@@ -6,7 +6,16 @@
     <link rel="stylesheet" href="styles.css"/>
   </head>
   <body>
-    <div><img id="img-render"/></div>
+    <div>
+      <img id="img-render"/>
+      <span id="status"/>
+    </div>
+    <hr/>
+    <div>
+      <span id="resources"></span>
+      <br/>
+      <ul id="resource-list"></ul>
+    </div>
     <hr/>
     <div id="new-resource">
       Scene selection:
@@ -14,12 +23,6 @@
       </select>
       <br/>
       <button id="add-resource">Add Resource</button>
-    </div>
-    <hr/>
-    <div>
-      <span id="resources"></span>
-      <br/>
-      <ul id="resource-list"></ul>
     </div>
     <script src="main.js"></script>
   </body>

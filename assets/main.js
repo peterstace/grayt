@@ -1,3 +1,5 @@
+// TODO: Update status on a timer.
+
 var activeUuid = '';
 
 function populateSceneSelector() {
