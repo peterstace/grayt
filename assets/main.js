@@ -1,4 +1,5 @@
 var activeUuid = '';
+var lastLoadPasses = {};
 
 function updateStatus() {
   let statusSpan = document.getElementById('status');
@@ -15,6 +16,14 @@ function updateStatus() {
       }
       statusTxt += '</table>';
       statusSpan.innerHTML = statusTxt;
+
+      if (!(obj.uuid in lastLoadPasses)) {
+        lastLoadPasses[obj.uuid] = 1; // avoid division by 0
+      }
+      if (obj.passes / lastLoadPasses[obj.uuid] > 1.01) {
+        lastLoadPasses[obj.uuid] = obj.passes;
+        updateImage();
+      }
     };
     xhr.send();
   }
@@ -85,8 +94,6 @@ function updateImage() {
   let url = 'http://localhost:6060/renders/' + activeUuid + '/image?' + Date.now();
   imgRender.setAttribute('src', url);
 }
-
-document.getElementById('img-render').addEventListener("click", updateImage);
 
 function updateResourceList() {
   let xhr = new XMLHttpRequest();
