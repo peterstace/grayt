@@ -22,7 +22,10 @@ function updateStatus() {
       }
       if (obj.passes / lastLoadPasses[obj.uuid] > 1.01) {
         lastLoadPasses[obj.uuid] = obj.passes;
-        updateImage();
+        // Use a cache-breaker so we get the new image each time this changes.
+        let imgRender = document.getElementById('img-render');
+        let url = 'http://localhost:6060/renders/' + activeUuid + '/image?' + Date.now();
+        imgRender.setAttribute('src', url);
       }
     };
     xhr.send();
@@ -62,6 +65,7 @@ function handleAddResource() {
     let data = JSON.parse(this.response);
     activeUuid = data.uuid;
     updateResourceList();
+    updateStatus();
   }
   xhr.send();
 
@@ -88,13 +92,6 @@ function handleAddResource() {
 
 document.getElementById("add-resource").addEventListener("click", handleAddResource)
 
-function updateImage() {
-  let imgRender = document.getElementById('img-render');
-  // Use a cache-breaker so we get the new image each time this changes.
-  let url = 'http://localhost:6060/renders/' + activeUuid + '/image?' + Date.now();
-  imgRender.setAttribute('src', url);
-}
-
 function updateResourceList() {
   let xhr = new XMLHttpRequest();
   xhr.open('GET', 'http://localhost:6060/renders');
@@ -116,9 +113,6 @@ function updateResourceList() {
         activeUuid = this.innerHTML;
         updateResourceList();
       })
-    }
-    if (activeUuid != '') {
-      updateImage();
     }
   }
   xhr.send();
