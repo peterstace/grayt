@@ -18,14 +18,20 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+type scene struct {
+	sceneFn     func() Scene
+	ascpectWide int
+	ascpectHigh int
+}
+
 type Server struct {
-	scenes map[string]func() Scene
+	scenes map[string]scene
 	idList []uuid.UUID
 }
 
 func NewServer() *Server {
 	return &Server{
-		scenes: map[string]func() Scene{},
+		scenes: make(map[string]scene),
 		idList: []uuid.UUID{}, // Get's serialised to JSON, so important it's not nil.
 	}
 }
@@ -45,12 +51,16 @@ func (s *Server) Register(
 	cam CameraBlueprint,
 	objFn func() ObjectList,
 ) {
-	s.scenes[name] = func() Scene {
-		return Scene{
-			Camera:  cam,
-			Objects: objFn(),
-			Sky:     SkyFn,
-		}
+	s.scenes[name] = scene{
+		sceneFn: func() Scene {
+			return Scene{
+				Camera:  cam,
+				Objects: objFn(),
+				Sky:     SkyFn,
+			}
+		},
+		ascpectWide: cam.aspectWide,
+		ascpectHigh: cam.aspectHigh,
 	}
 }
 
@@ -94,14 +104,16 @@ func internalError(w http.ResponseWriter, err error) {
 }
 
 func (s *Server) handleGetScenesCollection(w http.ResponseWriter, r *http.Request) {
-	type scene struct {
-		Code string `json:"code"`
+	type response struct {
+		Code       string `json:"code"`
+		AspectWide int    `json:"aspect_wide"`
+		AspectHigh int    `json:"aspect_high"`
 	}
-	var scenes []scene
-	for s := range s.scenes {
-		scenes = append(scenes, scene{Code: s})
+	var responses []response
+	for name, scene := range s.scenes {
+		responses = append(responses, response{name, scene.ascpectWide, scene.ascpectHigh})
 	}
-	if err := json.NewEncoder(w).Encode(scenes); err != nil {
+	if err := json.NewEncoder(w).Encode(responses); err != nil {
 		internalError(w, err)
 	}
 }
@@ -117,7 +129,7 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 			http.Error(w, fmt.Sprintf("could not decode form: %v", err), http.StatusBadRequest)
 			return
 		}
-		sceneFunc, ok := s.scenes[form.Scene]
+		sceneInfo, ok := s.scenes[form.Scene]
 		if !ok {
 			http.Error(w, fmt.Sprintf("scene %q not found", form.Scene), http.StatusBadRequest)
 			return
@@ -127,7 +139,7 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 		s.idList = append(s.idList, id)
 		rsrc := &resource{
 			uuid:      id,
-			scene:     sceneFunc(), // TODO: This could take some time.
+			scene:     sceneInfo.sceneFn(), // TODO: This could take some time.
 			sceneName: form.Scene,
 			s:         s,
 		}
