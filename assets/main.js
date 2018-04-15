@@ -1,5 +1,6 @@
 var activeUuid = '';
 var lastLoadPasses = {};
+var scenes = [];
 
 function updateStatus() {
   let statusSpan = document.getElementById('status');
@@ -42,17 +43,40 @@ function populateSceneSelector() {
       alert(this.status);
       return;
     }
-    let data = JSON.parse(this.response);
+    scenes = JSON.parse(this.response);
     let inner = '';
-    for (let i = 0; i < data.length; i++) {
-      inner += '<option value="' + data[i].code + '">' + data[i].code + '</option>';
+    for (let i = 0; i < scenes.length; i++) {
+      inner += '<option value="' + scenes[i].code + '">' + scenes[i].code + '</option>';
     }
     document.getElementById('scene-selection').innerHTML = inner;
+    populateResolutionCheckboxes();
   };
   xhr.send();
 }
 
+document.getElementById('scene-selection').addEventListener("change", populateResolutionCheckboxes);
+
 populateSceneSelector();
+
+function populateResolutionCheckboxes() {
+  let resolutionsDiv = document.getElementById('resolutions');
+  let selected = document.getElementById('scene-selection').value;
+  let xWides = [640, 800, 1024];
+  for (let i = 0; i < scenes.length; i++) {
+    let scene = scenes[i];
+    if (selected == scene.code) {
+      let inner = '';
+      for (let j = 0; j < xWides.length; j++) {
+        let pxWide = xWides[j];
+        let pxHigh = scene.aspect_high * pxWide / scene.aspect_wide;
+        inner += '<input type="checkbox">' + pxWide + 'x' + pxHigh + '</input><br/>';
+      }
+      resolutionsDiv.innerHTML = inner;
+      return;
+    }
+  }
+  resolutionsDiv.innerHTML = ''; // Couldn't find the selected scene.
+}
 
 function handleAddResource() {
   let xhr = new XMLHttpRequest();
