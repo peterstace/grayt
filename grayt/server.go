@@ -131,7 +131,6 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 	default:
 		writeError(w, http.StatusMethodNotAllowed)
 	}
-
 }
 
 func (rsrc *resource) handleGetAll(w http.ResponseWriter, r *http.Request) {
