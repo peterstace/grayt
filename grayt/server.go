@@ -68,7 +68,7 @@ type resource struct {
 	render *render
 	cancel func() // set to nil if the render isn't running
 
-	sceneFunc func() Scene
+	scene     Scene
 	sceneName string
 
 	s *Server // TODO: This feels like a hack.
@@ -116,7 +116,7 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 		s.idList = append(s.idList, id)
 		rsrc := &resource{
 			uuid:      id,
-			sceneFunc: sceneFunc,
+			scene:     sceneFunc(), // TODO: This could take some time.
 			sceneName: form.Scene,
 			s:         s,
 		}
@@ -218,13 +218,12 @@ func (rsrc *resource) handlePutRunning(w http.ResponseWriter, r *http.Request) {
 
 	if rsrc.render == nil {
 		// TODO: sceneFunc might not exist yet.
-		scene := rsrc.sceneFunc() // TODO: This could take some time to run.
 		const pxWide = 320
-		pxHigh := pxWide * scene.Camera.aspectHigh / scene.Camera.aspectWide
+		pxHigh := pxWide * rsrc.scene.Camera.aspectHigh / rsrc.scene.Camera.aspectWide
 		rsrc.render = &render{
 			pxWide:     pxWide,
 			numWorkers: 1,
-			scene:      scene,
+			scene:      rsrc.scene,
 			accum:      newAccumulator(pxWide, pxHigh),
 		}
 	}
