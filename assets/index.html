@@ -20,12 +20,20 @@
     <hr/>
     <div id="new-resource">
       Scene selection:
-      <select id="scene-selection">
-      </select>
-      <br/>
-      <button id="add-resource">Add Resource</button>
-      <br/>
-      <div id="resolutions"></div>
+      <table>
+        <tr>
+          <td align="right">scene</td>
+          <td><select id="scene-selection"></select></td>
+        </tr>
+        <tr>
+          <td align="right">resolution</td>
+          <td><select id="resolutions"></select></td>
+        </tr>
+        <tr>
+          <td align="right">new render</td>
+          <td><button id="add-resource">submit</button></td>
+        </tr>
+      </table>
     </div>
     <script src="main.js"></script>
   </body>
