@@ -67,17 +67,9 @@ function handleAddResource() {
     updateResourceList();
     updateStatus();
   }
-  xhr.send();
-
-  xhr = new XMLHttpRequest();
-  xhr.open('PUT', 'http://localhost:6060/renders/' + activeUuid + '/scene', false);
-  xhr.onload = function() {
-    if (this.status != 200) {
-      alert(this.status);
-      return;
-    }
-  }
-  xhr.send(document.getElementById('scene-selection').value);
+  xhr.send(JSON.stringify({
+    scene: document.getElementById('scene-selection').value,
+  }));
 
   xhr = new XMLHttpRequest();
   xhr.open('PUT', 'http://localhost:6060/renders/' + activeUuid + '/running', false);

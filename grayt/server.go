@@ -98,13 +98,31 @@ func (s *Server) handleGetScenesCollection(w http.ResponseWriter, r *http.Reques
 func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
+		var form struct {
+			Scene string `json:"scene"`
+			// TODO: screen resolutions go here as well.
+		}
+		if err := json.NewDecoder(r.Body).Decode(&form); err != nil {
+			http.Error(w, fmt.Sprintf("could not decode form: %v", err), http.StatusBadRequest)
+			return
+		}
+		sceneFunc, ok := s.scenes[form.Scene]
+		if !ok {
+			http.Error(w, fmt.Sprintf("scene %q not found", form.Scene), http.StatusBadRequest)
+			return
+		}
+
 		id := uuid.Must(uuid.NewV4())
 		s.idList = append(s.idList, id)
-		rsrc := &resource{uuid: id, s: s}
+		rsrc := &resource{
+			uuid:      id,
+			sceneFunc: sceneFunc,
+			sceneName: form.Scene,
+			s:         s,
+		}
 		fmt.Fprintf(w, `{"uuid":%q}`, id)
 		http.HandleFunc("/renders/"+id.String(), middleware(rsrc.handleGetAll))
 		http.HandleFunc("/renders/"+id.String()+"/image", middleware(rsrc.handleGetImage))
-		http.HandleFunc("/renders/"+id.String()+"/scene", middleware(rsrc.handlePutScene))
 		http.HandleFunc("/renders/"+id.String()+"/running", middleware(rsrc.handlePutRunning))
 	case http.MethodGet:
 		if err := json.NewEncoder(w).Encode(s.idList); err != nil {
@@ -165,31 +183,6 @@ func (rsrc *resource) handleGetImage(w http.ResponseWriter, r *http.Request) {
 		internalError(w, err)
 		return
 	}
-}
-
-func (rsrc *resource) handlePutScene(w http.ResponseWriter, r *http.Request) {
-	rsrc.Lock()
-	defer rsrc.Unlock()
-
-	if r.Method != http.MethodPut {
-		writeError(w, http.StatusMethodNotAllowed)
-		return
-	}
-
-	buf, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		internalError(w, err)
-		return
-	}
-
-	sceneName := string(buf)
-	sceneFunc, ok := rsrc.s.scenes[sceneName]
-	if !ok {
-		http.Error(w, fmt.Sprintf("scene %q not found", string(buf)), http.StatusBadRequest)
-		return
-	}
-	rsrc.sceneFunc = sceneFunc
-	rsrc.sceneName = sceneName
 }
 
 func (rsrc *resource) handlePutRunning(w http.ResponseWriter, r *http.Request) {
