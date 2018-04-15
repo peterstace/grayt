@@ -13,7 +13,7 @@ function updateStatus() {
       let statusTxt = '<table>';
       let obj = JSON.parse(this.response);
       for (field in obj) {
-        statusTxt += '<tr><td align="right">' + field + '</td><td>' + obj[field] + '</td></tr>';
+        statusTxt += `<tr><td align="right">${field}</td><td>${obj[field]}</td></tr>`
       }
       statusTxt += '</table>';
       statusSpan.innerHTML = statusTxt;
@@ -46,7 +46,7 @@ function populateSceneSelector() {
     scenes = JSON.parse(this.response);
     let inner = '';
     for (let i = 0; i < scenes.length; i++) {
-      inner += '<option value="' + scenes[i].code + '">' + scenes[i].code + '</option>';
+      inner += `<option value="${scenes[i].code}">${scenes[i].code}</option>`;
     }
     document.getElementById('scene-selection').innerHTML = inner;
     populateResolutionCheckboxes();
@@ -69,7 +69,7 @@ function populateResolutionCheckboxes() {
       for (let j = 0; j < xWides.length; j++) {
         let pxWide = xWides[j];
         let pxHigh = scene.aspect_high * pxWide / scene.aspect_wide;
-        inner += '<option value="' + pxWide + '">' + pxWide + 'x' + pxHigh + '</option>';
+        inner += `<option value"${pxWide}">${pxWide}x${pxHigh}</option>`;
       }
       resolutionsDiv.innerHTML = inner;
       return;
@@ -118,9 +118,9 @@ function updateResourceList() {
     resourceList.innerHTML = '';
     for (let i = 0; i < data.length; i++) {
       if (data[i] == activeUuid) {
-        resourceList.innerHTML += '<li class="selected">' + data[i] + "</li>";
+        resourceList.innerHTML += `<li class="selected">${data[i]}</li>`;
       } else {
-        resourceList.innerHTML += "<li>" + data[i] + "</li>";
+        resourceList.innerHTML += `<li>${data[i]}</li>`;
       }
     }
     let listItems = resourceList.childNodes;
