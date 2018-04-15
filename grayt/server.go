@@ -39,8 +39,19 @@ func (s *Server) ListenAndServe(addr string) error {
 	return http.ListenAndServe(addr, nil)
 }
 
-func (s *Server) Register(name string, fn func() Scene) {
-	s.scenes[name] = fn
+func (s *Server) Register(
+	name string,
+	SkyFn func(Vector) Colour,
+	cam CameraBlueprint,
+	objFn func() ObjectList,
+) {
+	s.scenes[name] = func() Scene {
+		return Scene{
+			Camera:  cam,
+			Objects: objFn(),
+			Sky:     SkyFn,
+		}
+	}
 }
 
 func middleware(fn http.HandlerFunc) http.HandlerFunc {

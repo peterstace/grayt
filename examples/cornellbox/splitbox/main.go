@@ -7,24 +7,27 @@ import (
 	. "github.com/peterstace/grayt/grayt"
 )
 
-func SceneFn() Scene {
+var SkyFn func(Vector) Colour = nil
+
+func CameraFn() CameraBlueprint {
 	c := Cam(1.3)
-	return Scene{
-		Camera: c.With(
-			LookingAt(Vect(0.5, initialBoxRadius.Y+0.03, -0.5)),
-			ScaleFieldOfView(0.5),
-			AspectRatioWidthAndHeight(1920, 1080),
-		),
-		Objects: Group(
-			Floor,
-			Ceiling,
-			BackWall,
-			LeftWall.With(ColourRGB(Red)),
-			RightWall.With(ColourRGB(Green)),
-			CeilingLight().With(Emittance(1)),
-			splitBox(),
-		),
-	}
+	return c.With(
+		LookingAt(Vect(0.5, initialBoxRadius.Y+0.03, -0.5)),
+		ScaleFieldOfView(0.5),
+		AspectRatioWidthAndHeight(1920, 1080),
+	)
+}
+
+func ObjectsFn() ObjectList {
+	return Group(
+		Floor,
+		Ceiling,
+		BackWall,
+		LeftWall.With(ColourRGB(Red)),
+		RightWall.With(ColourRGB(Green)),
+		CeilingLight().With(Emittance(1)),
+		splitBox(),
+	)
 }
 
 const (

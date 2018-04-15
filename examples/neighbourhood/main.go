@@ -6,30 +6,39 @@ import (
 	. "github.com/peterstace/grayt/grayt"
 )
 
-func SceneFn() Scene {
-	platform := AlignedBox(
-		Vect(-3, -1, -6),
-		Vect(+1, 0, +2),
+func SkyFn(v Vector) Colour {
+	return Sky(
+		Colour{0.05, 0.05, 0.05},
+		Colour{4, 4, 4},
+		Vect(4, 6, 1),
+		15,
+	)(v)
+}
+
+func CameraFn() CameraBlueprint {
+	return Camera().With(
+		Location(Vect(3, 5, 15)),
+		LookingAt(Vect(0, 0.5, 0)),
+		FieldOfViewInDegrees(6),
 	)
+}
 
-	pts := points()
-	structure := Group(
-		balls(pts),
-		edges(pts),
-	).With(ColourRGB(0x00aaaaaa))
+var platform = AlignedBox(
+	Vect(-3, -1, -6),
+	Vect(+1, 0, +2),
+)
 
-	return Scene{
-		Camera: Camera().With(
-			Location(Vect(3, 5, 15)),
-			LookingAt(Vect(0, 0.5, 0)),
-			FieldOfViewInDegrees(6),
-		),
-		Objects: Group(
-			structure,
-			platform,
-		),
-		Sky: Sky(Colour{0.05, 0.05, 0.05}, Colour{4, 4, 4}, Vect(4, 6, 1), 15),
-	}
+var pts = points()
+var structure = Group(
+	balls(pts),
+	edges(pts),
+).With(ColourRGB(0x00aaaaaa))
+
+func ObjectsFn() ObjectList {
+	return Group(
+		structure,
+		platform,
+	)
 }
 
 func edges(pts []Vector) ObjectList {
