@@ -92,6 +92,8 @@ type resource struct {
 	scene     Scene
 	sceneName string
 
+	pxWide, pxHigh int
+
 	s *Server // TODO: This feels like a hack.
 }
 
@@ -122,8 +124,8 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 	switch r.Method {
 	case http.MethodPost:
 		var form struct {
-			Scene string `json:"scene"`
-			// TODO: screen resolutions go here as well.
+			Scene  string `json:"scene"`
+			PxWide int    `json:"px_wide"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&form); err != nil {
 			http.Error(w, fmt.Sprintf("could not decode form: %v", err), http.StatusBadRequest)
@@ -134,6 +136,10 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 			http.Error(w, fmt.Sprintf("scene %q not found", form.Scene), http.StatusBadRequest)
 			return
 		}
+		if form.PxWide == 0 {
+			http.Error(w, "px_wide not set", http.StatusBadRequest)
+			return
+		}
 
 		id := uuid.Must(uuid.NewV4())
 		s.idList = append(s.idList, id)
@@ -142,6 +148,8 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 			scene:     sceneInfo.sceneFn(), // TODO: This could take some time.
 			sceneName: form.Scene,
 			s:         s,
+			pxWide:    form.PxWide,
+			pxHigh:    form.PxWide * sceneInfo.ascpectHigh / sceneInfo.ascpectWide,
 		}
 		fmt.Fprintf(w, `{"uuid":%q}`, id)
 		http.HandleFunc("/renders/"+id.String(), middleware(rsrc.handleGetAll))
@@ -172,12 +180,16 @@ func (rsrc *resource) handleGetAll(w http.ResponseWriter, r *http.Request) {
 		Scene     string    `json:"scene"`
 		Completed uint64    `json:"completed"`
 		Passes    uint64    `json:"passes"`
+		PxWide    int       `json:"px_wide"`
+		PxHigh    int       `json:"px_high"`
 	}{
 		rsrc.uuid,
 		rsrc.render != nil,
 		rsrc.sceneName,
 		completed,
 		passes,
+		rsrc.pxWide,
+		rsrc.pxHigh,
 	}
 
 	if err := json.NewEncoder(w).Encode(props); err != nil {
@@ -241,13 +253,12 @@ func (rsrc *resource) handlePutRunning(w http.ResponseWriter, r *http.Request) {
 
 	if rsrc.render == nil {
 		// TODO: sceneFunc might not exist yet.
-		const pxWide = 320
-		pxHigh := pxWide * rsrc.scene.Camera.aspectHigh / rsrc.scene.Camera.aspectWide
+		pxHigh := rsrc.pxWide * rsrc.scene.Camera.aspectHigh / rsrc.scene.Camera.aspectWide
 		rsrc.render = &render{
-			pxWide:     pxWide,
+			pxWide:     rsrc.pxWide,
 			numWorkers: 1,
 			scene:      rsrc.scene,
-			accum:      newAccumulator(pxWide, pxHigh),
+			accum:      newAccumulator(rsrc.pxWide, pxHigh),
 		}
 	}
 	var ctx context.Context

@@ -69,7 +69,7 @@ function populateResolutionCheckboxes() {
       for (let j = 0; j < xWides.length; j++) {
         let pxWide = xWides[j];
         let pxHigh = scene.aspect_high * pxWide / scene.aspect_wide;
-        inner += `<option value"${pxWide}">${pxWide}x${pxHigh}</option>`;
+        inner += `<option value="${pxWide}">${pxWide}x${pxHigh}</option>`;
       }
       resolutionsDiv.innerHTML = inner;
       return;
@@ -93,6 +93,7 @@ function handleAddResource() {
   }
   xhr.send(JSON.stringify({
     scene: document.getElementById('scene-selection').value,
+    px_wide: Number(document.getElementById('resolutions').value),
   }));
 
   xhr = new XMLHttpRequest();
