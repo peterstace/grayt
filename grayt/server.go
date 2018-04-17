@@ -25,14 +25,14 @@ type scene struct {
 }
 
 type Server struct {
-	scenes map[string]scene
-	idList []uuid.UUID
+	scenes    map[string]scene
+	resources []*resource
 }
 
 func NewServer() *Server {
 	return &Server{
-		scenes: make(map[string]scene),
-		idList: []uuid.UUID{}, // Get's serialised to JSON, so important it's not nil.
+		scenes:    make(map[string]scene),
+		resources: []*resource{}, // Get's serialised to JSON, so important it's not nil.
 	}
 }
 
@@ -142,7 +142,6 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 		}
 
 		id := uuid.Must(uuid.NewV4())
-		s.idList = append(s.idList, id)
 		rsrc := &resource{
 			uuid:      id,
 			scene:     sceneInfo.sceneFn(), // TODO: This could take some time.
@@ -151,49 +150,47 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 			pxWide:    form.PxWide,
 			pxHigh:    form.PxWide * sceneInfo.ascpectHigh / sceneInfo.ascpectWide,
 		}
+		s.resources = append(s.resources, rsrc)
+
 		fmt.Fprintf(w, `{"uuid":%q}`, id)
-		http.HandleFunc("/renders/"+id.String(), middleware(rsrc.handleGetAll))
 		http.HandleFunc("/renders/"+id.String()+"/image", middleware(rsrc.handleGetImage))
 		http.HandleFunc("/renders/"+id.String()+"/running", middleware(rsrc.handlePutRunning))
 	case http.MethodGet:
-		if err := json.NewEncoder(w).Encode(s.idList); err != nil {
+		type props struct {
+			ID        uuid.UUID `json:"uuid"`
+			Running   bool      `json:"running"`
+			Scene     string    `json:"scene"`
+			Completed uint64    `json:"completed"`
+			Passes    uint64    `json:"passes"`
+			PxWide    int       `json:"px_wide"`
+			PxHigh    int       `json:"px_high"`
+		}
+		propList := []props{} // Populate as empty array since it goes to JSON.
+		for _, rsrc := range s.resources {
+			rsrc.Lock()
+			defer rsrc.Unlock()
+
+			var completed, passes uint64
+			if rsrc.render != nil {
+				completed = atomic.LoadUint64(&rsrc.render.completed)
+				passes = atomic.LoadUint64(&rsrc.render.passes)
+			}
+
+			propList = append(propList, props{
+				rsrc.uuid,
+				rsrc.render != nil,
+				rsrc.sceneName,
+				completed,
+				passes,
+				rsrc.pxWide,
+				rsrc.pxHigh,
+			})
+		}
+		if err := json.NewEncoder(w).Encode(propList); err != nil {
 			internalError(w, err)
 		}
 	default:
 		writeError(w, http.StatusMethodNotAllowed)
-	}
-}
-
-func (rsrc *resource) handleGetAll(w http.ResponseWriter, r *http.Request) {
-	rsrc.Lock()
-	defer rsrc.Unlock()
-
-	var completed, passes uint64
-	if rsrc.render != nil {
-		completed = atomic.LoadUint64(&rsrc.render.completed)
-		passes = atomic.LoadUint64(&rsrc.render.passes)
-	}
-
-	props := struct {
-		ID        uuid.UUID `json:"uuid"`
-		Running   bool      `json:"running"`
-		Scene     string    `json:"scene"`
-		Completed uint64    `json:"completed"`
-		Passes    uint64    `json:"passes"`
-		PxWide    int       `json:"px_wide"`
-		PxHigh    int       `json:"px_high"`
-	}{
-		rsrc.uuid,
-		rsrc.render != nil,
-		rsrc.sceneName,
-		completed,
-		passes,
-		rsrc.pxWide,
-		rsrc.pxHigh,
-	}
-
-	if err := json.NewEncoder(w).Encode(props); err != nil {
-		internalError(w, err)
 	}
 }
 
