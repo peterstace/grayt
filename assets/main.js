@@ -12,6 +12,7 @@ function updateStatus() {
     xhr.onload = function() {
       let statusTxt = '<table>';
       let obj = JSON.parse(this.response);
+      obj.image = `<a href="http://localhost:6060/renders/${activeUuid}/image">link</a>`
       for (field in obj) {
         statusTxt += `<tr><td align="right">${field}</td><td>${obj[field]}</td></tr>`
       }
