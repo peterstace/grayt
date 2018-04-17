@@ -1,5 +1,4 @@
 var activeUuid = '';
-var lastLoadPasses = {};
 var scenes = [];
 
 function updateStatus() {
@@ -12,23 +11,12 @@ function updateStatus() {
     xhr.onload = function() {
       let statusTxt = '<table>';
       let obj = JSON.parse(this.response);
-      obj.image = `<a href="http://localhost:6060/renders/${activeUuid}/image">link</a>`
+      obj.image = `<a href="http://localhost:6060/renders/${activeUuid}/image" target="_blank">link</a>`
       for (field in obj) {
         statusTxt += `<tr><td align="right">${field}</td><td>${obj[field]}</td></tr>`
       }
       statusTxt += '</table>';
       statusSpan.innerHTML = statusTxt;
-
-      if (!(obj.uuid in lastLoadPasses)) {
-        lastLoadPasses[obj.uuid] = 1; // avoid division by 0
-      }
-      if (obj.passes / lastLoadPasses[obj.uuid] > 1.01) {
-        lastLoadPasses[obj.uuid] = obj.passes;
-        // Use a cache-breaker so we get the new image each time this changes.
-        let imgRender = document.getElementById('img-render');
-        let url = 'http://localhost:6060/renders/' + activeUuid + '/image?' + Date.now();
-        imgRender.setAttribute('src', url);
-      }
     };
     xhr.send();
   }
