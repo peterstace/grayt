@@ -13,7 +13,6 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	uuid "github.com/satori/go.uuid"
 )
@@ -38,8 +37,8 @@ func NewServer() *Server {
 
 func (s *Server) ListenAndServe(addr string) error {
 	http.Handle("/", http.FileServer(http.Dir("assets")))
-	http.HandleFunc("/scenes", middleware(s.handleGetScenesCollection))
-	http.HandleFunc("/renders", middleware(s.handleRendersCollection))
+	http.HandleFunc("/scenes", s.handleGetScenesCollection)
+	http.HandleFunc("/renders", s.handleRendersCollection)
 
 	log.Printf("Listening for HTTP on %v", addr)
 	return http.ListenAndServe(addr, nil)
@@ -64,25 +63,6 @@ func (s *Server) Register(
 	}
 }
 
-func middleware(fn http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-		log.Printf(`info="handling request" method=%q path=%q`, r.Method, r.URL.Path)
-		fn(w, r)
-		log.Printf(`info="finished" duration=%q`, time.Since(start))
-	}
-}
-
-/*
-	GET   /scenes                     - Gets a list of all available scenes.
-	POST  /renders                    - Adds a new render resource, not started, with default settings.
-	GET   /renders                    - Gets a list of all existing render UUIDs.
-	GET   /renders/{uuid}             - Gets all information about the render resource.
-	PUT   /renders/{uuid}/scene       - Sets the scene property of the render resource.
-	PUT   /renders/{uuid}/running     - Sets the runnig property of the render resource.
-	GET   /renders/{uuid}/image       - Creates an image.
-*/
-
 type resource struct {
 	sync.Mutex
 	uuid   uuid.UUID
@@ -93,8 +73,6 @@ type resource struct {
 	sceneName string
 
 	pxWide, pxHigh int
-
-	s *Server // TODO: This feels like a hack.
 }
 
 func writeError(w http.ResponseWriter, status int) {
@@ -146,15 +124,14 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 			uuid:      id,
 			scene:     sceneInfo.sceneFn(), // TODO: This could take some time.
 			sceneName: form.Scene,
-			s:         s,
 			pxWide:    form.PxWide,
 			pxHigh:    form.PxWide * sceneInfo.ascpectHigh / sceneInfo.ascpectWide,
 		}
 		s.resources = append(s.resources, rsrc)
 
 		fmt.Fprintf(w, `{"uuid":%q}`, id)
-		http.HandleFunc("/renders/"+id.String()+"/image", middleware(rsrc.handleGetImage))
-		http.HandleFunc("/renders/"+id.String()+"/running", middleware(rsrc.handlePutRunning))
+		http.HandleFunc("/renders/"+id.String()+"/image", rsrc.handleGetImage)
+		http.HandleFunc("/renders/"+id.String()+"/running", rsrc.handlePutRunning)
 	case http.MethodGet:
 		type props struct {
 			ID        uuid.UUID `json:"uuid"`

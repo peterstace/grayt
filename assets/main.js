@@ -1,6 +1,5 @@
 var scenes = [];
 
-
 function updateStatus() {
   let xhr = new XMLHttpRequest();
   xhr.open('GET', 'http://localhost:6060/renders');
