@@ -7,7 +7,17 @@ function updateStatus() {
   xhr.onload = function() {
     let obj = JSON.parse(this.response);
     console.log(obj);
-    let statusTxt = '<table>';
+    let statusTxt = `
+      <table>
+        <tr>
+          <td>scene name</td>
+          <td>px high</td>
+          <td>px wide</td>
+          <td>passes</td>
+          <td>completed</td>
+          <td>image</td>
+        </tr>
+    `;
     for (let i = 0; i < obj.length; i++) {
       statusTxt += `
         <tr>
@@ -16,7 +26,12 @@ function updateStatus() {
           <td>${obj[i].px_wide}</td>
           <td>${obj[i].passes}</td>
           <td>${obj[i].completed}</td>
-          <td><a href="http://localhost:6060/renders/${obj[i].uuid}/image" target="_blank">image</a></td>
+          <td>
+            <a
+              href="http://localhost:6060/renders/${obj[i].uuid}/image"
+              target="_blank"
+            >image</a>
+          </td>
         </tr>`
     }
     statusTxt += '</table>';
