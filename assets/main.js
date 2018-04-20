@@ -5,7 +5,6 @@ function updateStatus() {
   xhr.open('GET', 'http://localhost:6060/renders');
   xhr.onload = function() {
     let obj = JSON.parse(this.response);
-    console.log(obj);
     let statusTxt = `
       <table>
         <tr>
@@ -14,6 +13,7 @@ function updateStatus() {
           <td>px wide</td>
           <td>passes</td>
           <td>completed</td>
+          <td colspan="3">workers</td>
           <td>image</td>
         </tr>
     `;
@@ -25,6 +25,9 @@ function updateStatus() {
           <td>${obj[i].px_wide}</td>
           <td>${obj[i].passes}</td>
           <td>${obj[i].completed}</td>
+          <td><button class="worker" uuid=${obj[i].uuid} workers=${obj[i].workers-1}>-</button></td>
+          <td>${obj[i].workers}</td>
+          <td><button class="worker" uuid=${obj[i].uuid} workers=${obj[i].workers+1}>+</button></td>
           <td>
             <a
               href="http://localhost:6060/renders/${obj[i].uuid}/image"
@@ -35,6 +38,19 @@ function updateStatus() {
     }
     statusTxt += '</table>';
     document.getElementById('status').innerHTML = statusTxt;
+
+    let buttons = document.getElementsByClassName('worker');
+    for (let i = 0; i < buttons.length; i++) {
+      let btn = buttons[i];
+      btn.addEventListener("click", function() {
+        let xhr = new XMLHttpRequest();
+        let uuid = btn.getAttribute('uuid');
+        xhr.open('PUT', `http://localhost:6060/renders/${uuid}/workers`);
+        xhr.onload = updateStatus;
+        let workers = btn.getAttribute('workers');
+        xhr.send(workers);
+      });
+    }
   };
   xhr.send();
 }

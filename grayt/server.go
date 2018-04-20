@@ -72,6 +72,8 @@ type resource struct {
 	sceneName string
 
 	pxWide, pxHigh int
+
+	workers int // TODO: Source this from render object.
 }
 
 func writeError(w http.ResponseWriter, status int) {
@@ -131,6 +133,7 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 		fmt.Fprintf(w, `{"uuid":%q}`, id)
 		http.HandleFunc("/renders/"+id.String()+"/image", rsrc.handleGetImage)
 		http.HandleFunc("/renders/"+id.String()+"/running", rsrc.handlePutRunning)
+		http.HandleFunc("/renders/"+id.String()+"/workers", rsrc.handlePutWorkers)
 	case http.MethodGet:
 		type props struct {
 			ID        uuid.UUID `json:"uuid"`
@@ -140,6 +143,7 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 			Passes    uint64    `json:"passes"`
 			PxWide    int       `json:"px_wide"`
 			PxHigh    int       `json:"px_high"`
+			Workers   int       `json:"workers"`
 		}
 		propList := []props{} // Populate as empty array since it goes to JSON.
 		for _, rsrc := range s.resources {
@@ -160,6 +164,7 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 				passes,
 				rsrc.pxWide,
 				rsrc.pxHigh,
+				rsrc.workers,
 			})
 		}
 		if err := json.NewEncoder(w).Encode(propList); err != nil {
@@ -237,4 +242,27 @@ func (rsrc *resource) handlePutRunning(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		rsrc.render.traceImage(ctx)
 	}()
+}
+
+func (rsrc *resource) handlePutWorkers(w http.ResponseWriter, r *http.Request) {
+	rsrc.Lock()
+	defer rsrc.Unlock()
+
+	if r.Method != http.MethodPut {
+		writeError(w, http.StatusMethodNotAllowed)
+		return
+	}
+
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		internalError(w, err)
+		return
+	}
+	workers, err := strconv.Atoi(string(buf))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	rsrc.workers = workers
 }
