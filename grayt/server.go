@@ -226,14 +226,12 @@ func (rsrc *resource) handlePutRunning(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if rsrc.render == nil {
-		// TODO: sceneFunc might not exist yet.
 		pxHigh := rsrc.pxWide * rsrc.scene.Camera.aspectHigh / rsrc.scene.Camera.aspectWide
-		rsrc.render = &render{
-			pxWide:     rsrc.pxWide,
-			numWorkers: 1,
-			scene:      rsrc.scene,
-			accum:      newAccumulator(rsrc.pxWide, pxHigh),
-		}
+		rsrc.render = newRender(
+			rsrc.pxWide,
+			rsrc.scene,
+			newAccumulator(rsrc.pxWide, pxHigh),
+		)
 	}
 	var ctx context.Context
 	ctx, rsrc.cancel = context.WithCancel(context.Background())

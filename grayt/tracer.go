@@ -19,6 +19,15 @@ type render struct {
 	accum      *accumulator
 }
 
+func newRender(pxWide int, scene Scene, acc *accumulator) *render {
+	return &render{
+		pxWide:     pxWide,
+		numWorkers: 1,
+		scene:      scene,
+		accum:      acc,
+	}
+}
+
 func (r *render) traceImage(ctx context.Context) {
 	pxHigh := r.scene.Camera.pxHigh(r.pxWide)
 	cam := newCamera(r.scene.Camera)
