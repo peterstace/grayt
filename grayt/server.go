@@ -30,8 +30,7 @@ type Server struct {
 
 func NewServer() *Server {
 	return &Server{
-		scenes:    make(map[string]scene),
-		resources: []*resource{}, // Get's serialised to JSON, so important it's not nil.
+		scenes: make(map[string]scene),
 	}
 }
 
