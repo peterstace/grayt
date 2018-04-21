@@ -14,7 +14,7 @@ func CameraFn() CameraBlueprint {
 	return c.With(
 		LookingAt(Vect(0.5, initialBoxRadius.Y+0.03, -0.5)),
 		ScaleFieldOfView(0.5),
-		AspectRatioWidthAndHeight(16, 9),
+		AspectRatioWidthAndHeight(16, 10),
 	)
 }
 
