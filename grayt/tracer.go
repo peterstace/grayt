@@ -11,9 +11,8 @@ type render struct {
 	completed uint64
 	passes    uint64
 
-	requestedWorkers  int64
-	dispatchedWorkers int64
-	actualWorkers     int64
+	requestedWorkers int64
+	actualWorkers    int64
 
 	// Static configuration.
 	// TODO: Should ensure that these are not modified once the render is started.
@@ -59,18 +58,19 @@ func (r *render) traceImage() {
 	gridPool := make(chan *pixelGrid)
 
 	go func() {
+		var dispatchedWorkers int64
 		for {
 			time.Sleep(time.Second)
-			for atomic.LoadInt64(&r.dispatchedWorkers) < atomic.LoadInt64(&r.requestedWorkers) {
-				atomic.AddInt64(&r.dispatchedWorkers, 1)
+			for dispatchedWorkers < atomic.LoadInt64(&r.requestedWorkers) {
+				dispatchedWorkers++
 				gridPool <- &pixelGrid{
 					pixels: make([]Colour, r.pxWide*pxHigh),
 					wide:   r.pxWide,
 					high:   pxHigh,
 				}
 			}
-			for atomic.LoadInt64(&r.dispatchedWorkers) > atomic.LoadInt64(&r.requestedWorkers) {
-				atomic.AddInt64(&r.dispatchedWorkers, -1)
+			for dispatchedWorkers > atomic.LoadInt64(&r.requestedWorkers) {
+				dispatchedWorkers--
 				// Run in goroutine, since we can't pull off the queue until a
 				// pass finishes. We might not even pull off the next available
 				// pixel grid, since the worker launcher might pick up the
