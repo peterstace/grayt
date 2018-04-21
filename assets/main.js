@@ -83,15 +83,17 @@ populateSceneSelector();
 function populateResolutionCheckboxes() {
   let resolutionsDiv = document.getElementById('resolutions');
   let selected = document.getElementById('scene-selection').value;
-  let xWides = [640, 800, 1024];
+  let xWides = [640, 800, 1024, 1152, 1280, 1400, 1440, 1680, 1920, 2048, 2560, 2880, 3840, 4096, 5120];
   for (let i = 0; i < scenes.length; i++) {
     let scene = scenes[i];
     if (selected == scene.code) {
       let inner = '';
       for (let j = 0; j < xWides.length; j++) {
         let pxWide = xWides[j];
-        let pxHigh = scene.aspect_high * pxWide / scene.aspect_wide;
-        inner += `<option value="${pxWide}">${pxWide}x${pxHigh}</option>`;
+        if ((scene.aspect_high * pxWide) % scene.aspect_wide === 0) {
+          let pxHigh = scene.aspect_high * pxWide / scene.aspect_wide;
+          inner += `<option value="${pxWide}">${pxWide}x${pxHigh}</option>`;
+        }
       }
       resolutionsDiv.innerHTML = inner;
       return;
