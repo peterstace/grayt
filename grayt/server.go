@@ -1,7 +1,6 @@
 package grayt
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"image"
@@ -137,7 +136,7 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 			sceneInfo.sceneFn(), // TODO: This could take some time.
 			newAccumulator(rsrc.pxWide, pxHigh),
 		)
-		go rsrc.render.traceImage(context.Background())
+		go rsrc.render.traceImage()
 
 	case http.MethodGet:
 		type props struct {

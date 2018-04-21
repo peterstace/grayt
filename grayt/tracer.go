@@ -1,7 +1,6 @@
 package grayt
 
 import (
-	"context"
 	"math"
 	"math/rand"
 	"sync/atomic"
@@ -28,7 +27,7 @@ func newRender(pxWide int, scene Scene, acc *accumulator) *render {
 	}
 }
 
-func (r *render) traceImage(ctx context.Context) {
+func (r *render) traceImage() {
 	pxHigh := r.scene.Camera.pxHigh(r.pxWide)
 	cam := newCamera(r.scene.Camera)
 	accel := newGrid(4, r.scene.Objects)
@@ -47,11 +46,6 @@ func (r *render) traceImage(ctx context.Context) {
 	go func() {
 		pxPitch := 2.0 / float64(r.pxWide)
 		for i := 0; true; i++ {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-			}
 			go func(i int, grid *pixelGrid) {
 				tr := tracer{
 					accel: accel,
@@ -75,25 +69,10 @@ func (r *render) traceImage(ctx context.Context) {
 	}()
 
 	// Coordination point for merging worker results.
-	doneCount := 0
-	for doneCount < r.numWorkers {
-		select {
-		case <-ctx.Done():
-			select {
-			case <-gridPool:
-			case <-finished:
-			}
-			doneCount++
-		case grid := <-finished:
-			select {
-			case <-ctx.Done():
-				doneCount++
-			default:
-				r.accum.merge(grid)
-				atomic.AddUint64(&r.passes, 1)
-				gridPool <- grid
-			}
-		}
+	for grid := range finished {
+		r.accum.merge(grid)
+		atomic.AddUint64(&r.passes, 1)
+		gridPool <- grid
 	}
 }
 
