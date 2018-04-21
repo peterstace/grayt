@@ -25,9 +25,9 @@ function updateStatus() {
           <td>${obj[i].px_wide}</td>
           <td>${obj[i].passes}</td>
           <td>${obj[i].completed}</td>
-          <td><button class="worker" uuid=${obj[i].uuid} workers=${obj[i].workers-1}>-</button></td>
-          <td>${obj[i].workers}</td>
-          <td><button class="worker" uuid=${obj[i].uuid} workers=${obj[i].workers+1}>+</button></td>
+          <td><button class="worker" uuid=${obj[i].uuid} workers=${obj[i].requested_workers-1}>-</button></td>
+          <td>${obj[i].requested_workers} (${obj[i].actual_workers})</td>
+          <td><button class="worker" uuid=${obj[i].uuid} workers=${obj[i].requested_workers+1}>+</button></td>
           <td>
             <a
               href="http://localhost:6060/renders/${obj[i].uuid}/image"

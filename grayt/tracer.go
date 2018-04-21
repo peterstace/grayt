@@ -4,27 +4,50 @@ import (
 	"math"
 	"math/rand"
 	"sync/atomic"
+	"time"
 )
 
 type render struct {
 	completed uint64
 	passes    uint64
 
+	requestedWorkers  int64
+	dispatchedWorkers int64
+	actualWorkers     int64
+
 	// Static configuration.
 	// TODO: Should ensure that these are not modified once the render is started.
-	pxWide     int
-	numWorkers int
-	scene      Scene
-	accum      *accumulator
+	pxWide int
+	scene  Scene
+	accum  *accumulator
 }
 
 func newRender(pxWide int, scene Scene, acc *accumulator) *render {
 	return &render{
-		pxWide:     pxWide,
-		numWorkers: 1,
-		scene:      scene,
-		accum:      acc,
+		pxWide: pxWide,
+		scene:  scene,
+		accum:  acc,
 	}
+}
+
+type status struct {
+	completed        uint64
+	passes           uint64
+	requestedWorkers int64
+	actualWorkers    int64
+}
+
+func (r *render) status() status {
+	return status{
+		completed:        atomic.LoadUint64(&r.completed),
+		passes:           atomic.LoadUint64(&r.passes),
+		requestedWorkers: atomic.LoadInt64(&r.requestedWorkers),
+		actualWorkers:    atomic.LoadInt64(&r.actualWorkers),
+	}
+}
+
+func (r *render) setWorkers(workers int64) {
+	atomic.StoreInt64(&r.requestedWorkers, workers)
 }
 
 func (r *render) traceImage() {
@@ -33,20 +56,36 @@ func (r *render) traceImage() {
 	accel := newGrid(4, r.scene.Objects)
 
 	finished := make(chan *pixelGrid)
-	gridPool := make(chan *pixelGrid, r.numWorkers)
-	for i := 0; i < r.numWorkers; i++ {
-		gridPool <- &pixelGrid{
-			pixels: make([]Colour, r.pxWide*pxHigh),
-			wide:   r.pxWide,
-			high:   pxHigh,
+	gridPool := make(chan *pixelGrid)
+
+	go func() {
+		for {
+			time.Sleep(time.Second)
+			for atomic.LoadInt64(&r.dispatchedWorkers) < atomic.LoadInt64(&r.requestedWorkers) {
+				atomic.AddInt64(&r.dispatchedWorkers, 1)
+				gridPool <- &pixelGrid{
+					pixels: make([]Colour, r.pxWide*pxHigh),
+					wide:   r.pxWide,
+					high:   pxHigh,
+				}
+			}
+			for atomic.LoadInt64(&r.dispatchedWorkers) > atomic.LoadInt64(&r.requestedWorkers) {
+				atomic.AddInt64(&r.dispatchedWorkers, -1)
+				// Run in goroutine, since we can't pull off the queue until a
+				// pass finishes. We might not even pull off the next available
+				// pixel grid, since the worker launcher might pick up the
+				// spare grid first.
+				go func() { <-gridPool }()
+			}
 		}
-	}
+	}()
 
 	// Launch workers.
 	go func() {
 		pxPitch := 2.0 / float64(r.pxWide)
 		for i := 0; true; i++ {
 			go func(i int, grid *pixelGrid) {
+				atomic.AddInt64(&r.actualWorkers, 1)
 				tr := tracer{
 					accel: accel,
 					sky:   r.scene.Sky,
@@ -63,6 +102,7 @@ func (r *render) traceImage() {
 						atomic.AddUint64(&r.completed, 1)
 					}
 				}
+				atomic.AddInt64(&r.actualWorkers, -1)
 				finished <- grid
 			}(i, <-gridPool)
 		}

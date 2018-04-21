@@ -3,15 +3,12 @@ package grayt
 import (
 	"encoding/json"
 	"fmt"
-	"image"
 	"image/png"
 	"io/ioutil"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
 	"strconv"
-	"sync"
-	"sync/atomic"
 
 	uuid "github.com/satori/go.uuid"
 )
@@ -62,15 +59,12 @@ func (s *Server) Register(
 }
 
 type resource struct {
-	sync.Mutex
 	uuid   uuid.UUID
 	render *render
 
 	sceneName string
 
 	pxWide, pxHigh int
-
-	workers int // TODO: Source this from render object.
 }
 
 func writeError(w http.ResponseWriter, status int) {
@@ -127,10 +121,6 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 		}
 		s.resources = append(s.resources, rsrc)
 
-		fmt.Fprintf(w, `{"uuid":%q}`, id)
-		http.HandleFunc("/renders/"+id.String()+"/image", rsrc.handleGetImage)
-		http.HandleFunc("/renders/"+id.String()+"/workers", rsrc.handlePutWorkers)
-
 		rsrc.render = newRender(
 			form.PxWide,
 			sceneInfo.sceneFn(), // TODO: This could take some time.
@@ -138,37 +128,33 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 		)
 		go rsrc.render.traceImage()
 
+		fmt.Fprintf(w, `{"uuid":%q}`, id)
+		http.HandleFunc("/renders/"+id.String()+"/image", rsrc.handleGetImage)
+		http.HandleFunc("/renders/"+id.String()+"/workers", rsrc.handlePutWorkers)
+
 	case http.MethodGet:
 		type props struct {
-			ID        uuid.UUID `json:"uuid"`
-			Running   bool      `json:"running"`
-			Scene     string    `json:"scene"`
-			Completed uint64    `json:"completed"`
-			Passes    uint64    `json:"passes"`
-			PxWide    int       `json:"px_wide"`
-			PxHigh    int       `json:"px_high"`
-			Workers   int       `json:"workers"`
+			ID               uuid.UUID `json:"uuid"`
+			Scene            string    `json:"scene"`
+			Completed        uint64    `json:"completed"`
+			Passes           uint64    `json:"passes"`
+			PxWide           int       `json:"px_wide"`
+			PxHigh           int       `json:"px_high"`
+			RequestedWorkers int64     `json:"requested_workers"`
+			ActualWorkers    int64     `json:"actual_workers"`
 		}
 		propList := []props{} // Populate as empty array since it goes to JSON.
 		for _, rsrc := range s.resources {
-			rsrc.Lock()
-			defer rsrc.Unlock()
-
-			var completed, passes uint64
-			if rsrc.render != nil {
-				completed = atomic.LoadUint64(&rsrc.render.completed)
-				passes = atomic.LoadUint64(&rsrc.render.passes)
-			}
-
+			status := rsrc.render.status()
 			propList = append(propList, props{
 				rsrc.uuid,
-				rsrc.render != nil,
 				rsrc.sceneName,
-				completed,
-				passes,
+				status.completed,
+				status.passes,
 				rsrc.pxWide,
 				rsrc.pxHigh,
-				rsrc.workers,
+				status.requestedWorkers,
+				status.actualWorkers,
 			})
 		}
 		if err := json.NewEncoder(w).Encode(propList); err != nil {
@@ -180,20 +166,6 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 }
 
 func (rsrc *resource) handleGetImage(w http.ResponseWriter, r *http.Request) {
-	rsrc.Lock()
-	defer rsrc.Unlock()
-
-	if rsrc.render == nil {
-		img := image.NewGray(image.Rect(0, 0, 320, 240))
-		if err := png.Encode(w, img); err != nil {
-			internalError(w, err)
-		}
-		return
-	}
-
-	// Disable caching, since this image will update often.
-	w.Header().Set("Cache-Control", "no-cache")
-
 	img := rsrc.render.accum.toImage(1.0)
 	if err := png.Encode(w, img); err != nil {
 		internalError(w, err)
@@ -202,9 +174,6 @@ func (rsrc *resource) handleGetImage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (rsrc *resource) handlePutWorkers(w http.ResponseWriter, r *http.Request) {
-	rsrc.Lock()
-	defer rsrc.Unlock()
-
 	if r.Method != http.MethodPut {
 		writeError(w, http.StatusMethodNotAllowed)
 		return
@@ -220,6 +189,9 @@ func (rsrc *resource) handlePutWorkers(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	if workers < 0 {
+		return // Ignore requests for negative workers.
+	}
 
-	rsrc.workers = workers
+	rsrc.render.setWorkers(int64(workers))
 }
