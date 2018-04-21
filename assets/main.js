@@ -9,8 +9,7 @@ function updateStatus() {
       <table>
         <tr>
           <td>scene name</td>
-          <td>px high</td>
-          <td>px wide</td>
+          <td>dimensions</td>
           <td>passes</td>
           <td>completed</td>
           <td colspan="3">workers</td>
@@ -21,8 +20,7 @@ function updateStatus() {
       statusTxt += `
         <tr>
           <td>${obj[i].scene}</td>
-          <td>${obj[i].px_high}</td>
-          <td>${obj[i].px_wide}</td>
+          <td>${obj[i].px_wide}x${obj[i].px_high}</td>
           <td>${obj[i].passes}</td>
           <td>${obj[i].completed}</td>
           <td><button class="worker" uuid=${obj[i].uuid} workers=${obj[i].requested_workers-1}>-</button></td>
