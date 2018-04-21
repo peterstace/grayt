@@ -117,16 +117,6 @@ function handleAddResource() {
     scene: document.getElementById('scene-selection').value,
     px_wide: Number(document.getElementById('resolutions').value),
   }));
-
-  xhr = new XMLHttpRequest();
-  xhr.open('PUT', `http://localhost:6060/renders/${uuid}/running`, false);
-  xhr.onload = function() {
-    if (this.status != 200) {
-      alert(this.status);
-      return;
-    }
-  }
-  xhr.send('true');
 }
 
 document.getElementById("add-resource").addEventListener("click", handleAddResource)

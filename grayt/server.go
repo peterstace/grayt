@@ -66,9 +66,7 @@ type resource struct {
 	sync.Mutex
 	uuid   uuid.UUID
 	render *render
-	cancel func() // set to nil if the render isn't running
 
-	scene     Scene
 	sceneName string
 
 	pxWide, pxHigh int
@@ -121,19 +119,26 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 		}
 
 		id := uuid.Must(uuid.NewV4())
+		pxHigh := form.PxWide * sceneInfo.ascpectHigh / sceneInfo.ascpectWide
 		rsrc := &resource{
 			uuid:      id,
-			scene:     sceneInfo.sceneFn(), // TODO: This could take some time.
 			sceneName: form.Scene,
 			pxWide:    form.PxWide,
-			pxHigh:    form.PxWide * sceneInfo.ascpectHigh / sceneInfo.ascpectWide,
+			pxHigh:    pxHigh,
 		}
 		s.resources = append(s.resources, rsrc)
 
 		fmt.Fprintf(w, `{"uuid":%q}`, id)
 		http.HandleFunc("/renders/"+id.String()+"/image", rsrc.handleGetImage)
-		http.HandleFunc("/renders/"+id.String()+"/running", rsrc.handlePutRunning)
 		http.HandleFunc("/renders/"+id.String()+"/workers", rsrc.handlePutWorkers)
+
+		rsrc.render = newRender(
+			form.PxWide,
+			sceneInfo.sceneFn(), // TODO: This could take some time.
+			newAccumulator(rsrc.pxWide, pxHigh),
+		)
+		go rsrc.render.traceImage(context.Background())
+
 	case http.MethodGet:
 		type props struct {
 			ID        uuid.UUID `json:"uuid"`
@@ -195,53 +200,6 @@ func (rsrc *resource) handleGetImage(w http.ResponseWriter, r *http.Request) {
 		internalError(w, err)
 		return
 	}
-}
-
-func (rsrc *resource) handlePutRunning(w http.ResponseWriter, r *http.Request) {
-	rsrc.Lock()
-	defer rsrc.Unlock()
-
-	if r.Method != http.MethodPut {
-		writeError(w, http.StatusMethodNotAllowed)
-		return
-	}
-
-	buf, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		internalError(w, err)
-		return
-	}
-
-	b, err := strconv.ParseBool(string(buf))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if (rsrc.cancel != nil) == b {
-		// Already in the correct state.
-		return
-	}
-
-	if !b {
-		rsrc.cancel()
-		rsrc.cancel = nil
-		return
-	}
-
-	if rsrc.render == nil {
-		pxHigh := rsrc.pxWide * rsrc.scene.Camera.aspectHigh / rsrc.scene.Camera.aspectWide
-		rsrc.render = newRender(
-			rsrc.pxWide,
-			rsrc.scene,
-			newAccumulator(rsrc.pxWide, pxHigh),
-		)
-	}
-	var ctx context.Context
-	ctx, rsrc.cancel = context.WithCancel(context.Background())
-	go func() {
-		rsrc.render.traceImage(ctx)
-	}()
 }
 
 func (rsrc *resource) handlePutWorkers(w http.ResponseWriter, r *http.Request) {
