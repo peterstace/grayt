@@ -1,7 +1,10 @@
 package grayt
 
 import (
+	"encoding/binary"
 	"image"
+	"io/ioutil"
+	"os"
 	"sync"
 )
 
@@ -18,7 +21,7 @@ func (g *pixelGrid) set(x, y int, c Colour) {
 
 type accumulator struct {
 	sync.Mutex
-	count int
+	passes int64
 	pixelGrid
 }
 
@@ -34,7 +37,7 @@ func (a *accumulator) merge(g *pixelGrid) {
 	a.Lock()
 	defer a.Unlock()
 
-	a.count++
+	a.passes++
 	for i, c := range a.pixels {
 		a.pixels[i] = c.add(g.pixels[i])
 	}
@@ -70,50 +73,69 @@ func (a *accumulator) mean() float64 {
 	return sum / float64(len(a.pixels)) / 3.0
 }
 
-/*
-func (a *accumulator) load() (bool, error) {
-	f, err := os.Open("checkpoint")
+func loadAccumulator(fname string) (string, *accumulator, error) {
+	f, err := os.Open(fname)
 	if err != nil {
-		if _, ok := err.(*os.PathError); ok {
-			return false, nil
-		}
-		return false, err
+		return "", nil, err
 	}
 	defer f.Close()
 
-	var count int64
-	if err := binary.Read(f, binary.LittleEndian, &count); err != nil {
-		return false, err
+	var (
+		sceneNameLen int64
+		passes       int64
+		wide         int64
+		high         int64
+	)
+	if err := binary.Read(f, binary.LittleEndian, &sceneNameLen); err != nil {
+		return "", nil, err
 	}
-	a.count = int(count)
-
-	var wide int64
+	sceneName := make([]byte, sceneNameLen)
+	if err := binary.Read(f, binary.LittleEndian, &sceneName); err != nil {
+		return "", nil, err
+	}
+	if err := binary.Read(f, binary.LittleEndian, &passes); err != nil {
+		return "", nil, err
+	}
 	if err := binary.Read(f, binary.LittleEndian, &wide); err != nil {
-		return false, err
+		return "", nil, err
 	}
-	a.wide = int(wide)
-
-	var high int64
 	if err := binary.Read(f, binary.LittleEndian, &high); err != nil {
-		return false, err
+		return "", nil, err
 	}
-	a.high = int(high)
+	pixels := make([]Colour, wide*high)
+	if err := binary.Read(f, binary.LittleEndian, &pixels); err != nil {
+		return "", nil, err
+	}
 
-	fmt.Println(wide, high)
-	a.pixels = make([]Colour, wide*high)
-	if err := binary.Read(f, binary.LittleEndian, &a.pixels); err != nil {
-		return false, err
-	}
-	return true, nil
+	return string(sceneName), &accumulator{
+		passes: passes,
+		pixelGrid: pixelGrid{
+			wide:   int(wide),
+			high:   int(high),
+			pixels: pixels,
+		},
+	}, nil
 }
 
-func (a *accumulator) save() error {
+func (a *accumulator) save(fname, sceneName string) error {
+	a.Lock()
+	defer a.Unlock()
+
 	f, err := ioutil.TempFile(".", "")
 	if err != nil {
 		return err
 	}
 	defer os.Remove(f.Name())
-	if err := binary.Write(f, binary.LittleEndian, int64(a.count)); err != nil {
+
+	if err := binary.Write(f, binary.LittleEndian, int64(len(sceneName))); err != nil {
+		f.Close()
+		return err
+	}
+	if err := binary.Write(f, binary.LittleEndian, []byte(sceneName)); err != nil {
+		f.Close()
+		return err
+	}
+	if err := binary.Write(f, binary.LittleEndian, int64(a.passes)); err != nil {
 		f.Close()
 		return err
 	}
@@ -129,9 +151,9 @@ func (a *accumulator) save() error {
 		f.Close()
 		return err
 	}
+
 	if err := f.Close(); err != nil {
 		return err
 	}
-	return os.Rename(f.Name(), "checkpoint")
+	return os.Rename(f.Name(), fname)
 }
-*/

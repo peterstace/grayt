@@ -8,38 +8,36 @@ import (
 )
 
 type render struct {
-	completed uint64
-	passes    uint64
+	completed int64
 
 	requestedWorkers int64
 	actualWorkers    int64
 
 	// Static configuration.
 	// TODO: Should ensure that these are not modified once the render is started.
-	pxWide int
-	scene  Scene
-	accum  *accumulator
+	scene Scene
+	accum *accumulator
 }
 
-func newRender(pxWide int, scene Scene, acc *accumulator) *render {
+func newRender(scene Scene, acc *accumulator) *render {
 	return &render{
-		pxWide: pxWide,
-		scene:  scene,
-		accum:  acc,
+		completed: acc.passes * int64(acc.wide) * int64(acc.high),
+		scene:     scene,
+		accum:     acc,
 	}
 }
 
 type status struct {
-	completed        uint64
-	passes           uint64
+	completed        int64
+	passes           int64
 	requestedWorkers int64
 	actualWorkers    int64
 }
 
 func (r *render) status() status {
 	return status{
-		completed:        atomic.LoadUint64(&r.completed),
-		passes:           atomic.LoadUint64(&r.passes),
+		completed:        atomic.LoadInt64(&r.completed),
+		passes:           atomic.LoadInt64(&r.accum.passes),
 		requestedWorkers: atomic.LoadInt64(&r.requestedWorkers),
 		actualWorkers:    atomic.LoadInt64(&r.actualWorkers),
 	}
@@ -50,7 +48,7 @@ func (r *render) setWorkers(workers int64) {
 }
 
 func (r *render) traceImage() {
-	pxHigh := r.scene.Camera.pxHigh(r.pxWide)
+	pxHigh := r.scene.Camera.pxHigh(r.accum.wide)
 	cam := newCamera(r.scene.Camera)
 	accel := newGrid(4, r.scene.Objects)
 
@@ -64,8 +62,8 @@ func (r *render) traceImage() {
 			for dispatchedWorkers < atomic.LoadInt64(&r.requestedWorkers) {
 				dispatchedWorkers++
 				gridPool <- &pixelGrid{
-					pixels: make([]Colour, r.pxWide*pxHigh),
-					wide:   r.pxWide,
+					pixels: make([]Colour, r.accum.wide*pxHigh),
+					wide:   r.accum.wide,
 					high:   pxHigh,
 				}
 			}
@@ -82,7 +80,7 @@ func (r *render) traceImage() {
 
 	// Launch workers.
 	go func() {
-		pxPitch := 2.0 / float64(r.pxWide)
+		pxPitch := 2.0 / float64(r.accum.wide)
 		for i := 0; true; i++ {
 			go func(i int, grid *pixelGrid) {
 				atomic.AddInt64(&r.actualWorkers, 1)
@@ -92,14 +90,14 @@ func (r *render) traceImage() {
 					rng:   rand.New(rand.NewSource(int64(i))),
 				}
 				for pxY := 0; pxY < pxHigh; pxY++ {
-					for pxX := 0; pxX < r.pxWide; pxX++ {
-						x := (float64(pxX-r.pxWide/2) + tr.rng.Float64()) * pxPitch
+					for pxX := 0; pxX < r.accum.wide; pxX++ {
+						x := (float64(pxX-r.accum.wide/2) + tr.rng.Float64()) * pxPitch
 						y := (float64(pxY-pxHigh/2) + tr.rng.Float64()) * pxPitch * -1.0
 						cr := cam.makeRay(x, y, tr.rng)
 						cr.dir = cr.dir.Unit()
 						c := tr.tracePath(cr)
 						grid.set(pxX, pxY, c)
-						atomic.AddUint64(&r.completed, 1)
+						atomic.AddInt64(&r.completed, 1)
 					}
 				}
 				atomic.AddInt64(&r.actualWorkers, -1)
@@ -111,7 +109,6 @@ func (r *render) traceImage() {
 	// Coordination point for merging worker results.
 	for grid := range finished {
 		r.accum.merge(grid)
-		atomic.AddUint64(&r.passes, 1)
 		gridPool <- grid
 	}
 }

@@ -13,11 +13,15 @@ Go RAY Tracer
 - [X] Depth of field effects.
 - [X] Multithreading support.
 - [X] Fast acceleration structure.
+- [X] Web UI.
+- [X] Persistent storage of partial renders.
 
 ## TODO
 
 - Use terminology for focal distance / focal ratio correctly.
 - Voxel Geometry
+- Custom Resolution Chooser.
+- Scene descriptions independent of screen resolution.
 
 ## Gallery
 
