@@ -78,26 +78,23 @@ func (c *cli) finished() {
 }
 
 func displayFloat64(f float64) string {
-
 	var thousands int
-
 	for f >= 1000 {
 		f /= 1000
 		thousands++
 	}
-
-	suffix := [...]byte{' ', 'k', 'M', 'T', 'P', 'E'}[thousands]
-
+	var body string
 	switch {
 	case f < 10:
-		return fmt.Sprintf("%.3f%c", f, suffix) // 9.999K
+		body = fmt.Sprintf("%.3f", f)
 	case f < 100:
-		return fmt.Sprintf("%.2f%c", f, suffix) // 99.99K
+		body = fmt.Sprintf("%.2f", f)
 	case f < 1000:
-		return fmt.Sprintf("%.1f%c", f, suffix) // 999.9K
+		body = fmt.Sprintf("%.1f", f)
 	default:
 		panic(f)
 	}
+	return fmt.Sprintf("%se%d", body, thousands*3)
 }
 
 func displayDuration(d time.Duration) string {

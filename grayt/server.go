@@ -176,7 +176,7 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 		type props struct {
 			ID               uuid.UUID `json:"uuid"`
 			Scene            string    `json:"scene"`
-			Completed        int64     `json:"completed"`
+			Completed        string    `json:"completed"`
 			Passes           int64     `json:"passes"`
 			PxWide           int       `json:"px_wide"`
 			PxHigh           int       `json:"px_high"`
@@ -189,7 +189,7 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 			propList = append(propList, props{
 				rsrc.uuid,
 				rsrc.sceneName,
-				status.completed,
+				displayFloat64(float64(status.completed)),
 				status.passes,
 				rsrc.pxWide,
 				rsrc.pxHigh,
