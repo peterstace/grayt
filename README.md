@@ -20,8 +20,9 @@ Go RAY Tracer
 
 - Use terminology for focal distance / focal ratio correctly.
 - Voxel Geometry
-- Custom Resolution Chooser.
-- Scene descriptions independent of screen resolution.
+- Scene descriptions independent of screen ratio (or maybe take ratio as a
+  recommendation).
+- Ability to delete renders.
 
 ## Gallery
 
