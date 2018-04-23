@@ -15,7 +15,9 @@ import (
 )
 
 type scene struct {
-	sceneFn     func() Scene
+	sceneFn func() Scene
+
+	// TODO: Can possibly get rid of this... Or maybe we could give this as a recommendation?
 	ascpectWide int
 	ascpectHigh int
 }
@@ -102,7 +104,7 @@ type resource struct {
 
 	sceneName string
 
-	pxWide, pxHigh int
+	pxWide, pxHigh int // TODO: Do we actually need these?
 }
 
 func writeError(w http.ResponseWriter, status int) {
@@ -152,13 +154,14 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 		var form struct {
 			Scene  string `json:"scene"`
 			PxWide int    `json:"px_wide"`
+			PxHigh int    `json:"px_high"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&form); err != nil {
 			http.Error(w, fmt.Sprintf("could not decode form: %v", err), http.StatusBadRequest)
 			return
 		}
-		if form.PxWide == 0 {
-			http.Error(w, "px_wide not set", http.StatusBadRequest)
+		if form.PxWide == 0 || form.PxHigh == 0 {
+			http.Error(w, "px_wide or px_high not set", http.StatusBadRequest)
 			return
 		}
 		sceneInfo, ok := s.scenes[form.Scene]
@@ -168,8 +171,7 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 		}
 
 		id := uuid.Must(uuid.NewV4())
-		pxHigh := form.PxWide * sceneInfo.ascpectHigh / sceneInfo.ascpectWide
-		s.addResource(id, form.Scene, sceneInfo.sceneFn(), newAccumulator(form.PxWide, pxHigh))
+		s.addResource(id, form.Scene, sceneInfo.sceneFn(), newAccumulator(form.PxWide, form.PxHigh))
 		fmt.Fprintf(w, `{"uuid":%q}`, id)
 
 	case http.MethodGet:

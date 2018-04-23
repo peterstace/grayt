@@ -60,7 +60,7 @@ function populateSceneSelector() {
   xhr.open('GET', 'http://localhost:6060/scenes');
   xhr.onload = function () {
     if (this.status != 200) {
-      alert(this.status);
+      alert(`${this.status}: ${this.response}`);
       return;
     }
     scenes = JSON.parse(this.response);
@@ -69,36 +69,45 @@ function populateSceneSelector() {
       inner += `<option value="${scenes[i].code}">${scenes[i].code}</option>`;
     }
     document.getElementById('scene-selection').innerHTML = inner;
-    populateResolutionCheckboxes();
+    populateResolutionSelection();
   };
   xhr.send();
 }
 
-document.getElementById('scene-selection').addEventListener("change", populateResolutionCheckboxes);
-
 populateSceneSelector();
 
-function populateResolutionCheckboxes() {
-  let resolutionsDiv = document.getElementById('resolutions');
-  let selected = document.getElementById('scene-selection').value;
-  let xWides = [640, 800, 1024, 1152, 1280, 1400, 1440, 1680, 1920, 2048, 2560, 2880, 3840, 4096, 5120];
-  for (let i = 0; i < scenes.length; i++) {
-    let scene = scenes[i];
-    if (selected == scene.code) {
-      let inner = '';
-      for (let j = 0; j < xWides.length; j++) {
-        let pxWide = xWides[j];
-        if ((scene.aspect_high * pxWide) % scene.aspect_wide === 0) {
-          let pxHigh = scene.aspect_high * pxWide / scene.aspect_wide;
-          inner += `<option value="${pxWide}">${pxWide}x${pxHigh}</option>`;
-        }
-      }
-      resolutionsDiv.innerHTML = inner;
-      return;
+function populateAspectSelection() {
+  let aspectDiv = document.getElementById('aspects');
+  let ratios = [[1,1], [4,3], [16,9], [16,10], [2,1]];
+  let inner = '';
+  for (let i = 0; i < ratios.length; i++) {
+    let rat = `${ratios[i][0]}:${ratios[i][1]}`
+    inner += `<option value="${rat}">${rat}</option>`;
+  }
+  aspectDiv.innerHTML = inner;
+}
+
+populateAspectSelection();
+
+function populateResolutionSelection() {
+  const aspectSelect = document.getElementById('aspects');
+  const aspects = aspectSelect.value.split(':');
+  const aspectWide = aspects[0];
+  const aspectHigh = aspects[1];
+  const xWides = [640, 800, 1024, 1152, 1280, 1400, 1440, 1680, 1920, 2048, 2560, 2880, 3840, 4096, 5120];
+  let inner = '';
+  for (let i = 0; i < xWides.length; i++) {
+    const pxWide = xWides[i];
+    if ((aspectHigh * pxWide) % aspectWide === 0) {
+      const pxHigh = aspectHigh * pxWide / aspectWide;
+      const dim = `${pxWide}x${pxHigh}`
+      inner += `<option value="${dim}">${dim}</option>`;
     }
   }
-  resolutionsDiv.innerHTML = ''; // Couldn't find the selected scene.
+  document.getElementById('resolutions').innerHTML = inner;
 }
+
+document.getElementById('aspects').addEventListener("change", populateResolutionSelection);
 
 function handleAddResource() {
   let uuid = '';
@@ -106,16 +115,18 @@ function handleAddResource() {
   xhr.open('POST', 'http://localhost:6060/renders', false);
   xhr.onload = function() {
     if (this.status != 200) {
-      alert(this.status);
+      alert(`${this.status}: ${this.response}`);
       return;
     }
     let data = JSON.parse(this.response);
     uuid = data.uuid;
     updateStatus();
   }
+  const dim = document.getElementById('resolutions').value.split("x");
   xhr.send(JSON.stringify({
     scene: document.getElementById('scene-selection').value,
-    px_wide: Number(document.getElementById('resolutions').value),
+    px_wide: Number(dim[0]),
+    px_high: Number(dim[1]),
   }));
 }
 

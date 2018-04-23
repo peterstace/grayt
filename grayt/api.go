@@ -30,6 +30,7 @@ func (c CameraBlueprint) String() string {
 	)
 }
 
+// TODO: Can get rid of this?
 func (c CameraBlueprint) pxHigh(pxWide int) int {
 	return pxWide * c.aspectHigh / c.aspectWide
 }

@@ -48,7 +48,6 @@ func (r *render) setWorkers(workers int64) {
 }
 
 func (r *render) traceImage() {
-	pxHigh := r.scene.Camera.pxHigh(r.accum.wide)
 	cam := newCamera(r.scene.Camera)
 	accel := newGrid(4, r.scene.Objects)
 
@@ -62,9 +61,9 @@ func (r *render) traceImage() {
 			for dispatchedWorkers < atomic.LoadInt64(&r.requestedWorkers) {
 				dispatchedWorkers++
 				gridPool <- &pixelGrid{
-					pixels: make([]Colour, r.accum.wide*pxHigh),
+					pixels: make([]Colour, r.accum.wide*r.accum.high),
 					wide:   r.accum.wide,
-					high:   pxHigh,
+					high:   r.accum.high,
 				}
 			}
 			for dispatchedWorkers > atomic.LoadInt64(&r.requestedWorkers) {
@@ -89,10 +88,10 @@ func (r *render) traceImage() {
 					sky:   r.scene.Sky,
 					rng:   rand.New(rand.NewSource(int64(i))),
 				}
-				for pxY := 0; pxY < pxHigh; pxY++ {
+				for pxY := 0; pxY < r.accum.high; pxY++ {
 					for pxX := 0; pxX < r.accum.wide; pxX++ {
 						x := (float64(pxX-r.accum.wide/2) + tr.rng.Float64()) * pxPitch
-						y := (float64(pxY-pxHigh/2) + tr.rng.Float64()) * pxPitch * -1.0
+						y := (float64(pxY-r.accum.high/2) + tr.rng.Float64()) * pxPitch * -1.0
 						cr := cam.makeRay(x, y, tr.rng)
 						cr.dir = cr.dir.Unit()
 						c := tr.tracePath(cr)
