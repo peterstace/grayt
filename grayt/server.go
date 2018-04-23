@@ -235,3 +235,23 @@ func (rsrc *resource) handlePutWorkers(w http.ResponseWriter, r *http.Request) {
 
 	rsrc.render.setWorkers(int64(workers))
 }
+
+func displayFloat64(f float64) string {
+	var thousands int
+	for f >= 1000 {
+		f /= 1000
+		thousands++
+	}
+	var body string
+	switch {
+	case f < 10:
+		body = fmt.Sprintf("%.3f", f)
+	case f < 100:
+		body = fmt.Sprintf("%.2f", f)
+	case f < 1000:
+		body = fmt.Sprintf("%.1f", f)
+	default:
+		panic(f)
+	}
+	return fmt.Sprintf("%se%d", body, thousands*3)
+}
