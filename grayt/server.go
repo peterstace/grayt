@@ -99,12 +99,9 @@ func (s *Server) Register(
 }
 
 type resource struct {
-	uuid   uuid.UUID
-	render *render
-
+	uuid      uuid.UUID
+	render    *render
 	sceneName string
-
-	pxWide, pxHigh int // TODO: Do we actually need these?
 }
 
 func writeError(w http.ResponseWriter, status int) {
@@ -134,8 +131,6 @@ func (s *Server) addResource(id uuid.UUID, sceneName string, scene Scene, acc *a
 	rsrc := &resource{
 		uuid:      id,
 		sceneName: sceneName,
-		pxWide:    acc.wide,
-		pxHigh:    acc.high,
 	}
 	rsrc.render = newRender(
 		scene,
@@ -193,8 +188,8 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 				rsrc.sceneName,
 				displayFloat64(float64(status.completed)),
 				status.passes,
-				rsrc.pxWide,
-				rsrc.pxHigh,
+				rsrc.render.accum.wide,
+				rsrc.render.accum.high,
 				status.requestedWorkers,
 				status.actualWorkers,
 			})
