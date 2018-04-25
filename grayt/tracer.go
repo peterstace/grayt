@@ -9,6 +9,7 @@ import (
 
 type render struct {
 	completed int64
+	traceRate int64
 
 	requestedWorkers int64
 	actualWorkers    int64
@@ -30,6 +31,7 @@ func newRender(scene Scene, acc *accumulator) *render {
 type status struct {
 	completed        int64
 	passes           int64
+	traceRate        int64
 	requestedWorkers int64
 	actualWorkers    int64
 }
@@ -38,6 +40,7 @@ func (r *render) status() status {
 	return status{
 		completed:        atomic.LoadInt64(&r.completed),
 		passes:           atomic.LoadInt64(&r.accum.passes),
+		traceRate:        atomic.LoadInt64(&r.traceRate),
 		requestedWorkers: atomic.LoadInt64(&r.requestedWorkers),
 		actualWorkers:    atomic.LoadInt64(&r.actualWorkers),
 	}
@@ -54,10 +57,33 @@ func (r *render) traceImage() {
 	finished := make(chan *pixelGrid)
 	gridPool := make(chan *pixelGrid)
 
+	// Monitor trace rate.
+	go func() {
+		var lastCompleted int64
+		var smoothed float64
+		const samplePeriod = 10 * time.Millisecond
+		ticker := time.NewTicker(samplePeriod)
+		for {
+			select {
+			case <-ticker.C:
+			}
+
+			completed := atomic.LoadInt64(&r.completed)
+			sample := float64(completed-lastCompleted) * float64(time.Second/samplePeriod)
+			if lastCompleted != 0 {
+				const alpha = 0.001
+				smoothed = (1-alpha)*smoothed + alpha*sample
+				atomic.StoreInt64(&r.traceRate, int64(smoothed))
+			}
+			lastCompleted = completed
+		}
+	}()
+
+	// Control size of worker pool.
 	go func() {
 		var dispatchedWorkers int64
 		for {
-			time.Sleep(time.Second)
+			time.Sleep(100 * time.Millisecond)
 			for dispatchedWorkers < atomic.LoadInt64(&r.requestedWorkers) {
 				dispatchedWorkers++
 				gridPool <- &pixelGrid{

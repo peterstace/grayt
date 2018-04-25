@@ -179,6 +179,7 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 			PxHigh           int       `json:"px_high"`
 			RequestedWorkers int64     `json:"requested_workers"`
 			ActualWorkers    int64     `json:"actual_workers"`
+			TraceRate        string    `json:"trace_rate"`
 		}
 		propList := []props{} // Populate as empty array since it goes to JSON.
 		for _, rsrc := range s.resources {
@@ -192,6 +193,7 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 				rsrc.render.accum.high,
 				status.requestedWorkers,
 				status.actualWorkers,
+				displayFloat64(float64(status.traceRate)) + " Hz",
 			})
 		}
 		if err := json.NewEncoder(w).Encode(propList); err != nil {
