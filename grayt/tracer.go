@@ -1,6 +1,7 @@
 package grayt
 
 import (
+	"log"
 	"math"
 	"math/rand"
 	"sync/atomic"
@@ -60,20 +61,14 @@ func (r *render) traceImage() {
 	// Monitor trace rate.
 	go func() {
 		var lastCompleted int64
-		var smoothed float64
-		const samplePeriod = 10 * time.Millisecond
+		const samplePeriod = 5 * time.Second
 		ticker := time.NewTicker(samplePeriod)
 		for {
-			select {
-			case <-ticker.C:
-			}
-
+			<-ticker.C
 			completed := atomic.LoadInt64(&r.completed)
-			sample := float64(completed-lastCompleted) * float64(time.Second/samplePeriod)
 			if lastCompleted != 0 {
-				const alpha = 0.001
-				smoothed = (1-alpha)*smoothed + alpha*sample
-				atomic.StoreInt64(&r.traceRate, int64(smoothed))
+				sample := (completed - lastCompleted) * int64(time.Second) / int64(samplePeriod)
+				atomic.StoreInt64(&r.traceRate, sample)
 			}
 			lastCompleted = completed
 		}
@@ -85,6 +80,7 @@ func (r *render) traceImage() {
 		for {
 			time.Sleep(100 * time.Millisecond)
 			for dispatchedWorkers < atomic.LoadInt64(&r.requestedWorkers) {
+				log.Println("dispatching worker")
 				dispatchedWorkers++
 				gridPool <- &pixelGrid{
 					pixels: make([]Colour, r.accum.wide*r.accum.high),
@@ -93,6 +89,7 @@ func (r *render) traceImage() {
 				}
 			}
 			for dispatchedWorkers > atomic.LoadInt64(&r.requestedWorkers) {
+				log.Println("cancelling worker")
 				dispatchedWorkers--
 				// Run in goroutine, since we can't pull off the queue until a
 				// pass finishes. We might not even pull off the next available
