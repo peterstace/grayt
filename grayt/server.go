@@ -16,10 +16,6 @@ import (
 
 type scene struct {
 	sceneFn func() Scene
-
-	// TODO: Can possibly get rid of this... Or maybe we could give this as a recommendation?
-	ascpectWide int
-	ascpectHigh int
 }
 
 type Server struct {
@@ -93,8 +89,6 @@ func (s *Server) Register(
 				Sky:     SkyFn,
 			}
 		},
-		ascpectWide: cam.aspectWide,
-		ascpectHigh: cam.aspectHigh,
 	}
 }
 
@@ -114,13 +108,11 @@ func internalError(w http.ResponseWriter, err error) {
 
 func (s *Server) handleGetScenesCollection(w http.ResponseWriter, r *http.Request) {
 	type response struct {
-		Code       string `json:"code"`
-		AspectWide int    `json:"aspect_wide"`
-		AspectHigh int    `json:"aspect_high"`
+		Code string `json:"code"`
 	}
 	var responses []response
-	for name, scene := range s.scenes {
-		responses = append(responses, response{name, scene.ascpectWide, scene.ascpectHigh})
+	for name := range s.scenes {
+		responses = append(responses, response{name})
 	}
 	if err := json.NewEncoder(w).Encode(responses); err != nil {
 		internalError(w, err)
