@@ -2,7 +2,7 @@ var scenes = [];
 
 function updateStatus() {
   let xhr = new XMLHttpRequest();
-  xhr.open('GET', 'http://localhost:6060/renders');
+  xhr.open('GET', '/renders');
   xhr.onload = function() {
     let obj = JSON.parse(this.response);
     let statusTxt = `
@@ -30,7 +30,7 @@ function updateStatus() {
           <td><button class="worker" uuid=${obj[i].uuid} workers=${obj[i].requested_workers+1}>+</button></td>
           <td>
             <a
-              href="http://localhost:6060/renders/${obj[i].uuid}/image"
+              href="/renders/${obj[i].uuid}/image"
               target="_blank"
             >image</a>
           </td>
@@ -45,7 +45,7 @@ function updateStatus() {
       btn.addEventListener("click", function() {
         let xhr = new XMLHttpRequest();
         let uuid = btn.getAttribute('uuid');
-        xhr.open('PUT', `http://localhost:6060/renders/${uuid}/workers`);
+        xhr.open('PUT', `/renders/${uuid}/workers`);
         xhr.onload = updateStatus;
         let workers = btn.getAttribute('workers');
         xhr.send(workers);
@@ -59,7 +59,7 @@ window.setInterval(updateStatus, 250);
 
 function populateSceneSelector() {
   let xhr = new XMLHttpRequest();
-  xhr.open('GET', 'http://localhost:6060/scenes');
+  xhr.open('GET', '/scenes');
   xhr.onload = function () {
     if (this.status != 200) {
       alert(`${this.status}: ${this.response}`);
@@ -114,7 +114,7 @@ document.getElementById('aspects').addEventListener("change", populateResolution
 function handleAddResource() {
   let uuid = '';
   let xhr = new XMLHttpRequest();
-  xhr.open('POST', 'http://localhost:6060/renders', false);
+  xhr.open('POST', '/renders', false);
   xhr.onload = function() {
     if (this.status != 200) {
       alert(`${this.status}: ${this.response}`);

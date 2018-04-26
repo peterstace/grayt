@@ -104,6 +104,7 @@ func (r *render) traceImage() {
 	go func() {
 		pxPitch := 2.0 / float64(r.accum.wide)
 		for i := 0; true; i++ {
+			// TODO: Could pull off the worker pool at this point, rather than in separate goroutine.
 			go func(i int, grid *pixelGrid) {
 				atomic.AddInt64(&r.actualWorkers, 1)
 				tr := tracer{

@@ -24,10 +24,7 @@ Go RAY Tracer
   recommendation).
 - Ability to delete renders.
 - Don't use sync xhr when posting new scene.
-- Use engineering notation.
-- Show current speed.
 - Use fixed space font for data in UI.
-- Put some styling in (at least for table). Sans serif font.
 - Put a link to the github repo in the source code.
 - Don't load scenes into memory unless they have active workers.
 
