@@ -20,8 +20,6 @@ Go RAY Tracer
 
 - Use terminology for focal distance / focal ratio correctly.
 - Voxel Geometry
-- Scene descriptions independent of screen ratio (or maybe take ratio as a
-  recommendation).
 - Ability to delete renders.
 - Don't use sync xhr when posting new scene.
 - Use fixed space font for data in UI.
