@@ -10,8 +10,6 @@ const (
 	e = 0.05
 )
 
-var SkyFn func(Vector) Colour
-
 func CameraFn() CameraBlueprint {
 	return Cam(d)
 }

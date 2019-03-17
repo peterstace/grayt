@@ -5,8 +5,6 @@ import (
 	. "github.com/peterstace/grayt/grayt"
 )
 
-var SkyFn func(Vector) Colour
-
 func CameraFn() CameraBlueprint {
 	return Cam(1.3)
 }

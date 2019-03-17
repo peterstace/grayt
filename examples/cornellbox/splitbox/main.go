@@ -7,8 +7,6 @@ import (
 	. "github.com/peterstace/grayt/grayt"
 )
 
-var SkyFn func(Vector) Colour = nil
-
 func CameraFn() CameraBlueprint {
 	c := Cam(1.3)
 	return c.With(

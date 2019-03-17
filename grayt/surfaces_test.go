@@ -13,7 +13,7 @@ func TestAlignedBoxIntersection(t *testing.T) {
 		Vector{0.18325558497391392, 0.999012404240046, -0.9999999999999999},
 		Vector{-0.5720297174078126, 0.007828964018125696, 0.8201955313976911},
 	}
-	intersection, hit := box.intersect(r)
+	intersection, hit := box.Surface.intersect(r)
 	if !hit {
 		t.Error("should have hit")
 	}

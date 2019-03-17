@@ -39,7 +39,7 @@ func bounds(objs ObjectList) (Vector, Vector) {
 	inf := math.Inf(+1)
 	minBound, maxBound := Vect(+inf, +inf, +inf), Vect(-inf, -inf, -inf)
 	for _, obj := range objs {
-		min, max := obj.bound()
+		min, max := obj.Surface.bound()
 		minBound = minBound.Min(min)
 		maxBound = maxBound.Max(max)
 	}
@@ -48,7 +48,7 @@ func bounds(objs ObjectList) (Vector, Vector) {
 
 func (g *grid) populate(objs ObjectList) {
 	for _, obj := range objs {
-		min, max := obj.bound()
+		min, max := obj.Surface.bound()
 		minCoord := truncate(min.Sub(g.minBound).div(g.stride)).min(g.resolution.sub(triple{1, 1, 1}))
 		maxCoord := truncate(max.Sub(g.minBound).div(g.stride)).min(g.resolution.sub(triple{1, 1, 1}))
 		var pos triple
@@ -194,7 +194,7 @@ func (g *grid) findHitInCell(pos triple, next Vector, r ray) (intersection, mate
 	}
 
 	for link := g.data[g.dataIndex(pos)]; link != nil; link = link.next {
-		intersection, hit := link.obj.intersect(r)
+		intersection, hit := link.obj.Surface.intersect(r)
 		if !hit {
 			continue
 		}
@@ -204,7 +204,7 @@ func (g *grid) findHitInCell(pos triple, next Vector, r ray) (intersection, mate
 		}
 		if !closest.hit || intersection.distance < closest.intersection.distance {
 			closest.intersection = intersection
-			closest.material = link.obj.material
+			closest.material = link.obj.Material
 			closest.hit = true
 		}
 	}

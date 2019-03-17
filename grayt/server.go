@@ -77,7 +77,6 @@ func (s *Server) ListenAndServe(addr string) error {
 
 func (s *Server) Register(
 	name string,
-	SkyFn func(Vector) Colour,
 	cam CameraBlueprint,
 	objFn func() ObjectList,
 ) {
@@ -86,7 +85,6 @@ func (s *Server) Register(
 			return Scene{
 				Camera:  cam,
 				Objects: objFn(),
-				Sky:     SkyFn,
 			}
 		},
 	}

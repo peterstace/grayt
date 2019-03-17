@@ -6,7 +6,9 @@ import (
 )
 
 type Colour struct {
-	R, G, B float64
+	R float64 `json:"r"`
+	G float64 `json:"g"`
+	B float64 `json:"b"`
 }
 
 func newColourFromRGB(rgb uint32) Colour {

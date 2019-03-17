@@ -3,7 +3,9 @@ package grayt
 import "math"
 
 type Vector struct {
-	X, Y, Z float64
+	X float64 `json:"x"`
+	Y float64 `json:"y"`
+	Z float64 `json:"z"`
 }
 
 func Vect(x, y, z float64) Vector {

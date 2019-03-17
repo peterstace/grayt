@@ -6,14 +6,14 @@ import (
 )
 
 type CameraBlueprint struct {
-	location             Vector
-	lookingAt            Vector
-	upDirection          Vector
-	fieldOfViewInRadians float64
-	focalLength          float64
-	focalRatio           float64
-	aspectWide           int
-	aspectHigh           int
+	Location             Vector  `json:"location"`
+	LookingAt            Vector  `json:"looking_at"`
+	UpDirection          Vector  `json:"up_direction"`
+	FieldOfViewInRadians float64 `json:"field_of_view_in_radians"`
+	FocalLength          float64 `json:"focal_length"`
+	FocalRatio           float64 `json:"focal_ratio"`
+	AspectWide           int     `json:"aspect_wide"`
+	AspectHigh           int     `json:"aspect_high"`
 }
 
 func (c CameraBlueprint) With(opts ...cameraOption) CameraBlueprint {
@@ -26,25 +26,25 @@ func (c CameraBlueprint) With(opts ...cameraOption) CameraBlueprint {
 func (c CameraBlueprint) String() string {
 	return fmt.Sprintf(
 		"Location=%v LookingAt=%v UpDir=%v FOV=%v FocalLength=%v FocalRatio=%v",
-		c.location, c.lookingAt, c.upDirection, c.fieldOfViewInRadians, c.focalLength, c.focalRatio,
+		c.Location, c.LookingAt, c.UpDirection, c.FieldOfViewInRadians, c.FocalLength, c.FocalRatio,
 	)
 }
 
 // TODO: Can get rid of this?
 func (c CameraBlueprint) pxHigh(pxWide int) int {
-	return pxWide * c.aspectHigh / c.aspectWide
+	return pxWide * c.AspectHigh / c.AspectWide
 }
 
 func Camera() CameraBlueprint {
 	return CameraBlueprint{
-		location:             Vect(0, 10, 10),
-		lookingAt:            Vect(0, 0, 0),
-		upDirection:          Vect(0, 1, 0),
-		fieldOfViewInRadians: 90 * math.Pi / 180,
-		focalLength:          1.0,
-		focalRatio:           math.Inf(+1),
-		aspectWide:           1,
-		aspectHigh:           1,
+		Location:             Vect(0, 10, 10),
+		LookingAt:            Vect(0, 0, 0),
+		UpDirection:          Vect(0, 1, 0),
+		FieldOfViewInRadians: 90 * math.Pi / 180,
+		FocalLength:          1.0,
+		FocalRatio:           math.MaxFloat64,
+		AspectWide:           1,
+		AspectHigh:           1,
 	}
 }
 
@@ -52,25 +52,25 @@ type cameraOption func(*CameraBlueprint)
 
 func Location(x Vector) cameraOption {
 	return func(c *CameraBlueprint) {
-		c.location = x
+		c.Location = x
 	}
 }
 
 func LookingAt(x Vector) cameraOption {
 	return func(c *CameraBlueprint) {
-		c.lookingAt = x
+		c.LookingAt = x
 	}
 }
 
 func UpDirection(x Vector) cameraOption {
 	return func(c *CameraBlueprint) {
-		c.upDirection = x
+		c.UpDirection = x
 	}
 }
 
 func FieldOfViewInRadians(r float64) cameraOption {
 	return func(c *CameraBlueprint) {
-		c.fieldOfViewInRadians = r
+		c.FieldOfViewInRadians = r
 	}
 }
 
@@ -80,14 +80,14 @@ func FieldOfViewInDegrees(d float64) cameraOption {
 
 func ScaleFieldOfView(s float64) cameraOption {
 	return func(c *CameraBlueprint) {
-		c.fieldOfViewInRadians *= s
+		c.FieldOfViewInRadians *= s
 	}
 }
 
 func FocalLengthAndRatio(focalLength, focalRatio float64) cameraOption {
 	return func(c *CameraBlueprint) {
-		c.focalLength = focalLength
-		c.focalRatio = focalRatio
+		c.FocalLength = focalLength
+		c.FocalRatio = focalRatio
 	}
 }
 
@@ -96,26 +96,14 @@ func AspectRatioWidthAndHeight(wide, high int) cameraOption {
 		panic("aspect ratio elements must be positive")
 	}
 	return func(c *CameraBlueprint) {
-		c.aspectWide = wide
-		c.aspectHigh = high
+		c.AspectWide = wide
+		c.AspectHigh = high
 	}
 }
 
 type Scene struct {
-	Camera  CameraBlueprint
-	Objects ObjectList
-	Sky     func(Vector) Colour
-}
-
-func Sky(background Colour, sun Colour, sunDir Vector, sunDegrees float64) func(Vector) Colour {
-	sunUnit := sunDir.Unit()
-	limit := math.Cos(sunDegrees / 180 * math.Pi / 2)
-	return func(v Vector) Colour {
-		if sunUnit.Dot(v) > limit {
-			return sun
-		}
-		return background
-	}
+	Camera  CameraBlueprint `json:"camera"`
+	Objects ObjectList      `json:"objects"`
 }
 
 type ObjectList []Object
@@ -150,50 +138,50 @@ const (
 
 func ColourRGB(rgb uint32) func(*Object) {
 	return func(o *Object) {
-		o.material.colour = newColourFromRGB(rgb)
+		o.Material.Colour = newColourFromRGB(rgb)
 	}
 }
 
 func ColourHSL(hue, saturation, lightness float64) func(*Object) {
 	return func(o *Object) {
-		o.material.colour = newColourFromHSL(hue, saturation, lightness)
+		o.Material.Colour = newColourFromHSL(hue, saturation, lightness)
 	}
 }
 
 func Emittance(e float64) func(*Object) {
 	return func(o *Object) {
-		o.material.emittance = e
+		o.Material.Emittance = e
 	}
 }
 
 func Mirror() func(*Object) {
 	return func(o *Object) {
-		o.material.mirror = true
+		o.Material.Mirror = true
 	}
 }
 
 func Translate(v Vector) func(*Object) {
 	return func(o *Object) {
-		o.surface.translate(v)
+		o.Surface.translate(v)
 	}
 }
 
 func RotateDegrees(v Vector, degs float64) func(*Object) {
 	return func(o *Object) {
-		o.surface.rotate(v, degs/180*math.Pi)
+		o.Surface.rotate(v, degs/180*math.Pi)
 	}
 }
 
 func Scale(f float64) func(*Object) {
 	return func(o *Object) {
-		o.surface.scale(f)
+		o.Surface.scale(f)
 	}
 }
 
 func BoundingBox() func(*Object) {
 	return func(o *Object) {
-		a, b := o.surface.bound()
-		o.surface = newAlignedBox(a, b)
+		a, b := o.Surface.bound()
+		o.Surface = newAlignedBox(a, b)
 	}
 }
 
@@ -253,6 +241,6 @@ func Pipe(a, b Vector, r float64) ObjectList {
 
 func defaultObject(s surface) ObjectList {
 	return ObjectList{{
-		s, material{colour: newColourFromRGB(White)},
+		s, material{Colour: newColourFromRGB(White)},
 	}}
 }

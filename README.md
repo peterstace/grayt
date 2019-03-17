@@ -14,6 +14,23 @@ Go RAY Tracer
 - [X] Web UI.
 - [X] Persistent storage of partial renders.
 
+## Architecture
+
+Controller
+
+- There is only one of these.
+- Serves the UI.
+- Responsible for coordinating workers.
+- Responsible for saving state.
+
+Workers
+
+- Responsible for doing the actual tracing.
+
+SceneStore
+
+- Serves up scenes.
+
 ## TODO
 
 - Use terminology for focal distance / focal ratio correctly.

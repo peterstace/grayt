@@ -109,7 +109,6 @@ func (r *render) traceImage() {
 				atomic.AddInt64(&r.actualWorkers, 1)
 				tr := tracer{
 					accel: accel,
-					sky:   r.scene.Sky,
 					rng:   rand.New(rand.NewSource(int64(i))),
 				}
 				for pxY := 0; pxY < r.accum.high; pxY++ {
@@ -137,7 +136,6 @@ func (r *render) traceImage() {
 }
 
 type tracer struct {
-	sky   func(Vector) Colour
 	accel accelerationStructure
 	rng   *rand.Rand
 }
@@ -146,23 +144,19 @@ func (t *tracer) tracePath(r ray) Colour {
 	assertUnit(r.dir)
 	intersection, material, hit := t.accel.closestHit(r)
 	if !hit {
-		if t.sky == nil {
-			return Colour{0, 0, 0}
-		}
-		assertUnit(r.dir)
-		return t.sky(r.dir)
+		return Colour{0, 0, 0}
 	}
 	assertUnit(intersection.unitNormal)
 
 	// Calculate probability of emitting.
 	pEmit := 0.1
-	if material.emittance != 0 {
+	if material.Emittance != 0 {
 		pEmit = 1.0
 	}
 
 	// Handle emit case.
 	if t.rng.Float64() < pEmit {
-		return material.colour.scale(material.emittance / pEmit)
+		return material.Colour.scale(material.Emittance / pEmit)
 	}
 
 	offsetScale := -math.Copysign(addULPs(1.0, 1e5)-1.0, r.dir.Dot(intersection.unitNormal))
@@ -174,7 +168,7 @@ func (t *tracer) tracePath(r ray) Colour {
 		intersection.unitNormal = intersection.unitNormal.Scale(-1.0)
 	}
 
-	if material.mirror {
+	if material.Mirror {
 
 		reflected := r.dir.Sub(intersection.unitNormal.Scale(2 * intersection.unitNormal.Dot(r.dir)))
 		return t.tracePath(ray{start: hitLoc, dir: reflected})
@@ -193,6 +187,6 @@ func (t *tracer) tracePath(r ray) Colour {
 
 		return t.tracePath(ray{start: hitLoc, dir: rnd}).
 			scale(brdf / (1 - pEmit)).
-			mul(material.colour)
+			mul(material.Colour)
 	}
 }

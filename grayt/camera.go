@@ -19,20 +19,20 @@ func newCamera(conf CameraBlueprint) camera {
 
 	cam := camera{}
 
-	upDirection := conf.upDirection.Unit()
-	viewDirection := conf.lookingAt.Sub(conf.location).Unit()
+	upDirection := conf.UpDirection.Unit()
+	viewDirection := conf.LookingAt.Sub(conf.Location).Unit()
 
 	cam.screen.x = viewDirection.cross(upDirection)
 	cam.screen.y = cam.screen.x.cross(viewDirection)
 
-	cam.eye.x = cam.screen.x.Scale(conf.focalLength / conf.focalRatio)
-	cam.eye.y = cam.screen.y.Scale(conf.focalLength / conf.focalRatio)
-	cam.eye.loc = conf.location
+	cam.eye.x = cam.screen.x.Scale(conf.FocalLength / conf.FocalRatio)
+	cam.eye.y = cam.screen.y.Scale(conf.FocalLength / conf.FocalRatio)
+	cam.eye.loc = conf.Location
 
-	halfScreenWidth := math.Tan(conf.fieldOfViewInRadians/2) * conf.focalLength
+	halfScreenWidth := math.Tan(conf.FieldOfViewInRadians/2) * conf.FocalLength
 	cam.screen.x = cam.screen.x.Scale(halfScreenWidth)
 	cam.screen.y = cam.screen.y.Scale(halfScreenWidth)
-	cam.screen.loc = cam.eye.loc.Add(viewDirection.Scale(conf.focalLength))
+	cam.screen.loc = cam.eye.loc.Add(viewDirection.Scale(conf.FocalLength))
 
 	return cam
 }
