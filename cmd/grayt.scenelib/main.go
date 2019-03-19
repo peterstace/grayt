@@ -7,7 +7,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/peterstace/grayt/grayt"
+	"github.com/peterstace/grayt/examples/cornellbox/classic"
+	"github.com/peterstace/grayt/protocol"
 )
 
 const listenAddrEnv = "GRAYT_SCENELIB_LISTEN_ADDR"
@@ -19,11 +20,11 @@ func main() {
 	}
 
 	s := Server{
-		sceneCache: make(map[string]grayt.Scene),
-		registry:   make(map[string]func() grayt.Scene),
+		sceneCache: make(map[string]protocol.Scene),
+		registry:   make(map[string]func() protocol.Scene),
 	}
+	s.Register("cornellbox_classic", classic.Scene)
 	/*
-		s.Register("cornellbox_classic", classic.CameraFn(), classic.ObjectsFn)
 		s.Register("cornellbox_reflections", reflections.CameraFn(), reflections.ObjectsFn)
 		s.Register("spheretree", spheretree.CameraFn(), spheretree.ObjectsFn)
 		s.Register("splitbox", splitbox.CameraFn(), splitbox.ObjectsFn)
@@ -36,22 +37,16 @@ func main() {
 
 type Server struct {
 	mu         sync.Mutex
-	sceneCache map[string]grayt.Scene
+	sceneCache map[string]protocol.Scene
 
-	registry map[string]func() grayt.Scene
+	registry map[string]func() protocol.Scene
 }
 
 func (s *Server) Register(
 	name string,
-	cam grayt.CameraBlueprint,
-	objs func() grayt.ObjectList,
+	sceneFn func() protocol.Scene,
 ) {
-	s.registry[name] = func() grayt.Scene {
-		return grayt.Scene{
-			Camera:  cam,
-			Objects: objs(),
-		}
-	}
+	s.registry[name] = sceneFn
 }
 
 func (s *Server) HandleScene(w http.ResponseWriter, req *http.Request) {
