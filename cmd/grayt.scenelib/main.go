@@ -7,10 +7,6 @@ import (
 	"os"
 	"sync"
 
-	"github.com/peterstace/grayt/examples/cornellbox/classic"
-	"github.com/peterstace/grayt/examples/cornellbox/reflections"
-	"github.com/peterstace/grayt/examples/cornellbox/spheretree"
-	"github.com/peterstace/grayt/examples/cornellbox/splitbox"
 	"github.com/peterstace/grayt/grayt"
 )
 
@@ -26,10 +22,12 @@ func main() {
 		sceneCache: make(map[string]grayt.Scene),
 		registry:   make(map[string]func() grayt.Scene),
 	}
-	s.Register("cornellbox_classic", classic.CameraFn(), classic.ObjectsFn)
-	s.Register("cornellbox_reflections", reflections.CameraFn(), reflections.ObjectsFn)
-	s.Register("spheretree", spheretree.CameraFn(), spheretree.ObjectsFn)
-	s.Register("splitbox", splitbox.CameraFn(), splitbox.ObjectsFn)
+	/*
+		s.Register("cornellbox_classic", classic.CameraFn(), classic.ObjectsFn)
+		s.Register("cornellbox_reflections", reflections.CameraFn(), reflections.ObjectsFn)
+		s.Register("spheretree", spheretree.CameraFn(), spheretree.ObjectsFn)
+		s.Register("splitbox", splitbox.CameraFn(), splitbox.ObjectsFn)
+	*/
 
 	http.HandleFunc("/scene", s.HandleScene)
 	log.Printf("serving on %v", listenAddr)

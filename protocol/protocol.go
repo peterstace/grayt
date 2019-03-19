@@ -8,7 +8,7 @@ import (
 type Material struct {
 	Colour    colour.Colour `json:"colour"`
 	Emittance float64       `json:"emittance"`
-	Mirror    float64       `json:"mirror"`
+	Mirror    bool          `json:"mirror"`
 }
 
 type Object struct {
@@ -39,8 +39,8 @@ type Triangle struct {
 }
 
 type AlignedBox struct {
-	Max xmath.Vector `json:"max"`
-	Min xmath.Vector `json:"min"`
+	CornerA xmath.Vector `json:"a"`
+	CornerB xmath.Vector `json:"b"`
 }
 
 type Sphere struct {
@@ -73,8 +73,9 @@ type AlignZSquare struct {
 }
 
 type Disc struct {
-	Center   xmath.Vector `json:"center"`
-	Radius   float64      `json:"radius"`
+	Center xmath.Vector `json:"center"`
+	Radius float64      `json:"radius"`
+	// TODO: Should just accept any norm.
 	UnitNorm xmath.Vector `json:"unit_norm"`
 }
 

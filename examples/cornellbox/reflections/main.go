@@ -1,5 +1,7 @@
 package reflections
 
+/*
+
 import (
 	. "github.com/peterstace/grayt/examples/cornellbox"
 	. "github.com/peterstace/grayt/grayt"
@@ -68,3 +70,4 @@ func ObjectsFn() ObjectList {
 		).With(Mirror()),
 	)
 }
+*/

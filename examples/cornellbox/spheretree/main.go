@@ -1,5 +1,7 @@
 package spheretree
 
+/*
+
 import (
 	"math/rand"
 
@@ -119,3 +121,4 @@ func isValidChild(child, parent sphere, spheres *[]sphere) bool {
 func spheresIntersect(s1, s2 sphere) bool {
 	return s1.c.Sub(s2.c).Length() < s1.r+s2.r
 }
+*/

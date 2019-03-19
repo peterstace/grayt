@@ -192,42 +192,8 @@ func Triangle(a, b, c xmath.Vector) ObjectList {
 	return defaultObject(newTriangle(a, b, c))
 }
 
-func AlignedSquare(a, b xmath.Vector) ObjectList {
-
-	same := func(a, b float64) int {
-		if a == b {
-			return 1
-		}
-		return 0
-	}
-	if same(a.X, b.X)+same(a.Y, b.Y)+same(a.Z, b.Z) != 1 {
-		panic("a and b must have exactly 1 dimension in common")
-	}
-
-	a, b = a.Min(b), a.Max(b)
-
-	switch {
-	case a.X == b.X:
-		return defaultObject(&alignXSquare{a.X, a.Y, b.Y, a.Z, b.Z})
-	case a.Y == b.Y:
-		return defaultObject(&alignYSquare{a.X, b.X, a.Y, a.Z, b.Z})
-	case a.Z == b.Z:
-		return defaultObject(&alignZSquare{a.X, b.X, a.Y, b.Y, a.Z})
-	default:
-		panic(false)
-
-	}
-}
-
 func AlignedBox(a, b xmath.Vector) ObjectList {
 	return defaultObject(newAlignedBox(a, b))
-}
-
-func Square(a, b, c, d xmath.Vector) ObjectList {
-	return Group(
-		Triangle(a, b, c),
-		Triangle(c, d, a),
-	)
 }
 
 func Sphere(c xmath.Vector, r float64) ObjectList {

@@ -1,5 +1,7 @@
 package splitbox
 
+/*
+
 import (
 	"math/rand"
 
@@ -180,3 +182,4 @@ var movements = [...]func(float64, float64, box) []box{
 	shearFwdBack,
 	shearLeftRight,
 }
+*/
