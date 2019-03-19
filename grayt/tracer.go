@@ -6,6 +6,9 @@ import (
 	"math/rand"
 	"sync/atomic"
 	"time"
+
+	"github.com/peterstace/grayt/colour"
+	"github.com/peterstace/grayt/xmath"
 )
 
 type render struct {
@@ -83,7 +86,7 @@ func (r *render) traceImage() {
 				log.Println("dispatching worker")
 				dispatchedWorkers++
 				gridPool <- &pixelGrid{
-					pixels: make([]Colour, r.accum.wide*r.accum.high),
+					pixels: make([]colour.Colour, r.accum.wide*r.accum.high),
 					wide:   r.accum.wide,
 					high:   r.accum.high,
 				}
@@ -116,7 +119,7 @@ func (r *render) traceImage() {
 						x := (float64(pxX-r.accum.wide/2) + tr.rng.Float64()) * pxPitch
 						y := (float64(pxY-r.accum.high/2) + tr.rng.Float64()) * pxPitch * -1.0
 						cr := cam.makeRay(x, y, tr.rng)
-						cr.dir = cr.dir.Unit()
+						cr.Dir = cr.Dir.Unit()
 						c := tr.tracePath(cr)
 						grid.set(pxX, pxY, c)
 						atomic.AddInt64(&r.completed, 1)
@@ -140,11 +143,11 @@ type tracer struct {
 	rng   *rand.Rand
 }
 
-func (t *tracer) tracePath(r ray) Colour {
-	assertUnit(r.dir)
+func (t *tracer) tracePath(r xmath.Ray) colour.Colour {
+	assertUnit(r.Dir)
 	intersection, material, hit := t.accel.closestHit(r)
 	if !hit {
-		return Colour{0, 0, 0}
+		return colour.Colour{0, 0, 0}
 	}
 	assertUnit(intersection.unitNormal)
 
@@ -156,27 +159,27 @@ func (t *tracer) tracePath(r ray) Colour {
 
 	// Handle emit case.
 	if t.rng.Float64() < pEmit {
-		return material.Colour.scale(material.Emittance / pEmit)
+		return material.Colour.Scale(material.Emittance / pEmit)
 	}
 
-	offsetScale := -math.Copysign(addULPs(1.0, 1e5)-1.0, r.dir.Dot(intersection.unitNormal))
+	offsetScale := -math.Copysign(xmath.AddULPs(1.0, 1e5)-1.0, r.Dir.Dot(intersection.unitNormal))
 	offset := intersection.unitNormal.Scale(offsetScale)
-	hitLoc := r.at(intersection.distance).Add(offset)
+	hitLoc := r.At(intersection.distance).Add(offset)
 
 	// Orient the unit normal towards the ray origin.
-	if intersection.unitNormal.Dot(r.dir) > 0 {
+	if intersection.unitNormal.Dot(r.Dir) > 0 {
 		intersection.unitNormal = intersection.unitNormal.Scale(-1.0)
 	}
 
 	if material.Mirror {
 
-		reflected := r.dir.Sub(intersection.unitNormal.Scale(2 * intersection.unitNormal.Dot(r.dir)))
-		return t.tracePath(ray{start: hitLoc, dir: reflected})
+		reflected := r.Dir.Sub(intersection.unitNormal.Scale(2 * intersection.unitNormal.Dot(r.Dir)))
+		return t.tracePath(xmath.Ray{Start: hitLoc, Dir: reflected})
 
 	} else {
 
 		// Create a random vector on the hemisphere towards the normal.
-		rnd := Vector{t.rng.NormFloat64(), t.rng.NormFloat64(), t.rng.NormFloat64()}
+		rnd := xmath.Vector{t.rng.NormFloat64(), t.rng.NormFloat64(), t.rng.NormFloat64()}
 		rnd = rnd.Unit()
 		if rnd.Dot(intersection.unitNormal) < 0 {
 			rnd = rnd.Scale(-1.0)
@@ -185,8 +188,8 @@ func (t *tracer) tracePath(r ray) Colour {
 		// Apply the BRDF (bidirectional reflection distribution function).
 		brdf := rnd.Dot(intersection.unitNormal)
 
-		return t.tracePath(ray{start: hitLoc, dir: rnd}).
-			scale(brdf / (1 - pEmit)).
-			mul(material.Colour)
+		return t.tracePath(xmath.Ray{Start: hitLoc, Dir: rnd}).
+			Scale(brdf / (1 - pEmit)).
+			Mul(material.Colour)
 	}
 }

@@ -1,11 +1,14 @@
 package protocol
 
-import "github.com/peterstace/grayt/grayt"
+import (
+	"github.com/peterstace/grayt/colour"
+	"github.com/peterstace/grayt/xmath"
+)
 
 type Material struct {
-	Colour    grayt.Colour `json:"colour"`
-	Emittance float64      `json:"emittance"`
-	Mirror    float64      `json:"mirror"`
+	Colour    colour.Colour `json:"colour"`
+	Emittance float64       `json:"emittance"`
+	Mirror    float64       `json:"mirror"`
 }
 
 type Object struct {
@@ -14,9 +17,9 @@ type Object struct {
 }
 
 type Camera struct {
-	Location             grayt.Vector `json:"location"`
-	LookingAt            grayt.Vector `json:"looking_at"`
-	UpDirection          grayt.Vector `json:"up_direction"`
+	Location             xmath.Vector `json:"location"`
+	LookingAt            xmath.Vector `json:"looking_at"`
+	UpDirection          xmath.Vector `json:"up_direction"`
 	FieldOfViewInRadians float64      `json:"field_of_view_in_radians"`
 	FocalLength          float64      `json:"focal_length"`
 	FocalRatio           float64      `json:"focal_ratio"`
@@ -30,18 +33,18 @@ type Scene struct {
 }
 
 type Triangle struct {
-	A grayt.Vector `json:"a"`
-	B grayt.Vector `json:"b"`
-	C grayt.Vector `json:"c"`
+	A xmath.Vector `json:"a"`
+	B xmath.Vector `json:"b"`
+	C xmath.Vector `json:"c"`
 }
 
 type AlignedBox struct {
-	Max grayt.Vector `json:"max"`
-	Min grayt.Vector `json:"min"`
+	Max xmath.Vector `json:"max"`
+	Min xmath.Vector `json:"min"`
 }
 
 type Sphere struct {
-	Center grayt.Vector `json:"center"`
+	Center xmath.Vector `json:"center"`
 	Radius float64      `json:"radius"`
 }
 
@@ -70,13 +73,13 @@ type AlignZSquare struct {
 }
 
 type Disc struct {
-	Center   grayt.Vector `json:"center"`
+	Center   xmath.Vector `json:"center"`
 	Radius   float64      `json:"radius"`
-	UnitNorm grayt.Vector `json:"unit_norm"`
+	UnitNorm xmath.Vector `json:"unit_norm"`
 }
 
 type Pipe struct {
-	EndpointA grayt.Vector `json:"endpoint_a"`
-	EndpointB grayt.Vector `json:"endpoint_b"`
+	EndpointA xmath.Vector `json:"endpoint_a"`
+	EndpointB xmath.Vector `json:"endpoint_b"`
 	Radius    float64      `json:"radius"`
 }

@@ -1,7 +1,9 @@
 package grayt
 
+import "github.com/peterstace/grayt/xmath"
+
 type accelerationStructure interface {
-	closestHit(ray) (intersection, material, bool)
+	closestHit(xmath.Ray) (intersection, material, bool)
 }
 
 func newListAccelerationStructure(objs ObjectList) accelerationStructure {
@@ -12,7 +14,7 @@ type listAccelerationStructure struct {
 	objs []Object
 }
 
-func (a listAccelerationStructure) closestHit(r ray) (intersection, material, bool) {
+func (a listAccelerationStructure) closestHit(r xmath.Ray) (intersection, material, bool) {
 	var closest struct {
 		intersection intersection
 		material     material

@@ -1,4 +1,4 @@
-package grayt
+package colour
 
 import (
 	"image/color"
@@ -11,7 +11,7 @@ type Colour struct {
 	B float64 `json:"b"`
 }
 
-func newColourFromRGB(rgb uint32) Colour {
+func NewColourFromRGB(rgb uint32) Colour {
 	r := (rgb & 0xff0000) >> 16
 	g := (rgb & 0x00ff00) >> 8
 	b := (rgb & 0x0000ff)
@@ -22,7 +22,7 @@ func newColourFromRGB(rgb uint32) Colour {
 	}
 }
 
-func newColourFromHSL(hue, saturation, lightness float64) Colour {
+func NewColourFromHSL(hue, saturation, lightness float64) Colour {
 
 	if hue < 0 || hue > 360 {
 		panic("hue must be from 0 to 360")
@@ -76,7 +76,7 @@ func newColourFromHSL(hue, saturation, lightness float64) Colour {
 	return Colour{r, g, b}
 }
 
-func (c Colour) add(rhs Colour) Colour {
+func (c Colour) Add(rhs Colour) Colour {
 	return Colour{
 		c.R + rhs.R,
 		c.G + rhs.G,
@@ -84,7 +84,7 @@ func (c Colour) add(rhs Colour) Colour {
 	}
 }
 
-func (c Colour) scale(f float64) Colour {
+func (c Colour) Scale(f float64) Colour {
 	return Colour{
 		c.R * f,
 		c.G * f,
@@ -92,7 +92,7 @@ func (c Colour) scale(f float64) Colour {
 	}
 }
 
-func (c Colour) pow(exp float64) Colour {
+func (c Colour) Pow(exp float64) Colour {
 	return Colour{
 		math.Pow(c.R, exp),
 		math.Pow(c.G, exp),
@@ -100,7 +100,7 @@ func (c Colour) pow(exp float64) Colour {
 	}
 }
 
-func (c Colour) mul(r Colour) Colour {
+func (c Colour) Mul(r Colour) Colour {
 	return Colour{
 		c.R * r.R,
 		c.G * r.G,
@@ -108,7 +108,7 @@ func (c Colour) mul(r Colour) Colour {
 	}
 }
 
-func (c Colour) div(r Colour) Colour {
+func (c Colour) Div(r Colour) Colour {
 	return Colour{
 		c.R / r.R,
 		c.G / r.G,
@@ -116,7 +116,7 @@ func (c Colour) div(r Colour) Colour {
 	}
 }
 
-func (c Colour) toNRGBA() color.NRGBA {
+func (c Colour) ToNRGBA() color.NRGBA {
 	return color.NRGBA{
 		R: float64ToUint8(c.R),
 		G: float64ToUint8(c.G),

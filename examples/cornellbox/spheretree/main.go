@@ -5,12 +5,13 @@ import (
 
 	. "github.com/peterstace/grayt/examples/cornellbox"
 	. "github.com/peterstace/grayt/grayt"
+	"github.com/peterstace/grayt/xmath"
 )
 
 func CameraFn() CameraBlueprint {
 	c := Cam(1.3)
 	return c.With(
-		LookingAt(Vect(0.5, 0.25, -0.5)),
+		LookingAt(xmath.Vect(0.5, 0.25, -0.5)),
 		ScaleFieldOfView(0.95),
 		AspectRatioWidthAndHeight(2, 1),
 	)
@@ -29,13 +30,13 @@ func ObjectsFn() ObjectList {
 }
 
 type sphere struct {
-	c Vector
+	c xmath.Vector
 	r float64
 }
 
 func Tree() ObjectList {
 
-	root := sphere{Vect(0.5, 0, -0.5), 0.2}
+	root := sphere{xmath.Vect(0.5, 0, -0.5), 0.2}
 	spheres := new([]sphere)
 	*spheres = append(*spheres, root)
 	recurse(spheres, root, 9)
@@ -86,7 +87,7 @@ func findChildren(spheres *[]sphere, parent sphere) (sphere, sphere) {
 var rnd = rand.New(rand.NewSource(0))
 
 func createChild(parent sphere) sphere {
-	rndUnit := Vector{rnd.NormFloat64(), rnd.NormFloat64(), rnd.NormFloat64()}.Unit()
+	rndUnit := xmath.Vector{rnd.NormFloat64(), rnd.NormFloat64(), rnd.NormFloat64()}.Unit()
 	return sphere{
 		parent.c.Add(rndUnit.Scale(parent.r)),
 		radiusScaleDown * parent.r,

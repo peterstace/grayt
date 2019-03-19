@@ -5,12 +5,13 @@ import (
 
 	. "github.com/peterstace/grayt/examples/cornellbox"
 	. "github.com/peterstace/grayt/grayt"
+	"github.com/peterstace/grayt/xmath"
 )
 
 func CameraFn() CameraBlueprint {
 	c := Cam(1.3)
 	return c.With(
-		LookingAt(Vect(0.5, initialBoxRadius.Y+0.03, -0.5)),
+		LookingAt(xmath.Vect(0.5, initialBoxRadius.Y+0.03, -0.5)),
 		ScaleFieldOfView(0.5),
 		AspectRatioWidthAndHeight(16, 10),
 	)
@@ -32,16 +33,16 @@ const (
 	numMovements = 100
 )
 
-var initialBoxRadius = Vect(0.22, 0.1, 0.1)
+var initialBoxRadius = xmath.Vect(0.22, 0.1, 0.1)
 
 type box struct {
-	min, max Vector
+	min, max xmath.Vector
 }
 
 func splitBox() ObjectList {
 
-	v1 := Vect(0.5-initialBoxRadius.X, 0, -0.5+initialBoxRadius.Z)
-	v2 := Vect(0.5+initialBoxRadius.X, 2*initialBoxRadius.Y, -0.5-initialBoxRadius.Z)
+	v1 := xmath.Vect(0.5-initialBoxRadius.X, 0, -0.5+initialBoxRadius.Z)
+	v2 := xmath.Vect(0.5+initialBoxRadius.X, 2*initialBoxRadius.Y, -0.5-initialBoxRadius.Z)
 	v1, v2 = v1.Min(v2), v1.Max(v2)
 	boxes := []box{{v1, v2}}
 
@@ -80,20 +81,20 @@ func splitBox() ObjectList {
 }
 
 func splitLeftRight(x float64, b box) (box, box) {
-	b1 := box{b.min, Vect(x, b.max.Y, b.max.Z)}
-	b2 := box{Vect(x, b.min.Y, b.min.Z), b.max}
+	b1 := box{b.min, xmath.Vect(x, b.max.Y, b.max.Z)}
+	b2 := box{xmath.Vect(x, b.min.Y, b.min.Z), b.max}
 	return b1, b2
 }
 
 func splitUpDown(y float64, b box) (box, box) {
-	b1 := box{b.min, Vect(b.max.X, y, b.max.Z)}
-	b2 := box{Vect(b.min.X, y, b.min.Z), b.max}
+	b1 := box{b.min, xmath.Vect(b.max.X, y, b.max.Z)}
+	b2 := box{xmath.Vect(b.min.X, y, b.min.Z), b.max}
 	return b1, b2
 }
 
 func splitFwdBack(z float64, b box) (box, box) {
-	b1 := box{b.min, Vect(b.max.X, b.max.Y, z)}
-	b2 := box{Vect(b.min.X, b.min.Y, z), b.max}
+	b1 := box{b.min, xmath.Vect(b.max.X, b.max.Y, z)}
+	b2 := box{xmath.Vect(b.min.X, b.min.Y, z), b.max}
 	return b1, b2
 }
 

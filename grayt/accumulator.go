@@ -6,15 +6,17 @@ import (
 	"io/ioutil"
 	"os"
 	"sync"
+
+	"github.com/peterstace/grayt/colour"
 )
 
 type pixelGrid struct {
 	wide   int
 	high   int
-	pixels []Colour
+	pixels []colour.Colour
 }
 
-func (g *pixelGrid) set(x, y int, c Colour) {
+func (g *pixelGrid) set(x, y int, c colour.Colour) {
 	i := y*g.wide + x
 	g.pixels[i] = c
 }
@@ -29,7 +31,7 @@ func newAccumulator(pxWide, pxHigh int) *accumulator {
 	acc := new(accumulator)
 	acc.wide = pxWide
 	acc.high = pxHigh
-	acc.pixels = make([]Colour, pxWide*pxHigh)
+	acc.pixels = make([]colour.Colour, pxWide*pxHigh)
 	return acc
 }
 
@@ -39,7 +41,7 @@ func (a *accumulator) merge(g *pixelGrid) {
 
 	a.passes++
 	for i, c := range a.pixels {
-		a.pixels[i] = c.add(g.pixels[i])
+		a.pixels[i] = c.Add(g.pixels[i])
 	}
 }
 
@@ -57,9 +59,9 @@ func (a *accumulator) toImage(exposure float64) image.Image {
 		for y := 0; y < a.high; y++ {
 			i := y*a.wide + x
 			img.Set(x, y, a.pixels[i].
-				scale(0.5*exposure/mean).
-				pow(1.0/gamma).
-				toNRGBA())
+				Scale(0.5*exposure/mean).
+				Pow(1.0/gamma).
+				ToNRGBA())
 		}
 	}
 	return img
@@ -102,7 +104,7 @@ func loadAccumulator(fname string) (string, *accumulator, error) {
 	if err := binary.Read(f, binary.LittleEndian, &high); err != nil {
 		return "", nil, err
 	}
-	pixels := make([]Colour, wide*high)
+	pixels := make([]colour.Colour, wide*high)
 	if err := binary.Read(f, binary.LittleEndian, &pixels); err != nil {
 		return "", nil, err
 	}

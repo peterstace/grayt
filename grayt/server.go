@@ -75,6 +75,7 @@ func (s *Server) ListenAndServe(addr string) error {
 	return http.ListenAndServe(addr, nil)
 }
 
+// TODO: Make this take a name and a protocol.Scene instead.
 func (s *Server) Register(
 	name string,
 	cam CameraBlueprint,

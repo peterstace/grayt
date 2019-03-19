@@ -3,11 +3,13 @@ package grayt
 import (
 	"fmt"
 	db "runtime/debug"
+
+	"github.com/peterstace/grayt/xmath"
 )
 
 const enableAssertions = true
 
-func assertUnit(v Vector) {
+func assertUnit(v xmath.Vector) {
 	if !enableAssertions {
 		return
 	}

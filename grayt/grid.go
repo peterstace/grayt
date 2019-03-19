@@ -2,15 +2,17 @@ package grayt
 
 import (
 	"math"
+
+	"github.com/peterstace/grayt/xmath"
 )
 
 type grid struct {
-	minBound Vector
-	maxBound Vector
+	minBound xmath.Vector
+	maxBound xmath.Vector
 
-	stride     Vector
+	stride     xmath.Vector
 	data       []*link
-	resolution triple
+	resolution xmath.Triple
 }
 
 func newGrid(lambda float64, objs ObjectList) *grid {
@@ -19,9 +21,9 @@ func newGrid(lambda float64, objs ObjectList) *grid {
 	volume := boundDiff.X * boundDiff.Y * boundDiff.Z
 
 	resolutionFactor := math.Pow(lambda*float64(len(objs))/volume, 1.0/3.0)
-	resolution := truncate(boundDiff.Scale(resolutionFactor)).max(triple{1, 1, 1})
-	stride := boundDiff.div(resolution.asVector())
-	data := make([]*link, resolution.x*resolution.y*resolution.z)
+	resolution := xmath.Truncate(boundDiff.Scale(resolutionFactor)).Max(xmath.Triple{1, 1, 1})
+	stride := boundDiff.Div(resolution.AsVector())
+	data := make([]*link, resolution.Z*resolution.Z*resolution.Z)
 
 	grid := &grid{
 		minBound,
@@ -35,9 +37,9 @@ func newGrid(lambda float64, objs ObjectList) *grid {
 	return grid
 }
 
-func bounds(objs ObjectList) (Vector, Vector) {
+func bounds(objs ObjectList) (xmath.Vector, xmath.Vector) {
 	inf := math.Inf(+1)
-	minBound, maxBound := Vect(+inf, +inf, +inf), Vect(-inf, -inf, -inf)
+	minBound, maxBound := xmath.Vect(+inf, +inf, +inf), xmath.Vect(-inf, -inf, -inf)
 	for _, obj := range objs {
 		min, max := obj.Surface.bound()
 		minBound = minBound.Min(min)
@@ -49,12 +51,12 @@ func bounds(objs ObjectList) (Vector, Vector) {
 func (g *grid) populate(objs ObjectList) {
 	for _, obj := range objs {
 		min, max := obj.Surface.bound()
-		minCoord := truncate(min.Sub(g.minBound).div(g.stride)).min(g.resolution.sub(triple{1, 1, 1}))
-		maxCoord := truncate(max.Sub(g.minBound).div(g.stride)).min(g.resolution.sub(triple{1, 1, 1}))
-		var pos triple
-		for pos.x = minCoord.x; pos.x <= maxCoord.x; pos.x++ {
-			for pos.y = minCoord.y; pos.y <= maxCoord.y; pos.y++ {
-				for pos.z = minCoord.z; pos.z <= maxCoord.z; pos.z++ {
+		minCoord := xmath.Truncate(min.Sub(g.minBound).Div(g.stride)).Min(g.resolution.Sub(xmath.Triple{1, 1, 1}))
+		maxCoord := xmath.Truncate(max.Sub(g.minBound).Div(g.stride)).Min(g.resolution.Sub(xmath.Triple{1, 1, 1}))
+		var pos xmath.Triple
+		for pos.X = minCoord.X; pos.X <= maxCoord.X; pos.X++ {
+			for pos.Y = minCoord.Y; pos.Y <= maxCoord.Y; pos.Y++ {
+				for pos.Z = minCoord.Z; pos.Z <= maxCoord.Z; pos.Z++ {
 					idx := g.dataIndex(pos)
 					g.data[idx] = &link{g.data[idx], obj}
 				}
@@ -63,10 +65,10 @@ func (g *grid) populate(objs ObjectList) {
 	}
 }
 
-func (g *grid) closestHit(r ray) (intersection, material, bool) {
+func (g *grid) closestHit(r xmath.Ray) (intersection, material, bool) {
 
 	var distance float64
-	if !g.insideBoundingBox(r.start) {
+	if !g.insideBoundingBox(r.Start) {
 		var hit bool
 		distance, hit = g.hitBoundingBox(r)
 		if !hit {
@@ -74,7 +76,7 @@ func (g *grid) closestHit(r ray) (intersection, material, bool) {
 		}
 	}
 
-	cellCoordsFloat := g.cellCoordsFloat(r.at(distance))
+	cellCoordsFloat := g.cellCoordsFloat(r.At(distance))
 	initialPos := g.cellCoordsInt(cellCoordsFloat)
 	delta := g.delta(r)
 	inc := g.inc(r)
@@ -84,7 +86,7 @@ func (g *grid) closestHit(r ray) (intersection, material, bool) {
 
 	for true {
 
-		nextHitDistance := pos.sub(initialPos).asVector().abs().mul(delta).Add(initialNextHitDistance)
+		nextHitDistance := pos.Sub(initialPos).AsVector().Abs().Mul(delta).Add(initialNextHitDistance)
 
 		if intersection, material, hit := g.findHitInCell(pos, nextHitDistance, r); hit {
 			return intersection, material, true
@@ -100,21 +102,21 @@ func (g *grid) closestHit(r ray) (intersection, material, bool) {
 	return intersection{}, material{}, false
 }
 
-func (g *grid) insideBoundingBox(v Vector) bool {
+func (g *grid) insideBoundingBox(v xmath.Vector) bool {
 	return true &&
 		v.X >= g.minBound.X && v.X <= g.maxBound.X &&
 		v.Y >= g.minBound.Y && v.Y <= g.maxBound.Y &&
 		v.Z >= g.minBound.Z && v.Z <= g.maxBound.Z
 }
 
-func (g *grid) hitBoundingBox(r ray) (float64, bool) {
+func (g *grid) hitBoundingBox(r xmath.Ray) (float64, bool) {
 
-	tx1 := (g.minBound.X - r.start.X) / r.dir.X
-	tx2 := (g.maxBound.X - r.start.X) / r.dir.X
-	ty1 := (g.minBound.Y - r.start.Y) / r.dir.Y
-	ty2 := (g.maxBound.Y - r.start.Y) / r.dir.Y
-	tz1 := (g.minBound.Z - r.start.Z) / r.dir.Z
-	tz2 := (g.maxBound.Z - r.start.Z) / r.dir.Z
+	tx1 := (g.minBound.X - r.Start.X) / r.Dir.X
+	tx2 := (g.maxBound.X - r.Start.X) / r.Dir.X
+	ty1 := (g.minBound.Y - r.Start.Y) / r.Dir.Y
+	ty2 := (g.maxBound.Y - r.Start.Y) / r.Dir.Y
+	tz1 := (g.minBound.Z - r.Start.Z) / r.Dir.Z
+	tz2 := (g.maxBound.Z - r.Start.Z) / r.Dir.Z
 
 	tmin, tmax := math.Inf(-1), math.Inf(+1)
 
@@ -128,64 +130,64 @@ func (g *grid) hitBoundingBox(r ray) (float64, bool) {
 	return tmin, tmin <= tmax && tmin >= 0
 }
 
-func (g *grid) cellCoordsFloat(v Vector) Vector {
+func (g *grid) cellCoordsFloat(v xmath.Vector) xmath.Vector {
 	return v.
 		Sub(g.minBound).
-		div(g.stride)
+		Div(g.stride)
 }
 
-func (g *grid) cellCoordsInt(cellCoordsFloat Vector) triple {
-	return truncate(cellCoordsFloat).
-		min(g.resolution.sub(triple{1, 1, 1})).
-		max(triple{})
+func (g *grid) cellCoordsInt(cellCoordsFloat xmath.Vector) xmath.Triple {
+	return xmath.Truncate(cellCoordsFloat).
+		Min(g.resolution.Sub(xmath.Triple{1, 1, 1})).
+		Max(xmath.Triple{})
 }
 
-func (g *grid) delta(r ray) Vector {
+func (g *grid) delta(r xmath.Ray) xmath.Vector {
 	return g.stride.
-		div(r.dir).
-		abs()
+		Div(r.Dir).
+		Abs()
 }
 
-func (g *grid) inc(r ray) triple {
-	return truncate(
-		r.dir.sign(),
+func (g *grid) inc(r xmath.Ray) xmath.Triple {
+	return xmath.Truncate(
+		r.Dir.Sign(),
 	)
 }
 
-func (g *grid) next(cellCoordsFloat Vector, r ray) Vector {
-	return g.cellCoordsInt(cellCoordsFloat).asVector().
-		Add(r.dir.
-			sign().
+func (g *grid) next(cellCoordsFloat xmath.Vector, r xmath.Ray) xmath.Vector {
+	return g.cellCoordsInt(cellCoordsFloat).AsVector().
+		Add(r.Dir.
+			Sign().
 			Scale(0.5).
-			Add(Vect(0.5, 0.5, 0.5)),
+			Add(xmath.Vect(0.5, 0.5, 0.5)),
 		).
-		mul(g.stride).
-		Sub(r.start.Sub(g.minBound)).
-		div(r.dir)
+		Mul(g.stride).
+		Sub(r.Start.Sub(g.minBound)).
+		Div(r.Dir)
 }
 
-func (g *grid) nextCell(next Vector, initialPos, pos, inc triple) (triple, bool) {
+func (g *grid) nextCell(next xmath.Vector, initialPos, pos, inc xmath.Triple) (xmath.Triple, bool) {
 
 	var exitGrid bool
 	switch {
 	case next.X < math.Min(next.Y, next.Z):
-		pos.x += inc.x
-		exitGrid = pos.x < 0 && inc.x < 0 || pos.x >= g.resolution.x && inc.x > 0
+		pos.X += inc.X
+		exitGrid = pos.X < 0 && inc.X < 0 || pos.X >= g.resolution.X && inc.X > 0
 	case next.Y < next.Z:
-		pos.y += inc.y
-		exitGrid = pos.y < 0 && inc.y < 0 || pos.y >= g.resolution.y && inc.y > 0
+		pos.Y += inc.Y
+		exitGrid = pos.Y < 0 && inc.Y < 0 || pos.Y >= g.resolution.Y && inc.Y > 0
 	default:
-		pos.z += inc.z
-		exitGrid = pos.z < 0 && inc.z < 0 || pos.z >= g.resolution.z && inc.z > 0
+		pos.Z += inc.Z
+		exitGrid = pos.Z < 0 && inc.Z < 0 || pos.Z >= g.resolution.Z && inc.Z > 0
 	}
 	return pos, exitGrid
 }
 
-func (g *grid) dataIndex(pos triple) int {
-	return pos.x + g.resolution.x*pos.y + g.resolution.x*g.resolution.y*pos.z
+func (g *grid) dataIndex(pos xmath.Triple) int {
+	return pos.X + g.resolution.X*pos.Y + g.resolution.X*g.resolution.Y*pos.Z
 }
 
-func (g *grid) findHitInCell(pos triple, next Vector, r ray) (intersection, material, bool) {
+func (g *grid) findHitInCell(pos xmath.Triple, next xmath.Vector, r xmath.Ray) (intersection, material, bool) {
 
 	var closest struct {
 		intersection intersection
@@ -198,7 +200,7 @@ func (g *grid) findHitInCell(pos triple, next Vector, r ray) (intersection, mate
 		if !hit {
 			continue
 		}
-		nextCell := addULPs(math.Min(next.X, math.Min(next.Y, next.Z)), ulpFudgeFactor)
+		nextCell := xmath.AddULPs(math.Min(next.X, math.Min(next.Y, next.Z)), ulpFudgeFactor)
 		if intersection.distance > nextCell {
 			continue
 		}

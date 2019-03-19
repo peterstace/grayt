@@ -3,17 +3,20 @@ package grayt
 import (
 	"fmt"
 	"math"
+
+	"github.com/peterstace/grayt/colour"
+	"github.com/peterstace/grayt/xmath"
 )
 
 type CameraBlueprint struct {
-	Location             Vector  `json:"location"`
-	LookingAt            Vector  `json:"looking_at"`
-	UpDirection          Vector  `json:"up_direction"`
-	FieldOfViewInRadians float64 `json:"field_of_view_in_radians"`
-	FocalLength          float64 `json:"focal_length"`
-	FocalRatio           float64 `json:"focal_ratio"`
-	AspectWide           int     `json:"aspect_wide"`
-	AspectHigh           int     `json:"aspect_high"`
+	Location             xmath.Vector `json:"location"`
+	LookingAt            xmath.Vector `json:"looking_at"`
+	UpDirection          xmath.Vector `json:"up_direction"`
+	FieldOfViewInRadians float64      `json:"field_of_view_in_radians"`
+	FocalLength          float64      `json:"focal_length"`
+	FocalRatio           float64      `json:"focal_ratio"`
+	AspectWide           int          `json:"aspect_wide"`
+	AspectHigh           int          `json:"aspect_high"`
 }
 
 func (c CameraBlueprint) With(opts ...cameraOption) CameraBlueprint {
@@ -37,9 +40,9 @@ func (c CameraBlueprint) pxHigh(pxWide int) int {
 
 func Camera() CameraBlueprint {
 	return CameraBlueprint{
-		Location:             Vect(0, 10, 10),
-		LookingAt:            Vect(0, 0, 0),
-		UpDirection:          Vect(0, 1, 0),
+		Location:             xmath.Vect(0, 10, 10),
+		LookingAt:            xmath.Vect(0, 0, 0),
+		UpDirection:          xmath.Vect(0, 1, 0),
 		FieldOfViewInRadians: 90 * math.Pi / 180,
 		FocalLength:          1.0,
 		FocalRatio:           math.MaxFloat64,
@@ -50,19 +53,19 @@ func Camera() CameraBlueprint {
 
 type cameraOption func(*CameraBlueprint)
 
-func Location(x Vector) cameraOption {
+func Location(x xmath.Vector) cameraOption {
 	return func(c *CameraBlueprint) {
 		c.Location = x
 	}
 }
 
-func LookingAt(x Vector) cameraOption {
+func LookingAt(x xmath.Vector) cameraOption {
 	return func(c *CameraBlueprint) {
 		c.LookingAt = x
 	}
 }
 
-func UpDirection(x Vector) cameraOption {
+func UpDirection(x xmath.Vector) cameraOption {
 	return func(c *CameraBlueprint) {
 		c.UpDirection = x
 	}
@@ -138,13 +141,13 @@ const (
 
 func ColourRGB(rgb uint32) func(*Object) {
 	return func(o *Object) {
-		o.Material.Colour = newColourFromRGB(rgb)
+		o.Material.Colour = colour.NewColourFromRGB(rgb)
 	}
 }
 
 func ColourHSL(hue, saturation, lightness float64) func(*Object) {
 	return func(o *Object) {
-		o.Material.Colour = newColourFromHSL(hue, saturation, lightness)
+		o.Material.Colour = colour.NewColourFromHSL(hue, saturation, lightness)
 	}
 }
 
@@ -160,13 +163,13 @@ func Mirror() func(*Object) {
 	}
 }
 
-func Translate(v Vector) func(*Object) {
+func Translate(v xmath.Vector) func(*Object) {
 	return func(o *Object) {
 		o.Surface.translate(v)
 	}
 }
 
-func RotateDegrees(v Vector, degs float64) func(*Object) {
+func RotateDegrees(v xmath.Vector, degs float64) func(*Object) {
 	return func(o *Object) {
 		o.Surface.rotate(v, degs/180*math.Pi)
 	}
@@ -185,11 +188,11 @@ func BoundingBox() func(*Object) {
 	}
 }
 
-func Triangle(a, b, c Vector) ObjectList {
+func Triangle(a, b, c xmath.Vector) ObjectList {
 	return defaultObject(newTriangle(a, b, c))
 }
 
-func AlignedSquare(a, b Vector) ObjectList {
+func AlignedSquare(a, b xmath.Vector) ObjectList {
 
 	same := func(a, b float64) int {
 		if a == b {
@@ -216,31 +219,31 @@ func AlignedSquare(a, b Vector) ObjectList {
 	}
 }
 
-func AlignedBox(a, b Vector) ObjectList {
+func AlignedBox(a, b xmath.Vector) ObjectList {
 	return defaultObject(newAlignedBox(a, b))
 }
 
-func Square(a, b, c, d Vector) ObjectList {
+func Square(a, b, c, d xmath.Vector) ObjectList {
 	return Group(
 		Triangle(a, b, c),
 		Triangle(c, d, a),
 	)
 }
 
-func Sphere(c Vector, r float64) ObjectList {
+func Sphere(c xmath.Vector, r float64) ObjectList {
 	return defaultObject(&sphere{c, r})
 }
 
-func Disc(c Vector, r float64, n Vector) ObjectList {
+func Disc(c xmath.Vector, r float64, n xmath.Vector) ObjectList {
 	return defaultObject(&disc{c, r * r, n.Unit()})
 }
 
-func Pipe(a, b Vector, r float64) ObjectList {
+func Pipe(a, b xmath.Vector, r float64) ObjectList {
 	return defaultObject(&pipe{a, b, r})
 }
 
 func defaultObject(s surface) ObjectList {
 	return ObjectList{{
-		s, material{Colour: newColourFromRGB(White)},
+		s, material{Colour: colour.NewColourFromRGB(White)},
 	}}
 }

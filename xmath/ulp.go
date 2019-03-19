@@ -1,8 +1,6 @@
-package grayt
+package xmath
 
 import "math"
-
-const ulpFudgeFactor = 50
 
 func float64AsInt64(f float64) int64 {
 	if f < 0 {
@@ -20,6 +18,6 @@ func int64AsFloat64(i int64) float64 {
 	}
 }
 
-func addULPs(f float64, ulps int64) float64 {
+func AddULPs(f float64, ulps int64) float64 {
 	return int64AsFloat64(float64AsInt64(f) + ulps)
 }
