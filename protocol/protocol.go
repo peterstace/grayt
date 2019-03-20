@@ -1,6 +1,9 @@
 package protocol
 
 import (
+	"encoding/json"
+	"reflect"
+
 	"github.com/peterstace/grayt/colour"
 	"github.com/peterstace/grayt/xmath"
 )
@@ -14,6 +17,16 @@ type Material struct {
 type Object struct {
 	Surface  interface{} `json:"surface"`
 	Material Material    `json:"material"`
+}
+
+func (o Object) MarshalJSON() ([]byte, error) {
+	surfaceName := reflect.TypeOf(o.Surface).Name()
+	type wrapper struct {
+		Type     string      `json:"type"`
+		Surface  interface{} `json:"surface"`
+		Material Material    `json:"material"`
+	}
+	return json.Marshal(wrapper{surfaceName, o.Surface, o.Material})
 }
 
 type Camera struct {
