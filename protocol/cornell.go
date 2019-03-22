@@ -22,15 +22,17 @@ var (
 	CornellRightWall = AlignedSquare(xmath.Vect(1, 0, 0), xmath.Vect(1, 1, -1))
 )
 
-func CornellCeilingLight() SurfaceList {
+func CornellCeilingLight() Surface {
 	const size = 0.9
-	return SurfaceList{AlignedBox{
-		CornerA: xmath.Vect(size, 1.0, -size),
-		CornerB: xmath.Vect(1.0-size, 0.999, -1.0+size),
-	}}
+	return Surface{
+		AlignedBoxes: []AlignedBox{{
+			CornerA: xmath.Vect(size, 1.0, -size),
+			CornerB: xmath.Vect(1.0-size, 0.999, -1.0+size),
+		}},
+	}
 }
 
-func CornellShortBlock() SurfaceList {
+func CornellShortBlock() Surface {
 	var (
 		// Left/Right, Top/Bottom, Front/Back.
 		LBF = xmath.Vect(0.76, 0.00, -0.12)
@@ -42,7 +44,7 @@ func CornellShortBlock() SurfaceList {
 		RTF = xmath.Vect(0.47, 0.30, -0.21)
 		RTB = xmath.Vect(0.56, 0.30, -0.49)
 	)
-	return MergeSurfaceLists(
+	return MergeSurfaces(
 		Square(LTF, LTB, RTB, RTF),
 		Square(LBF, RBF, RTF, LTF),
 		Square(LBB, RBB, RTB, LTB),
@@ -51,7 +53,7 @@ func CornellShortBlock() SurfaceList {
 	)
 }
 
-func CornellTallBlock() SurfaceList {
+func CornellTallBlock() Surface {
 	var (
 		// Left/Right, Top/Bottom, Front/Back.
 		LBF = xmath.Vect(0.52, 0.00, -0.54)
@@ -63,7 +65,7 @@ func CornellTallBlock() SurfaceList {
 		RTF = xmath.Vect(0.23, 0.60, -0.45)
 		RTB = xmath.Vect(0.14, 0.60, -0.74)
 	)
-	return MergeSurfaceLists(
+	return MergeSurfaces(
 		Square(LTF, LTB, RTB, RTF),
 		Square(LBF, RBF, RTF, LTF),
 		Square(LBB, RBB, RTB, LTB),

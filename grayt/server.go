@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	_ "net/http/pprof"
+	"net/url"
 	"path/filepath"
 	"strconv"
 
@@ -20,14 +21,11 @@ type scene struct {
 }
 
 type Server struct {
-	scenes    map[string]scene
 	resources []*resource
 }
 
 func NewServer() *Server {
-	return &Server{
-		scenes: make(map[string]scene),
-	}
+	return &Server{}
 }
 
 func (s *Server) Load(storageDir string) error {
@@ -58,12 +56,20 @@ func (s *Server) Load(storageDir string) error {
 }
 
 func (s *Server) lookupScene(name string) (Scene, error) {
-	// TODO: Lookup instead using grayt.scenelib
-	sceneInfo, ok := s.scenes[name]
-	if !ok {
-		return Scene{}, fmt.Errorf("unknown scene name: %q", name)
+	// TODO: allow address to be configured
+	resp, err := http.Get("http://localhost:4000/scene?name=" + url.QueryEscape(name))
+	if err != nil {
+		return Scene{}, fmt.Errorf("fetching scene: %v", err)
 	}
-	return sceneInfo.sceneFn(), nil
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return Scene{}, fmt.Errorf("fetching scene: %s", resp.Status)
+	}
+	var scene protocol.Scene
+	if err := json.NewDecoder(resp.Body).Decode(&scene); err != nil {
+		return Scene{}, fmt.Errorf("decoding scene: %v", err)
+	}
+	return buildScene(scene), nil
 }
 
 func (s *Server) Save(storageDir string) error {
@@ -85,14 +91,6 @@ func (s *Server) ListenAndServe(addr string) error {
 	return http.ListenAndServe(addr, nil)
 }
 
-func (s *Server) Register(name string, protoFn func() protocol.Scene) {
-	s.scenes[name] = scene{
-		sceneFn: func() Scene {
-			return buildScene(protoFn())
-		},
-	}
-}
-
 type resource struct {
 	uuid      uuid.UUID
 	render    *render
@@ -111,10 +109,8 @@ func (s *Server) handleGetScenesCollection(w http.ResponseWriter, r *http.Reques
 	type response struct {
 		Code string `json:"code"`
 	}
-	var responses []response
-	for name := range s.scenes {
-		responses = append(responses, response{name})
-	}
+	// TODO: should get the full scene list from the grayt.scenelib server.
+	responses := []response{{Code: "cornellbox_classic"}}
 	if err := json.NewEncoder(w).Encode(responses); err != nil {
 		internalError(w, err)
 	}

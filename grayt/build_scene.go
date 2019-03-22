@@ -16,38 +16,41 @@ func buildScene(proto protocol.Scene) Scene {
 	scene.Camera.AspectWide = proto.Camera.AspectWide
 	scene.Camera.AspectHigh = proto.Camera.AspectHigh
 
-	scene.Objects = make([]Object, len(proto.Objects))
-	for i := range proto.Objects {
-		// TODO: Should just use the material object in the scene (until a
-		// point where we need some additional fields).
-		scene.Objects[i].Material.Colour = proto.Objects[i].Material.Colour
-		scene.Objects[i].Material.Emittance = proto.Objects[i].Material.Emittance
-		scene.Objects[i].Material.Mirror = proto.Objects[i].Material.Mirror
-		scene.Objects[i].Surface = buildSurface(proto.Objects[i].Surface)
+	for _, o := range proto.Objects {
+		add := func(s surface) {
+			scene.Objects = append(scene.Objects, Object{
+				Surface: s,
+				Material: material{
+					Colour:    o.Material.Colour,
+					Emittance: o.Material.Emittance,
+					Mirror:    o.Material.Mirror,
+				},
+			})
+		}
+		for _, x := range o.Surface.Triangles {
+			add(newTriangle(x.A, x.B, x.C))
+		}
+		for _, x := range o.Surface.AlignedBoxes {
+			add(newAlignedBox(x.CornerA, x.CornerB))
+		}
+		for _, x := range o.Surface.Spheres {
+			add(&sphere{Center: x.Center, Radius: x.Radius})
+		}
+		for _, x := range o.Surface.AlignXSquares {
+			add(&alignXSquare{x.X, x.Y1, x.Y2, x.Z1, x.Z2})
+		}
+		for _, x := range o.Surface.AlignYSquares {
+			add(&alignYSquare{x.X1, x.X2, x.Y, x.Z1, x.Z2})
+		}
+		for _, x := range o.Surface.AlignZSquares {
+			add(&alignZSquare{x.X1, x.X2, x.Y1, x.Y2, x.Z})
+		}
+		for _, x := range o.Surface.Discs {
+			add(&disc{Center: x.Center, RadiusSq: x.Radius * x.Radius, UnitNorm: x.UnitNorm})
+		}
+		for _, x := range o.Surface.Pipes {
+			add(&pipe{C1: x.EndpointA, C2: x.EndpointB, R: x.Radius})
+		}
 	}
 	return scene
-}
-
-func buildSurface(proto interface{}) surface {
-	switch o := proto.(type) {
-	case protocol.Triangle:
-		return newTriangle(o.A, o.B, o.C)
-	case protocol.AlignedBox:
-		return newAlignedBox(o.CornerA, o.CornerB)
-	case protocol.Sphere:
-		return &sphere{Center: o.Center, Radius: o.Radius}
-	case protocol.AlignXSquare:
-		return &alignXSquare{o.X, o.Y1, o.Y2, o.Z1, o.Z2}
-	case protocol.AlignYSquare:
-		return &alignYSquare{o.X1, o.X2, o.Y, o.Z1, o.Z2}
-	case protocol.AlignZSquare:
-		return &alignZSquare{o.X1, o.X2, o.Y1, o.Y2, o.Z}
-	case protocol.Disc:
-		return &disc{Center: o.Center, RadiusSq: o.Radius * o.Radius, UnitNorm: o.UnitNorm}
-	case protocol.Pipe:
-		return &pipe{C1: o.EndpointA, C2: o.EndpointB, R: o.Radius}
-	default:
-		// TODO: Handle this a bit better
-		panic("unknown type")
-	}
 }

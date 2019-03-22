@@ -23,15 +23,21 @@ func DefaultCamera() Camera {
 	}
 }
 
-type SurfaceList []interface{}
 type ObjectList []Object
 
-func Combine(m Material, surfaces ...SurfaceList) []Object {
-	var objs []Object
-	for _, s := range MergeSurfaceLists(surfaces...) {
-		objs = append(objs, Object{Material: m, Surface: s})
+func MergeSurfaces(surfs ...Surface) Surface {
+	var all Surface
+	for _, s := range surfs {
+		all.Triangles = append(all.Triangles, s.Triangles...)
+		all.AlignedBoxes = append(all.AlignedBoxes, s.AlignedBoxes...)
+		all.Spheres = append(all.Spheres, s.Spheres...)
+		all.AlignXSquares = append(all.AlignXSquares, s.AlignXSquares...)
+		all.AlignYSquares = append(all.AlignYSquares, s.AlignYSquares...)
+		all.AlignZSquares = append(all.AlignZSquares, s.AlignZSquares...)
+		all.Discs = append(all.Discs, s.Discs...)
+		all.Pipes = append(all.Pipes, s.Pipes...)
 	}
-	return objs
+	return all
 }
 
 func MergeObjectLists(lists ...ObjectList) ObjectList {
@@ -44,24 +50,16 @@ func MergeObjectLists(lists ...ObjectList) ObjectList {
 	return objs
 }
 
-func MergeSurfaceLists(lists ...SurfaceList) SurfaceList {
-	var merged SurfaceList
-	for i := range lists {
-		for j := range lists[i] {
-			merged = append(merged, lists[i][j])
-		}
-	}
-	return merged
-}
-
-func Square(a, b, c, d xmath.Vector) SurfaceList {
-	return SurfaceList{
-		Triangle{a, b, c},
-		Triangle{c, d, a},
+func Square(a, b, c, d xmath.Vector) Surface {
+	return Surface{
+		Triangles: []Triangle{
+			{a, b, c},
+			{c, d, a},
+		},
 	}
 }
 
-func AlignedSquare(a, b xmath.Vector) SurfaceList {
+func AlignedSquare(a, b xmath.Vector) Surface {
 	same := func(a, b float64) int {
 		if a == b {
 			return 1
@@ -76,11 +74,11 @@ func AlignedSquare(a, b xmath.Vector) SurfaceList {
 
 	switch {
 	case a.X == b.X:
-		return SurfaceList{AlignXSquare{a.X, a.Y, b.Y, a.Z, b.Z}}
+		return Surface{AlignXSquares: []AlignXSquare{{a.X, a.Y, b.Y, a.Z, b.Z}}}
 	case a.Y == b.Y:
-		return SurfaceList{AlignYSquare{a.X, b.X, a.Y, a.Z, b.Z}}
+		return Surface{AlignYSquares: []AlignYSquare{{a.X, b.X, a.Y, a.Z, b.Z}}}
 	case a.Z == b.Z:
-		return SurfaceList{AlignZSquare{a.X, b.X, a.Y, b.Y, a.Z}}
+		return Surface{AlignZSquares: []AlignZSquare{{a.X, b.X, a.Y, b.Y, a.Z}}}
 	default:
 		panic(false)
 
