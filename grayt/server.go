@@ -48,13 +48,22 @@ func (s *Server) Load(storageDir string) error {
 		if err != nil {
 			return fmt.Errorf("could not load from file %q: %v", fname, err)
 		}
-		sceneInfo, ok := s.scenes[sceneName]
-		if !ok {
-			return fmt.Errorf("unknown scene name in file %q: %q", fname, sceneName)
+		scene, err := s.lookupScene(sceneName)
+		if err != nil {
+			return err
 		}
-		s.addResource(id, sceneName, sceneInfo.sceneFn(), acc)
+		s.addResource(id, sceneName, scene, acc)
 	}
 	return nil
+}
+
+func (s *Server) lookupScene(name string) (Scene, error) {
+	// TODO: Lookup instead using grayt.scenelib
+	sceneInfo, ok := s.scenes[name]
+	if !ok {
+		return Scene{}, fmt.Errorf("unknown scene name: %q", name)
+	}
+	return sceneInfo.sceneFn(), nil
 }
 
 func (s *Server) Save(storageDir string) error {
@@ -143,14 +152,13 @@ func (s *Server) handleRendersCollection(w http.ResponseWriter, r *http.Request)
 			http.Error(w, "px_wide or px_high not set", http.StatusBadRequest)
 			return
 		}
-		sceneInfo, ok := s.scenes[form.Scene]
-		if !ok {
-			http.Error(w, fmt.Sprintf("scene %q not found", form.Scene), http.StatusBadRequest)
+		scene, err := s.lookupScene(form.Scene)
+		if err != nil {
+			http.Error(w, "scene lookup failed: "+err.Error(), http.StatusBadRequest)
 			return
 		}
-
 		id := uuid.Must(uuid.NewV4())
-		s.addResource(id, form.Scene, sceneInfo.sceneFn(), newAccumulator(form.PxWide, form.PxHigh))
+		s.addResource(id, form.Scene, scene, newAccumulator(form.PxWide, form.PxHigh))
 		fmt.Fprintf(w, `{"uuid":%q}`, id)
 
 	case http.MethodGet:

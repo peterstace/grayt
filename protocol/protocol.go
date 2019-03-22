@@ -20,6 +20,7 @@ type Object struct {
 }
 
 func (o Object) MarshalJSON() ([]byte, error) {
+	// TODO: look up name in a map instead of using reflect name
 	surfaceName := reflect.TypeOf(o.Surface).Name()
 	type wrapper struct {
 		Type     string      `json:"type"`
