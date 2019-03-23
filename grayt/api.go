@@ -33,11 +33,6 @@ func (c CameraBlueprint) String() string {
 	)
 }
 
-// TODO: Can get rid of this?
-func (c CameraBlueprint) pxHigh(pxWide int) int {
-	return pxWide * c.AspectHigh / c.AspectWide
-}
-
 func Camera() CameraBlueprint {
 	return CameraBlueprint{
 		Location:             xmath.Vect(0, 10, 10),
