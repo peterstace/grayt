@@ -7,6 +7,13 @@ services:
     environment:
       GRAYT_SCENELIB_LISTEN_ADDR: ":4000"
     command: "grayt.scenelib"
+  worker:
+    build: .
+    ports:
+      - "80:80"
+    environment:
+      LISTEN_ADDR: ":80"
+    command: "grayt.worker"
   api:
     build: .
     ports:
