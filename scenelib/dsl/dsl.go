@@ -1,17 +1,14 @@
-package protocol
+package dsl
 
 import (
 	"math"
 
+	"github.com/peterstace/grayt/protocol"
 	"github.com/peterstace/grayt/xmath"
 )
 
-// TODO: This should go in the scenelib service. But for now, it will go here
-// since it will be needed by both grayt.main and scenelib until the scenelib
-// is completely out of grayt.main.
-
-func DefaultCamera() Camera {
-	return Camera{
+func DefaultCamera() protocol.Camera {
+	return protocol.Camera{
 		Location:             xmath.Vect(0, 10, 10),
 		LookingAt:            xmath.Vect(0, 0, 0),
 		UpDirection:          xmath.Vect(0, 1, 0),
@@ -23,10 +20,10 @@ func DefaultCamera() Camera {
 	}
 }
 
-type ObjectList []Object
+type ObjectList []protocol.Object
 
-func MergeSurfaces(surfs ...Surface) Surface {
-	var all Surface
+func MergeSurfaces(surfs ...protocol.Surface) protocol.Surface {
+	var all protocol.Surface
 	for _, s := range surfs {
 		all.Triangles = append(all.Triangles, s.Triangles...)
 		all.AlignedBoxes = append(all.AlignedBoxes, s.AlignedBoxes...)
@@ -41,7 +38,7 @@ func MergeSurfaces(surfs ...Surface) Surface {
 }
 
 func MergeObjectLists(lists ...ObjectList) ObjectList {
-	var objs []Object
+	var objs []protocol.Object
 	for i := range lists {
 		for j := range lists[i] {
 			objs = append(objs, lists[i][j])
@@ -50,16 +47,16 @@ func MergeObjectLists(lists ...ObjectList) ObjectList {
 	return objs
 }
 
-func Square(a, b, c, d xmath.Vector) Surface {
-	return Surface{
-		Triangles: []Triangle{
+func Square(a, b, c, d xmath.Vector) protocol.Surface {
+	return protocol.Surface{
+		Triangles: []protocol.Triangle{
 			{a, b, c},
 			{c, d, a},
 		},
 	}
 }
 
-func AlignedSquare(a, b xmath.Vector) Surface {
+func AlignedSquare(a, b xmath.Vector) protocol.Surface {
 	same := func(a, b float64) int {
 		if a == b {
 			return 1
@@ -74,11 +71,11 @@ func AlignedSquare(a, b xmath.Vector) Surface {
 
 	switch {
 	case a.X == b.X:
-		return Surface{AlignXSquares: []AlignXSquare{{a.X, a.Y, b.Y, a.Z, b.Z}}}
+		return protocol.Surface{AlignXSquares: []protocol.AlignXSquare{{a.X, a.Y, b.Y, a.Z, b.Z}}}
 	case a.Y == b.Y:
-		return Surface{AlignYSquares: []AlignYSquare{{a.X, b.X, a.Y, a.Z, b.Z}}}
+		return protocol.Surface{AlignYSquares: []protocol.AlignYSquare{{a.X, b.X, a.Y, a.Z, b.Z}}}
 	case a.Z == b.Z:
-		return Surface{AlignZSquares: []AlignZSquare{{a.X, b.X, a.Y, b.Y, a.Z}}}
+		return protocol.Surface{AlignZSquares: []protocol.AlignZSquare{{a.X, b.X, a.Y, b.Y, a.Z}}}
 	default:
 		panic(false)
 
