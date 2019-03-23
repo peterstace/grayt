@@ -1,0 +1,14 @@
+version: '3'
+services:
+  scenelib:
+    build: .
+    ports:
+      - "4000:4000"
+    environment:
+      GRAYT_SCENELIB_LISTEN_ADDR: ":4000"
+    command: "grayt.scenelib"
+  api:
+    build: .
+    ports:
+      - "8080:8080"
+    command: "grayt"

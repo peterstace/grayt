@@ -13,7 +13,7 @@ import (
 	"strconv"
 
 	"github.com/peterstace/grayt/protocol"
-	uuid "github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid" // TODO: don't use uuids...
 )
 
 type scene struct {
@@ -57,7 +57,7 @@ func (s *Server) Load(storageDir string) error {
 
 func (s *Server) lookupScene(name string) (Scene, error) {
 	// TODO: allow address to be configured
-	resp, err := http.Get("http://localhost:4000/scene?name=" + url.QueryEscape(name))
+	resp, err := http.Get("http://scenelib:4000/scene?name=" + url.QueryEscape(name))
 	if err != nil {
 		return Scene{}, fmt.Errorf("fetching scene: %v", err)
 	}

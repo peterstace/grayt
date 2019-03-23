@@ -10,6 +10,9 @@ import (
 )
 
 func main() {
+	// TODO: Remove this hack to sleep so that everything can start up.
+	time.Sleep(time.Second)
+
 	httpAddr := flag.String("h", ":8080", "http address to listen on")
 	storageDir := flag.String("d", "data", "storage directory")
 	flag.Parse()
