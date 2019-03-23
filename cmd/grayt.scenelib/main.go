@@ -7,11 +7,13 @@ import (
 	"os"
 	"sync"
 
-	"github.com/peterstace/grayt/examples/cornellbox/classic"
 	"github.com/peterstace/grayt/protocol"
+	"github.com/peterstace/grayt/scenelib/cornellbox"
 )
 
-const listenAddrEnv = "GRAYT_SCENELIB_LISTEN_ADDR"
+const (
+	listenAddrEnv = "GRAYT_SCENELIB_LISTEN_ADDR"
+)
 
 func main() {
 	listenAddr, ok := os.LookupEnv(listenAddrEnv)
@@ -23,7 +25,7 @@ func main() {
 		sceneCache: make(map[string]protocol.Scene),
 		registry:   make(map[string]func() protocol.Scene),
 	}
-	s.Register("cornellbox_classic", classic.Scene)
+	s.Register("cornellbox_classic", cornellbox.Classic)
 	/*
 		s.Register("cornellbox_reflections", reflections.CameraFn(), reflections.ObjectsFn)
 		s.Register("spheretree", spheretree.CameraFn(), spheretree.ObjectsFn)
