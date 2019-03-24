@@ -36,7 +36,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		s.handleTrace(w, req)
 		return
 	}
-	http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+	http.NotFound(w, req)
 }
 
 func (s *Server) handleTrace(w http.ResponseWriter, req *http.Request) {

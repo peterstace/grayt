@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/peterstace/grayt/mware"
 	"github.com/peterstace/grayt/worker"
 )
 
@@ -26,5 +27,5 @@ func main() {
 
 	s := worker.NewServer(scenelibAddr)
 	log.Printf("serving on %v", listenAddr)
-	log.Fatal(http.ListenAndServe(listenAddr, s))
+	log.Fatal(http.ListenAndServe(listenAddr, mware.LogRequests(s)))
 }
