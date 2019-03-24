@@ -23,7 +23,7 @@ func NewGrid(lambda float64, objs []Object) *grid {
 	resolutionFactor := math.Pow(lambda*float64(len(objs))/volume, 1.0/3.0)
 	resolution := xmath.Truncate(boundDiff.Scale(resolutionFactor)).Max(xmath.Triple{1, 1, 1})
 	stride := boundDiff.Div(resolution.AsVector())
-	data := make([]*link, resolution.Z*resolution.Z*resolution.Z)
+	data := make([]*link, resolution.X*resolution.Y*resolution.Z)
 
 	grid := &grid{
 		minBound,
