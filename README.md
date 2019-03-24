@@ -55,3 +55,6 @@ SceneStore
 
 ![Cornell Box](/gallery/out_q100000.png)
 
+## Scene Ideas
+
+- 3D patchwork: https://mattdesl.svbtle.com/pen-plotter-2
