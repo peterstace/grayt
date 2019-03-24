@@ -2,13 +2,12 @@ package grayt
 
 import (
 	"log"
-	"math"
 	"math/rand"
 	"sync/atomic"
 	"time"
 
 	"github.com/peterstace/grayt/colour"
-	"github.com/peterstace/grayt/xmath"
+	"github.com/peterstace/grayt/trace"
 )
 
 type render struct {
@@ -20,11 +19,11 @@ type render struct {
 
 	// Static configuration.
 	// TODO: Should ensure that these are not modified once the render is started.
-	scene Scene
+	scene trace.Scene
 	accum *accumulator
 }
 
-func newRender(scene Scene, acc *accumulator) *render {
+func newRender(scene trace.Scene, acc *accumulator) *render {
 	return &render{
 		completed: acc.passes * int64(acc.wide) * int64(acc.high),
 		scene:     scene,
@@ -55,8 +54,7 @@ func (r *render) setWorkers(workers int64) {
 }
 
 func (r *render) traceImage() {
-	cam := newCamera(r.scene.Camera)
-	accel := newGrid(4, r.scene.Objects)
+	accel := trace.NewGrid(4, r.scene.Objects)
 
 	finished := make(chan *pixelGrid)
 	gridPool := make(chan *pixelGrid)
@@ -110,17 +108,15 @@ func (r *render) traceImage() {
 			// TODO: Could pull off the worker pool at this point, rather than in separate goroutine.
 			go func(i int, grid *pixelGrid) {
 				atomic.AddInt64(&r.actualWorkers, 1)
-				tr := tracer{
-					accel: accel,
-					rng:   rand.New(rand.NewSource(int64(i))),
-				}
+				rng := rand.New(rand.NewSource(int64(i)))
+				tr := trace.NewTracer(accel, rng)
 				for pxY := 0; pxY < r.accum.high; pxY++ {
 					for pxX := 0; pxX < r.accum.wide; pxX++ {
-						x := (float64(pxX-r.accum.wide/2) + tr.rng.Float64()) * pxPitch
-						y := (float64(pxY-r.accum.high/2) + tr.rng.Float64()) * pxPitch * -1.0
-						cr := cam.makeRay(x, y, tr.rng)
+						x := (float64(pxX-r.accum.wide/2) + rng.Float64()) * pxPitch
+						y := (float64(pxY-r.accum.high/2) + rng.Float64()) * pxPitch * -1.0
+						cr := r.scene.Camera.MakeRay(x, y, rng)
 						cr.Dir = cr.Dir.Unit()
-						c := tr.tracePath(cr)
+						c := tr.TracePath(cr)
 						grid.set(pxX, pxY, c)
 						atomic.AddInt64(&r.completed, 1)
 					}
@@ -135,61 +131,5 @@ func (r *render) traceImage() {
 	for grid := range finished {
 		r.accum.merge(grid)
 		gridPool <- grid
-	}
-}
-
-type tracer struct {
-	accel accelerationStructure
-	rng   *rand.Rand
-}
-
-func (t *tracer) tracePath(r xmath.Ray) colour.Colour {
-	assertUnit(r.Dir)
-	intersection, material, hit := t.accel.closestHit(r)
-	if !hit {
-		return colour.Colour{0, 0, 0}
-	}
-	assertUnit(intersection.unitNormal)
-
-	// Calculate probability of emitting.
-	pEmit := 0.1
-	if material.Emittance != 0 {
-		pEmit = 1.0
-	}
-
-	// Handle emit case.
-	if t.rng.Float64() < pEmit {
-		return material.Colour.Scale(material.Emittance / pEmit)
-	}
-
-	offsetScale := -math.Copysign(xmath.AddULPs(1.0, 1e5)-1.0, r.Dir.Dot(intersection.unitNormal))
-	offset := intersection.unitNormal.Scale(offsetScale)
-	hitLoc := r.At(intersection.distance).Add(offset)
-
-	// Orient the unit normal towards the ray origin.
-	if intersection.unitNormal.Dot(r.Dir) > 0 {
-		intersection.unitNormal = intersection.unitNormal.Scale(-1.0)
-	}
-
-	if material.Mirror {
-
-		reflected := r.Dir.Sub(intersection.unitNormal.Scale(2 * intersection.unitNormal.Dot(r.Dir)))
-		return t.tracePath(xmath.Ray{Start: hitLoc, Dir: reflected})
-
-	} else {
-
-		// Create a random vector on the hemisphere towards the normal.
-		rnd := xmath.Vector{t.rng.NormFloat64(), t.rng.NormFloat64(), t.rng.NormFloat64()}
-		rnd = rnd.Unit()
-		if rnd.Dot(intersection.unitNormal) < 0 {
-			rnd = rnd.Scale(-1.0)
-		}
-
-		// Apply the BRDF (bidirectional reflection distribution function).
-		brdf := rnd.Dot(intersection.unitNormal)
-
-		return t.tracePath(xmath.Ray{Start: hitLoc, Dir: rnd}).
-			Scale(brdf / (1 - pEmit)).
-			Mul(material.Colour)
 	}
 }

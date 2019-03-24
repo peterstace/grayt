@@ -1,21 +1,16 @@
-package grayt
+package trace
 
 import "github.com/peterstace/grayt/protocol"
 
-func buildScene(proto protocol.Scene) Scene {
-	var scene Scene
+type Scene struct {
+	Camera  camera   `json:"camera"`
+	Objects []Object `json:"objects"`
+}
 
-	// TODO: This doesn't make much sense. Should instead store the fully
-	// formed camera object on the scene?
-	scene.Camera.Location = proto.Camera.Location
-	scene.Camera.LookingAt = proto.Camera.LookingAt
-	scene.Camera.UpDirection = proto.Camera.UpDirection
-	scene.Camera.FieldOfViewInRadians = proto.Camera.FieldOfViewInRadians
-	scene.Camera.FocalLength = proto.Camera.FocalLength
-	scene.Camera.FocalRatio = proto.Camera.FocalRatio
-	scene.Camera.AspectWide = proto.Camera.AspectWide
-	scene.Camera.AspectHigh = proto.Camera.AspectHigh
-
+func BuildScene(proto protocol.Scene) Scene {
+	scene := Scene{
+		Camera: newCamera(proto.Camera),
+	}
 	for _, o := range proto.Objects {
 		add := func(s surface) {
 			scene.Objects = append(scene.Objects, Object{

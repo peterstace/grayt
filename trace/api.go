@@ -1,13 +1,6 @@
-package grayt
+package trace
 
-import (
-	"fmt"
-	"math"
-
-	"github.com/peterstace/grayt/colour"
-	"github.com/peterstace/grayt/xmath"
-)
-
+/*
 type CameraBlueprint struct {
 	Location             xmath.Vector `json:"location"`
 	LookingAt            xmath.Vector `json:"looking_at"`
@@ -18,7 +11,9 @@ type CameraBlueprint struct {
 	AspectWide           int          `json:"aspect_wide"`
 	AspectHigh           int          `json:"aspect_high"`
 }
+*/
 
+/*
 func (c CameraBlueprint) With(opts ...cameraOption) CameraBlueprint {
 	for _, opt := range opts {
 		opt(&c)
@@ -45,7 +40,9 @@ func Camera() CameraBlueprint {
 		AspectHigh:           1,
 	}
 }
+*/
 
+/*
 type cameraOption func(*CameraBlueprint)
 
 func Location(x xmath.Vector) cameraOption {
@@ -98,14 +95,11 @@ func AspectRatioWidthAndHeight(wide, high int) cameraOption {
 		c.AspectHigh = high
 	}
 }
+*/
 
-type Scene struct {
-	Camera  CameraBlueprint `json:"camera"`
-	Objects ObjectList      `json:"objects"`
-}
+//type ObjectList []Object
 
-type ObjectList []Object
-
+/*
 func Group(objLists ...ObjectList) ObjectList {
 	var grouped ObjectList
 	for _, objList := range objLists {
@@ -122,7 +116,9 @@ func (o ObjectList) With(fns ...func(*Object)) ObjectList {
 	}
 	return o
 }
+*/
 
+/*
 const (
 	White   = 0xffffff
 	Black   = 0x000000
@@ -133,7 +129,8 @@ const (
 	Cyan    = 0x00ffff
 	Magenta = 0xff00ff
 )
-
+*/
+/*
 func ColourRGB(rgb uint32) func(*Object) {
 	return func(o *Object) {
 		o.Material.Colour = colour.NewColourFromRGB(rgb)
@@ -208,3 +205,4 @@ func defaultObject(s surface) ObjectList {
 		s, material{Colour: colour.NewColourFromRGB(White)},
 	}}
 }
+*/

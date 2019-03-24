@@ -13,11 +13,12 @@ import (
 	"strconv"
 
 	"github.com/peterstace/grayt/protocol"
+	"github.com/peterstace/grayt/trace"
 	uuid "github.com/satori/go.uuid" // TODO: don't use uuids...
 )
 
 type scene struct {
-	sceneFn func() Scene
+	sceneFn func() trace.Scene
 }
 
 type Server struct {
@@ -55,21 +56,21 @@ func (s *Server) Load(storageDir string) error {
 	return nil
 }
 
-func (s *Server) lookupScene(name string) (Scene, error) {
+func (s *Server) lookupScene(name string) (trace.Scene, error) {
 	// TODO: allow address to be configured
 	resp, err := http.Get("http://scenelib:4000/scene?name=" + url.QueryEscape(name))
 	if err != nil {
-		return Scene{}, fmt.Errorf("fetching scene: %v", err)
+		return trace.Scene{}, fmt.Errorf("fetching scene: %v", err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return Scene{}, fmt.Errorf("fetching scene: %s", resp.Status)
+		return trace.Scene{}, fmt.Errorf("fetching scene: %s", resp.Status)
 	}
 	var scene protocol.Scene
 	if err := json.NewDecoder(resp.Body).Decode(&scene); err != nil {
-		return Scene{}, fmt.Errorf("decoding scene: %v", err)
+		return trace.Scene{}, fmt.Errorf("decoding scene: %v", err)
 	}
-	return buildScene(scene), nil
+	return trace.BuildScene(scene), nil
 }
 
 func (s *Server) Save(storageDir string) error {
@@ -116,7 +117,7 @@ func (s *Server) handleGetScenesCollection(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func (s *Server) addResource(id uuid.UUID, sceneName string, scene Scene, acc *accumulator) {
+func (s *Server) addResource(id uuid.UUID, sceneName string, scene trace.Scene, acc *accumulator) {
 	rsrc := &resource{
 		uuid:      id,
 		sceneName: sceneName,
