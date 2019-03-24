@@ -2,20 +2,26 @@ version: '3'
 services:
   scenelib:
     build: .
-    ports:
-      - "4000:4000"
     environment:
-      GRAYT_SCENELIB_LISTEN_ADDR: ":4000"
+      GRAYT_SCENELIB_LISTEN_ADDR: ":80"
     command: "grayt.scenelib"
   worker:
     build: .
-    ports:
-      - "80:80"
     environment:
       LISTEN_ADDR: ":80"
-      SCENELIB_ADDR: "http://scenelib:4000"
+      SCENELIB_ADDR: "http://scenelib:80"
     command: "grayt.worker"
   api:
+    build: .
+    ports:
+      - "8081:80"
+    environment:
+      LISTEN_ADDR: ":80"
+      SCENELIB_ADDR: "scenelib:80"
+      WORKER_ADDR: "worker:80"
+      ASSETS_DIR: "assets"
+    command: "grayt.api"
+  old:
     build: .
     ports:
       - "8080:8080"

@@ -34,6 +34,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		s.handleScene(w, req)
 		return
 	}
+	if req.URL.Path == "/scenes" {
+		s.handleScenes(w, req)
+		return
+	}
 	http.NotFound(w, req)
 }
 
@@ -66,6 +70,24 @@ func (s *Server) handleScene(w http.ResponseWriter, req *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(scene); err != nil {
 		http.Error(w, "couldn't write scene: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (s *Server) handleScenes(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodGet {
+		http.Error(w, "method must be GET", http.StatusBadRequest)
+		return
+	}
+	type scene struct {
+		Code string `json:"code"`
+	}
+	var scenes []scene
+	for code := range s.registry {
+		scenes = append(scenes, scene{code})
+	}
+	if err := json.NewEncoder(w).Encode(scenes); err != nil {
+		http.Error(w, "encoding scenes: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 }

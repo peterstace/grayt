@@ -58,7 +58,7 @@ func (s *Server) Load(storageDir string) error {
 
 func (s *Server) lookupScene(name string) (trace.Scene, error) {
 	// TODO: allow address to be configured
-	resp, err := http.Get("http://scenelib:4000/scene?name=" + url.QueryEscape(name))
+	resp, err := http.Get("http://scenelib:80/scene?name=" + url.QueryEscape(name))
 	if err != nil {
 		return trace.Scene{}, fmt.Errorf("fetching scene: %v", err)
 	}
