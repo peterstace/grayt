@@ -1,10 +1,12 @@
 package worker
 
 import (
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -122,8 +124,25 @@ func (s *Server) serveLayer(
 		s.scenes[sceneName] = scene
 	}
 
-	// TODO Trace the image and return the data.
+	traceLayer(w, pxWide, pxHigh, scene)
+}
 
-	time.Sleep(time.Second)
-	fmt.Fprintf(w, "DATA GETS SEND HERE")
+func traceLayer(w io.Writer, pxWide, pxHigh int, scene trace.Scene) {
+	// TODO: a lot of this can be cached
+	accel := trace.NewGrid(4, scene.Objects)
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	tr := trace.NewTracer(accel, rng)
+	pxPitch := 2.0 / float64(pxWide)
+	for pxY := 0; pxY < pxHigh; pxY++ {
+		for pxX := 0; pxX < pxWide; pxX++ {
+			x := (float64(pxX-pxWide/2) + rng.Float64()) * pxPitch
+			y := (float64(pxY-pxHigh/2) + rng.Float64()) * pxPitch * -1.0
+			cr := scene.Camera.MakeRay(x, y, rng)
+			cr.Dir = cr.Dir.Unit()
+			c := tr.TracePath(cr)
+			binary.Write(w, binary.BigEndian, c.R)
+			binary.Write(w, binary.BigEndian, c.G)
+			binary.Write(w, binary.BigEndian, c.B)
+		}
+	}
 }
