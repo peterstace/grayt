@@ -9,16 +9,22 @@ import (
 )
 
 const (
-	listenAddrEnv = "LISTEN_ADDR"
+	listenAddrEnv   = "LISTEN_ADDR"
+	scenelibAddrEnv = "SCENELIB_ADDR"
 )
 
 func main() {
 	listenAddr := os.Getenv(listenAddrEnv)
 	if listenAddr == "" {
-		log.Fatal("%s not set", listenAddrEnv)
+		log.Fatalf("%s not set", listenAddrEnv)
 	}
 
-	s := worker.NewServer()
+	scenelibAddr := os.Getenv(scenelibAddrEnv)
+	if scenelibAddr == "" {
+		log.Fatalf("%s not set", scenelibAddrEnv)
+	}
+
+	s := worker.NewServer(scenelibAddr)
 	log.Printf("serving on %v", listenAddr)
 	log.Fatal(http.ListenAndServe(listenAddr, s))
 }

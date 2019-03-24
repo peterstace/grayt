@@ -1,20 +1,34 @@
 package worker
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/peterstace/grayt/protocol"
+	"github.com/peterstace/grayt/trace"
 )
 
-func NewServer() *Server {
-	return new(Server)
+func NewServer(scenelibAddr string) *Server {
+	return &Server{
+		scenelibAddr: scenelibAddr,
+		scenes:       map[string]trace.Scene{},
+	}
 }
 
 type Server struct {
+	scenelibAddr string
+
 	mu      sync.Mutex
 	working bool
+
+	scenes map[string]trace.Scene
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -77,11 +91,39 @@ func (s *Server) serveLayer(
 		s.mu.Unlock()
 	}()
 
-	// TODO Get the scene if it hasn't been cached locally.
+	scene, ok := s.scenes[sceneName]
+	if !ok {
+		log.Printf("scene %q not cached, fetching from scenelib", sceneName)
+		resp, err := http.Get(
+			s.scenelibAddr + "/scene?name=" + url.PathEscape(sceneName),
+		)
+		if err != nil {
+			http.Error(w,
+				"fetching scene: "+err.Error(),
+				http.StatusInternalServerError,
+			)
+			return
+		}
+		if resp.StatusCode != http.StatusOK {
+			w.WriteHeader(resp.StatusCode)
+			fmt.Fprintf(w, "fetching scene: ")
+			io.Copy(w, resp.Body)
+			return
+		}
+		var sceneProto protocol.Scene
+		if err := json.NewDecoder(resp.Body).Decode(&sceneProto); err != nil {
+			http.Error(w,
+				fmt.Sprintf("decoding scene: %v", err),
+				http.StatusInternalServerError,
+			)
+			return
+		}
+		scene = trace.BuildScene(sceneProto)
+		s.scenes[sceneName] = scene
+	}
 
 	// TODO Trace the image and return the data.
 
 	time.Sleep(time.Second)
 	fmt.Fprintf(w, "DATA GETS SEND HERE")
-
 }
