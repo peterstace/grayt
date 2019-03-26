@@ -1,8 +1,10 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"image/png"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -58,19 +60,27 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		id := parts[0]
+		s.mu.Lock()
+		ren, ok := s.renders[id]
+		if !ok {
+			http.Error(w, "unknown render id", http.StatusBadRequest)
+			s.mu.Unlock()
+			return
+		}
+		s.mu.Unlock()
 		switch parts[1] {
 		case "workers":
 			if req.Method != http.MethodPut {
 				http.Error(w, "method must be PUT", http.StatusMethodNotAllowed)
 				return
 			}
-			s.handlePutWorkers(w, req, id)
+			s.handlePutWorkers(w, req, ren)
 		case "image":
 			if req.Method != http.MethodGet {
 				http.Error(w, "method must be GET", http.StatusMethodNotAllowed)
 				return
 			}
-			s.handleGetImage(w, req)
+			s.handleGetImage(w, req, ren)
 		default:
 			http.NotFound(w, req)
 		}
@@ -179,17 +189,8 @@ func (s *Server) handlePostRenders(w http.ResponseWriter, req *http.Request) {
 }
 
 func (s *Server) handlePutWorkers(
-	w http.ResponseWriter, req *http.Request, id string,
+	w http.ResponseWriter, req *http.Request, ren *render,
 ) {
-	s.mu.Lock()
-	ren, ok := s.renders[id]
-	if !ok {
-		http.Error(w, "unknown render id", http.StatusBadRequest)
-		s.mu.Unlock()
-		return
-	}
-	s.mu.Unlock()
-
 	buf, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		http.Error(w, "could not read body", http.StatusInternalServerError)
@@ -213,7 +214,17 @@ func (s *Server) handlePutWorkers(
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Server) handleGetImage(w http.ResponseWriter, req *http.Request) {
-	// TODO
-	w.WriteHeader(http.StatusOK)
+func (s *Server) handleGetImage(
+	w http.ResponseWriter, req *http.Request, ren *render,
+) {
+	var buf bytes.Buffer
+	img := ren.image()
+	if err := png.Encode(&buf, img); err != nil {
+		http.Error(w,
+			"could not encode image: "+err.Error(),
+			http.StatusInternalServerError,
+		)
+		return
+	}
+	io.Copy(w, &buf)
 }
