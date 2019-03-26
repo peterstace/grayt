@@ -7,9 +7,9 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
-	"regexp"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -37,6 +37,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		s.handleGetScenes(w, req)
 		return
 	}
+
 	if req.URL.Path == "/renders" {
 		switch req.Method {
 		case http.MethodGet:
@@ -48,14 +49,34 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 		return
 	}
-	if workersPath.MatchString(req.URL.Path) {
-		if req.Method != http.MethodPut {
-			http.Error(w, "method must be PUT", http.StatusMethodNotAllowed)
+
+	if strings.HasPrefix(req.URL.Path, "/renders/") {
+		rest := strings.TrimPrefix(req.URL.Path, "/renders/")
+		parts := strings.Split(rest, "/")
+		if len(parts) != 2 {
+			http.NotFound(w, req)
 			return
 		}
-		s.handlePutWorkers(w, req)
+		id := parts[0]
+		switch parts[1] {
+		case "workers":
+			if req.Method != http.MethodPut {
+				http.Error(w, "method must be PUT", http.StatusMethodNotAllowed)
+				return
+			}
+			s.handlePutWorkers(w, req, id)
+		case "image":
+			if req.Method != http.MethodGet {
+				http.Error(w, "method must be GET", http.StatusMethodNotAllowed)
+				return
+			}
+			s.handleGetImage(w, req)
+		default:
+			http.NotFound(w, req)
+		}
 		return
 	}
+
 	s.assets.ServeHTTP(w, req)
 }
 
@@ -157,16 +178,9 @@ func (s *Server) handlePostRenders(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, `{"uuid":%q}`, id)
 }
 
-var workersPath = regexp.MustCompile(`/renders/([A-Za-z0-9]{16})/workers`)
-
-func (s *Server) handlePutWorkers(w http.ResponseWriter, req *http.Request) {
-	submatches := workersPath.FindStringSubmatch(req.URL.Path)
-	if len(submatches) < 2 {
-		http.Error(w, "could not parse render ID", http.StatusInternalServerError)
-		return
-	}
-	id := submatches[1]
-
+func (s *Server) handlePutWorkers(
+	w http.ResponseWriter, req *http.Request, id string,
+) {
 	s.mu.Lock()
 	ren, ok := s.renders[id]
 	if !ok {
@@ -196,5 +210,10 @@ func (s *Server) handlePutWorkers(w http.ResponseWriter, req *http.Request) {
 	ren.cnd.L.Unlock()
 	ren.cnd.Broadcast()
 
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Server) handleGetImage(w http.ResponseWriter, req *http.Request) {
+	// TODO
 	w.WriteHeader(http.StatusOK)
 }
