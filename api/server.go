@@ -4,9 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"regexp"
+	"sort"
+	"strconv"
 	"sync"
+	"time"
 )
 
 func NewServer(scenelibAddr, workerAddr, assetsDir string) *Server {
@@ -14,7 +19,7 @@ func NewServer(scenelibAddr, workerAddr, assetsDir string) *Server {
 		scenelibAddr: scenelibAddr,
 		workerAddr:   workerAddr,
 		assets:       http.FileServer(http.Dir(assetsDir)),
-		renders:      map[string]render{},
+		renders:      map[string]*render{},
 	}
 }
 
@@ -24,13 +29,7 @@ type Server struct {
 	assets       http.Handler
 
 	mu      sync.Mutex
-	renders map[string]render
-}
-
-type render struct {
-	Scene  string
-	PxWide int
-	PxHigh int
+	renders map[string]*render
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -47,6 +46,14 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		default:
 			http.Error(w, "method must be GET or POST", http.StatusMethodNotAllowed)
 		}
+		return
+	}
+	if workersPath.MatchString(req.URL.Path) {
+		if req.Method != http.MethodPut {
+			http.Error(w, "method must be PUT", http.StatusMethodNotAllowed)
+			return
+		}
+		s.handlePutWorkers(w, req)
 		return
 	}
 	s.assets.ServeHTTP(w, req)
@@ -86,20 +93,27 @@ func (s *Server) handleGetRenders(w http.ResponseWriter, req *http.Request) {
 
 	s.mu.Lock()
 	for id, r := range s.renders {
+		r.cnd.L.Lock()
+		requested := r.desiredWorkers
+		r.cnd.L.Unlock()
 		resources = append(resources, resource{
-			Scene:            r.Scene,
-			PxWide:           r.PxWide,
-			PxHigh:           r.PxHigh,
+			Scene:            r.scene,
+			PxWide:           r.pxWide,
+			PxHigh:           r.pxHigh,
 			Passes:           0,
 			Completed:        "0",
 			TraceRate:        "0",
 			ID:               id,
-			RequestedWorkers: 0,
+			RequestedWorkers: requested,
 			ActualWorkers:    0,
 		})
 	}
+	sort.Slice(resources, func(i, j int) bool {
+		t1 := s.renders[resources[i].ID].created
+		t2 := s.renders[resources[j].ID].created
+		return t1.Before(t2)
+	})
 	s.mu.Unlock()
-	// TODO: order resources by created at time
 
 	if err := json.NewEncoder(w).Encode(resources); err != nil {
 		http.Error(w, "encoding renders: "+err.Error(), http.StatusInternalServerError)
@@ -126,13 +140,61 @@ func (s *Server) handlePostRenders(w http.ResponseWriter, req *http.Request) {
 
 	id := fmt.Sprintf("%X", rand.Uint64())
 
+	newRender := render{
+		scene:   form.Scene,
+		pxWide:  form.PxWide,
+		pxHigh:  form.PxHigh,
+		created: time.Now(),
+		cnd:     sync.NewCond(new(sync.Mutex)),
+	}
+
 	s.mu.Lock()
-	s.renders[id] = render{
-		Scene:  form.Scene,
-		PxWide: form.PxWide,
-		PxHigh: form.PxHigh,
+	s.renders[id] = &newRender
+	s.mu.Unlock()
+
+	go newRender.work()
+
+	fmt.Fprintf(w, `{"uuid":%q}`, id)
+}
+
+var workersPath = regexp.MustCompile(`/renders/([A-Za-z0-9]{16})/workers`)
+
+func (s *Server) handlePutWorkers(w http.ResponseWriter, req *http.Request) {
+	submatches := workersPath.FindStringSubmatch(req.URL.Path)
+	if len(submatches) < 2 {
+		http.Error(w, "could not parse render ID", http.StatusInternalServerError)
+		return
+	}
+	id := submatches[1]
+
+	s.mu.Lock()
+	ren, ok := s.renders[id]
+	if !ok {
+		http.Error(w, "unknown render id", http.StatusBadRequest)
+		s.mu.Unlock()
+		return
 	}
 	s.mu.Unlock()
 
-	fmt.Fprintf(w, `{"uuid":%q}`, id)
+	buf, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		http.Error(w, "could not read body", http.StatusInternalServerError)
+		return
+	}
+	workers, err := strconv.Atoi(string(buf))
+	if err != nil {
+		http.Error(w, "could not parse worker count", http.StatusBadRequest)
+		return
+	}
+	if workers < 0 {
+		http.Error(w, "workers must be non-negative", http.StatusBadRequest)
+		return
+	}
+
+	ren.cnd.L.Lock()
+	ren.desiredWorkers = workers
+	ren.cnd.L.Unlock()
+	ren.cnd.Broadcast()
+
+	w.WriteHeader(http.StatusOK)
 }
