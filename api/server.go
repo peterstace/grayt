@@ -183,7 +183,7 @@ func (s *Server) handlePostRenders(w http.ResponseWriter, req *http.Request) {
 	s.renders[id] = &newRender
 	s.mu.Unlock()
 
-	go newRender.work()
+	go newRender.orchestrateWork()
 
 	fmt.Fprintf(w, `{"uuid":%q}`, id)
 }
