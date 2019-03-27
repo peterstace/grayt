@@ -10,6 +10,8 @@ import (
 	"github.com/peterstace/grayt/colour"
 )
 
+// TODO: this file needs a big review
+
 type pixelGrid struct {
 	wide   int
 	high   int

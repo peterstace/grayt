@@ -177,6 +177,7 @@ func (s *Server) handlePostRenders(w http.ResponseWriter, req *http.Request) {
 		pxHigh:  form.PxHigh,
 		created: time.Now(),
 		cnd:     sync.NewCond(new(sync.Mutex)),
+		acc:     newAccumulator(form.PxWide, form.PxHigh),
 	}
 
 	s.mu.Lock()
