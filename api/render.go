@@ -23,31 +23,18 @@ type render struct {
 	actualWorkers  int
 
 	acc *accumulator
-
-	backoffMu sync.Mutex
-	backoff   time.Duration
 }
 
 func (r *render) orchestrateWork() {
-	// TODO: Could just get lock above loop and then never release?
-	// TODO: Add some sort of backoff.
 	for {
 		r.cnd.L.Lock()
 		for r.actualWorkers >= r.desiredWorkers {
 			r.cnd.Wait()
 		}
-		r.sleepForBackoff()
 		r.actualWorkers++
 		go r.work()
 		r.cnd.L.Unlock()
 	}
-}
-
-func (r *render) sleepForBackoff() {
-	r.backoffMu.Lock()
-	b := r.backoff
-	r.backoffMu.Unlock()
-	time.Sleep(b)
 }
 
 func (r *render) work() {
@@ -70,11 +57,6 @@ func (r *render) work() {
 	}
 
 	if resp.StatusCode == http.StatusTooManyRequests {
-		r.backoffMu.Lock()
-		r.backoff = 2 * (time.Millisecond + r.backoff)
-		backoff := r.backoff
-		r.backoffMu.Unlock()
-		log.Printf("too many requests, backoff: %s", backoff)
 		return
 	}
 	if resp.StatusCode != http.StatusOK {
@@ -85,10 +67,6 @@ func (r *render) work() {
 		log.Printf("worker result with non-200 status: %s", string(body))
 		return
 	}
-
-	r.backoffMu.Lock()
-	r.backoff = 0
-	r.backoffMu.Unlock()
 
 	// TODO: should be able to reuse the pixel grid to save on allocations
 	pixels := r.pxWide * r.pxHigh
