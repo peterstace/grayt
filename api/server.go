@@ -126,6 +126,7 @@ func (s *Server) handleGetRenders(w http.ResponseWriter, req *http.Request) {
 	for id, r := range s.renders {
 		r.cnd.L.Lock()
 		requested := r.desiredWorkers
+		actual := r.actualWorkers
 		r.cnd.L.Unlock()
 		resources = append(resources, resource{
 			Scene:            r.scene,
@@ -136,7 +137,7 @@ func (s *Server) handleGetRenders(w http.ResponseWriter, req *http.Request) {
 			TraceRate:        "0",
 			ID:               id,
 			RequestedWorkers: requested,
-			ActualWorkers:    0,
+			ActualWorkers:    actual,
 		})
 	}
 	sort.Slice(resources, func(i, j int) bool {
@@ -219,7 +220,7 @@ func (s *Server) handleGetImage(
 	w http.ResponseWriter, req *http.Request, ren *render,
 ) {
 	var buf bytes.Buffer
-	img := ren.image()
+	img := ren.acc.toImage(1.0)
 	if err := png.Encode(&buf, img); err != nil {
 		http.Error(w,
 			"could not encode image: "+err.Error(),

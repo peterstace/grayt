@@ -55,7 +55,7 @@ function updateStatus() {
   xhr.send();
 }
 
-window.setInterval(updateStatus, 5000);
+window.setInterval(updateStatus, 250);
 
 function populateSceneSelector() {
   let xhr = new XMLHttpRequest();
