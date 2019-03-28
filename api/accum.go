@@ -37,6 +37,13 @@ func newAccumulator(pxWide, pxHigh int) *accumulator {
 	return acc
 }
 
+func (a *accumulator) getPasses() int64 {
+	a.Lock()
+	p := a.passes
+	a.Unlock()
+	return p
+}
+
 func (a *accumulator) merge(g *pixelGrid) {
 	a.Lock()
 	defer a.Unlock()

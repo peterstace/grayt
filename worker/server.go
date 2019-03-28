@@ -28,7 +28,7 @@ type Server struct {
 	scenelibAddr string
 
 	mu      sync.Mutex
-	working bool
+	serving int
 
 	scenes map[string]trace.Scene
 }
@@ -79,17 +79,17 @@ func (s *Server) serveLayer(
 	w http.ResponseWriter, sceneName string, pxWide, pxHigh int,
 ) {
 	s.mu.Lock()
-	if s.working {
+	if s.serving >= 4 {
 		http.Error(w, "already working", http.StatusTooManyRequests)
 		s.mu.Unlock()
 		return
 	}
-	s.working = true
+	s.serving++
 	s.mu.Unlock()
 
 	defer func() {
 		s.mu.Lock()
-		s.working = false
+		s.serving--
 		s.mu.Unlock()
 	}()
 
