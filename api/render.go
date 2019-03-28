@@ -23,6 +23,8 @@ type render struct {
 	actualWorkers  int
 
 	acc *accumulator
+
+	monitor rateMonitor
 }
 
 func (r *render) orchestrateWork() {
@@ -80,4 +82,5 @@ func (r *render) work() {
 	}
 
 	r.acc.merge(&unitOfWork)
+	r.monitor.addPoint(time.Now(), pixels)
 }

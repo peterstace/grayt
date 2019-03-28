@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"container/list"
 	"encoding/json"
 	"fmt"
 	"image/png"
@@ -132,7 +133,7 @@ func (s *Server) handleGetRenders(w http.ResponseWriter, req *http.Request) {
 			PxHigh:           r.pxHigh,
 			Passes:           passes,
 			Completed:        displayFloat64(float64(passes * r.pxHigh * r.pxHigh)),
-			TraceRate:        "???",
+			TraceRate:        displayFloat64(r.monitor.rateHz()),
 			ID:               id,
 			RequestedWorkers: r.desiredWorkers,
 			ActualWorkers:    r.actualWorkers,
@@ -167,10 +168,6 @@ func (s *Server) handlePostRenders(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// TODO: Check if scene exists. Should call scenelib service.
-
-	id := fmt.Sprintf("%X", rand.Uint64())
-
 	newRender := render{
 		scene:   form.Scene,
 		pxWide:  form.PxWide,
@@ -178,8 +175,10 @@ func (s *Server) handlePostRenders(w http.ResponseWriter, req *http.Request) {
 		created: time.Now(),
 		cnd:     sync.NewCond(new(sync.Mutex)),
 		acc:     newAccumulator(form.PxWide, form.PxHigh),
+		monitor: rateMonitor{points: list.New()},
 	}
 
+	id := fmt.Sprintf("%X", rand.Uint64())
 	s.mu.Lock()
 	s.renders[id] = &newRender
 	s.mu.Unlock()
