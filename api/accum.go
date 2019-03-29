@@ -44,11 +44,11 @@ func (a *accumulator) getPasses() int64 {
 	return p
 }
 
-func (a *accumulator) merge(g *pixelGrid) {
+func (a *accumulator) merge(g *pixelGrid, depth int) {
 	a.Lock()
 	defer a.Unlock()
 
-	a.passes++
+	a.passes += int64(depth)
 	for i, c := range a.pixels {
 		a.pixels[i] = c.Add(g.pixels[i])
 	}

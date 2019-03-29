@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/peterstace/grayt/colour"
 	"github.com/peterstace/grayt/protocol"
 	"github.com/peterstace/grayt/trace"
 )
@@ -72,11 +73,21 @@ func (s *Server) handleTrace(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "couldn't convert px_high to int", http.StatusBadRequest)
 		return
 	}
-	s.serveLayer(w, sceneName, pxWide, pxHigh)
+	depthStr := params.Get("depth")
+	if depthStr == "" {
+		http.Error(w, "depth query param not set", http.StatusBadRequest)
+		return
+	}
+	depth, err := strconv.Atoi(depthStr)
+	if err != nil {
+		http.Error(w, "couldn't convert depth int", http.StatusBadRequest)
+		return
+	}
+	s.serveLayer(w, sceneName, pxWide, pxHigh, depth)
 }
 
 func (s *Server) serveLayer(
-	w http.ResponseWriter, sceneName string, pxWide, pxHigh int,
+	w http.ResponseWriter, sceneName string, pxWide, pxHigh, depth int,
 ) {
 	s.mu.Lock()
 	if s.serving >= 4 {
@@ -125,7 +136,7 @@ func (s *Server) serveLayer(
 		tr = tracer{scene.Camera, accel}
 		s.scenes[sceneName] = tr
 	}
-	tr.traceLayer(w, pxWide, pxHigh)
+	tr.traceLayer(w, pxWide, pxHigh, depth)
 }
 
 type tracer struct {
@@ -133,21 +144,21 @@ type tracer struct {
 	accel  trace.AccelerationStructure
 }
 
-func (t *tracer) traceLayer(w io.Writer, pxWide, pxHigh int) {
-	// TODO: a lot of this can be cached
+func (t *tracer) traceLayer(w io.Writer, pxWide, pxHigh, depth int) {
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 	tr := trace.NewTracer(t.accel, rng)
 	pxPitch := 2.0 / float64(pxWide)
 	for pxY := 0; pxY < pxHigh; pxY++ {
 		for pxX := 0; pxX < pxWide; pxX++ {
-			x := (float64(pxX-pxWide/2) + rng.Float64()) * pxPitch
-			y := (float64(pxY-pxHigh/2) + rng.Float64()) * pxPitch * -1.0
-			cr := t.camera.MakeRay(x, y, rng)
-			cr.Dir = cr.Dir.Unit()
-			c := tr.TracePath(cr)
-			binary.Write(w, binary.BigEndian, c.R)
-			binary.Write(w, binary.BigEndian, c.G)
-			binary.Write(w, binary.BigEndian, c.B)
+			var c colour.Colour
+			for i := 0; i < depth; i++ {
+				x := (float64(pxX-pxWide/2) + rng.Float64()) * pxPitch
+				y := (float64(pxY-pxHigh/2) + rng.Float64()) * pxPitch * -1.0
+				cr := t.camera.MakeRay(x, y, rng)
+				cr.Dir = cr.Dir.Unit()
+				c = c.Add(tr.TracePath(cr))
+			}
+			binary.Write(w, binary.BigEndian, c)
 		}
 	}
 }

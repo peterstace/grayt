@@ -20,7 +20,7 @@ type rateMonitor struct {
 func (m *rateMonitor) addPoint(when time.Time, traced int) {
 	m.mu.Lock()
 	m.total += traced
-	cutoff := when.Add(-time.Minute)
+	cutoff := when.Add(-time.Minute * 5)
 	m.points.PushBack(point{when, m.total})
 	for {
 		f := m.points.Front()

@@ -47,10 +47,12 @@ func (r *render) work() {
 		r.cnd.Signal()
 	}()
 
+	const depth = 30
+
 	// TODO: allow URL base to be configurable
 	url := fmt.Sprintf(
-		"http://worker:80/trace?scene_name=%s&px_wide=%d&px_high=%d",
-		r.scene, r.pxWide, r.pxHigh,
+		"http://worker:80/trace?scene_name=%s&px_wide=%d&px_high=%d&depth=%d",
+		r.scene, r.pxWide, r.pxHigh, depth,
 	)
 	resp, err := http.Get(url)
 	if err != nil {
@@ -80,7 +82,8 @@ func (r *render) work() {
 		log.Printf("could not read from worker response body: %v", err)
 		return
 	}
+	// TODO: read an extra byte and make sure we get EOF
 
-	r.acc.merge(&unitOfWork)
-	r.monitor.addPoint(time.Now(), pixels)
+	r.acc.merge(&unitOfWork, depth)
+	r.monitor.addPoint(time.Now(), pixels*depth)
 }
