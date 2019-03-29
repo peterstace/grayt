@@ -20,7 +20,7 @@ import (
 func NewServer(scenelibAddr string) *Server {
 	return &Server{
 		scenelibAddr: scenelibAddr,
-		scenes:       map[string]trace.Scene{},
+		scenes:       map[string]tracer{},
 	}
 }
 
@@ -30,7 +30,7 @@ type Server struct {
 	mu      sync.Mutex
 	serving int
 
-	scenes map[string]trace.Scene
+	scenes map[string]tracer
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -93,7 +93,7 @@ func (s *Server) serveLayer(
 		s.mu.Unlock()
 	}()
 
-	scene, ok := s.scenes[sceneName]
+	tr, ok := s.scenes[sceneName]
 	if !ok {
 		log.Printf("scene %q not cached, fetching from scenelib", sceneName)
 		resp, err := http.Get(
@@ -120,24 +120,29 @@ func (s *Server) serveLayer(
 			)
 			return
 		}
-		scene = trace.BuildScene(sceneProto)
-		s.scenes[sceneName] = scene
+		scene := trace.BuildScene(sceneProto)
+		accel := trace.NewGrid(4, scene.Objects)
+		tr = tracer{scene.Camera, accel}
+		s.scenes[sceneName] = tr
 	}
-
-	traceLayer(w, pxWide, pxHigh, scene)
+	tr.traceLayer(w, pxWide, pxHigh)
 }
 
-func traceLayer(w io.Writer, pxWide, pxHigh int, scene trace.Scene) {
+type tracer struct {
+	camera trace.Camera
+	accel  trace.AccelerationStructure
+}
+
+func (t *tracer) traceLayer(w io.Writer, pxWide, pxHigh int) {
 	// TODO: a lot of this can be cached
-	accel := trace.NewGrid(4, scene.Objects)
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
-	tr := trace.NewTracer(accel, rng)
+	tr := trace.NewTracer(t.accel, rng)
 	pxPitch := 2.0 / float64(pxWide)
 	for pxY := 0; pxY < pxHigh; pxY++ {
 		for pxX := 0; pxX < pxWide; pxX++ {
 			x := (float64(pxX-pxWide/2) + rng.Float64()) * pxPitch
 			y := (float64(pxY-pxHigh/2) + rng.Float64()) * pxPitch * -1.0
-			cr := scene.Camera.MakeRay(x, y, rng)
+			cr := t.camera.MakeRay(x, y, rng)
 			cr.Dir = cr.Dir.Unit()
 			c := tr.TracePath(cr)
 			binary.Write(w, binary.BigEndian, c.R)

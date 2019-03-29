@@ -3,13 +3,13 @@ package trace
 import "github.com/peterstace/grayt/protocol"
 
 type Scene struct {
-	Camera  camera   `json:"camera"`
+	Camera  Camera   `json:"camera"`
 	Objects []Object `json:"objects"`
 }
 
 func BuildScene(proto protocol.Scene) Scene {
 	scene := Scene{
-		Camera: newCamera(proto.Camera),
+		Camera: NewCamera(proto.Camera),
 	}
 	for _, o := range proto.Objects {
 		add := func(s surface) {
