@@ -169,13 +169,14 @@ func (s *Server) handlePostRenders(w http.ResponseWriter, req *http.Request) {
 	}
 
 	newRender := render{
-		scene:   form.Scene,
-		pxWide:  form.PxWide,
-		pxHigh:  form.PxHigh,
-		created: time.Now(),
-		cnd:     sync.NewCond(new(sync.Mutex)),
-		acc:     newAccumulator(form.PxWide, form.PxHigh),
-		monitor: rateMonitor{points: list.New()},
+		scene:      form.Scene,
+		pxWide:     form.PxWide,
+		pxHigh:     form.PxHigh,
+		created:    time.Now(),
+		cnd:        sync.NewCond(new(sync.Mutex)),
+		acc:        newAccumulator(form.PxWide, form.PxHigh),
+		monitor:    rateMonitor{points: list.New()},
+		workerAddr: s.workerAddr,
 	}
 
 	id := fmt.Sprintf("%X", rand.Uint64())

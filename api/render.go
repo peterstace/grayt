@@ -25,6 +25,8 @@ type render struct {
 	acc *accumulator
 
 	monitor rateMonitor
+
+	workerAddr string
 }
 
 func (r *render) orchestrateWork() {
@@ -49,10 +51,9 @@ func (r *render) work() {
 
 	const depth = 30
 
-	// TODO: allow URL base to be configurable
 	url := fmt.Sprintf(
-		"http://worker:80/trace?scene_name=%s&px_wide=%d&px_high=%d&depth=%d",
-		r.scene, r.pxWide, r.pxHigh, depth,
+		"http://%s/trace?scene_name=%s&px_wide=%d&px_high=%d&depth=%d",
+		r.workerAddr, r.scene, r.pxWide, r.pxHigh, depth,
 	)
 	resp, err := http.Get(url)
 	if err != nil {
