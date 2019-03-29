@@ -61,6 +61,7 @@ func (r *render) work() {
 		log.Printf("error requesting  work: %v", err)
 		return
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusTooManyRequests {
 		return

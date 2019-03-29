@@ -117,6 +117,7 @@ func (s *Server) serveLayer(
 			)
 			return
 		}
+		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
 			w.WriteHeader(resp.StatusCode)
 			fmt.Fprintf(w, "fetching scene: ")

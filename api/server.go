@@ -92,6 +92,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 func (s *Server) handleGetScenes(w http.ResponseWriter, req *http.Request) {
+	// TODO: use reverse proxy?
 	resp, err := http.Get("http://" + s.scenelibAddr + "/scenes")
 	if err != nil {
 		http.Error(w,
@@ -100,6 +101,7 @@ func (s *Server) handleGetScenes(w http.ResponseWriter, req *http.Request) {
 		)
 		return
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		w.WriteHeader(resp.StatusCode)
 		fmt.Fprintf(w, "fetching scene list: ")
