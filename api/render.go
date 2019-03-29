@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/binary"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -83,7 +84,10 @@ func (r *render) work() {
 		log.Printf("could not read from worker response body: %v", err)
 		return
 	}
-	// TODO: read an extra byte and make sure we get EOF
+	if n, err := resp.Body.Read([]byte{0}); n != 0 || err != io.EOF {
+		log.Printf("more bytes in response body than expected")
+		return
+	}
 
 	r.acc.merge(&unitOfWork, depth)
 	r.monitor.addPoint(time.Now(), pixels*depth)
