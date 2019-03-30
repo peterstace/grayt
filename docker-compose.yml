@@ -1,10 +1,5 @@
 version: '3'
 services:
-  scenelib:
-    build: .
-    environment:
-      GRAYT_SCENELIB_LISTEN_ADDR: ":80"
-    command: "grayt.scenelib"
   worker:
     build: .
     environment:

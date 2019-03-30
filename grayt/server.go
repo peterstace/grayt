@@ -8,11 +8,10 @@ import (
 	"log"
 	"net/http"
 	_ "net/http/pprof"
-	"net/url"
 	"path/filepath"
 	"strconv"
 
-	gscene "github.com/peterstace/grayt/scene"
+	"github.com/peterstace/grayt/scene/library"
 	"github.com/peterstace/grayt/trace"
 	uuid "github.com/satori/go.uuid" // TODO: don't use uuids...
 )
@@ -57,20 +56,11 @@ func (s *Server) Load(storageDir string) error {
 }
 
 func (s *Server) lookupScene(name string) (trace.Scene, error) {
-	// TODO: allow address to be configured
-	resp, err := http.Get("http://scenelib:80/scene?name=" + url.QueryEscape(name))
-	if err != nil {
-		return trace.Scene{}, fmt.Errorf("fetching scene: %v", err)
+	fn, ok := library.Lookup(name)
+	if !ok {
+		return trace.Scene{}, fmt.Errorf("unknown scene: %v", name)
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return trace.Scene{}, fmt.Errorf("fetching scene: %s", resp.Status)
-	}
-	var scn gscene.Scene
-	if err := json.NewDecoder(resp.Body).Decode(&scn); err != nil {
-		return trace.Scene{}, fmt.Errorf("decoding scene: %v", err)
-	}
-	return trace.BuildScene(scn), nil
+	return trace.BuildScene(fn()), nil
 }
 
 func (s *Server) Save(storageDir string) error {

@@ -15,21 +15,21 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/peterstace/grayt/scene/library"
 )
 
-func NewServer(scenelibAddr, workerAddr, assetsDir string) *Server {
+func NewServer(workerAddr, assetsDir string) *Server {
 	return &Server{
-		scenelibAddr: scenelibAddr,
-		workerAddr:   workerAddr,
-		assets:       http.FileServer(http.Dir(assetsDir)),
-		renders:      map[string]*render{},
+		workerAddr: workerAddr,
+		assets:     http.FileServer(http.Dir(assetsDir)),
+		renders:    map[string]*render{},
 	}
 }
 
 type Server struct {
-	scenelibAddr string
-	workerAddr   string
-	assets       http.Handler
+	workerAddr string
+	assets     http.Handler
 
 	mu      sync.Mutex
 	renders map[string]*render
@@ -92,22 +92,17 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 func (s *Server) handleGetScenes(w http.ResponseWriter, req *http.Request) {
-	resp, err := http.Get("http://" + s.scenelibAddr + "/scenes")
-	if err != nil {
-		http.Error(w,
-			"fetching scene list: "+err.Error(),
-			http.StatusInternalServerError,
-		)
+	type scn struct {
+		Code string `json:"code"`
+	}
+	var scns []scn
+	for _, name := range library.Listing() {
+		scns = append(scns, scn{name})
+	}
+	if err := json.NewEncoder(w).Encode(scns); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		w.WriteHeader(resp.StatusCode)
-		fmt.Fprintf(w, "fetching scene list: ")
-		io.Copy(w, resp.Body)
-		return
-	}
-	io.Copy(w, resp.Body)
 }
 
 func (s *Server) handleGetRenders(w http.ResponseWriter, req *http.Request) {

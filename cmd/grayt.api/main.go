@@ -10,21 +10,15 @@ import (
 )
 
 const (
-	listenAddrEnv   = "LISTEN_ADDR"
-	scenelibAddrEnv = "SCENELIB_ADDR"
-	workerAddrEnv   = "WORKER_ADDR"
-	assetsDirEnv    = "ASSETS_DIR"
+	listenAddrEnv = "LISTEN_ADDR"
+	workerAddrEnv = "WORKER_ADDR"
+	assetsDirEnv  = "ASSETS_DIR"
 )
 
 func main() {
 	listenAddr := os.Getenv(listenAddrEnv)
 	if listenAddr == "" {
 		log.Fatalf("%s not set", listenAddrEnv)
-	}
-
-	scenelibAddr := os.Getenv(scenelibAddrEnv)
-	if scenelibAddr == "" {
-		log.Fatalf("%s not set", scenelibAddrEnv)
 	}
 
 	workerAddr := os.Getenv(workerAddrEnv)
@@ -37,7 +31,7 @@ func main() {
 		log.Fatalf("%s not set", assetsDirEnv)
 	}
 
-	s := api.NewServer(scenelibAddr, workerAddr, assetsDir)
+	s := api.NewServer(workerAddr, assetsDir)
 	log.Printf("serving on %v", listenAddr)
 	log.Fatal(http.ListenAndServe(listenAddr, mware.LogRequests(s)))
 }

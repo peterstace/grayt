@@ -2,32 +2,26 @@ package worker
 
 import (
 	"encoding/binary"
-	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"math/rand"
 	"net/http"
-	"net/url"
 	"strconv"
 	"sync"
 	"time"
 
 	"github.com/peterstace/grayt/colour"
-	"github.com/peterstace/grayt/scene"
+	"github.com/peterstace/grayt/scene/library"
 	"github.com/peterstace/grayt/trace"
 )
 
-func NewServer(scenelibAddr string) *Server {
+func NewServer() *Server {
 	return &Server{
-		scenelibAddr: scenelibAddr,
-		scenes:       map[string]tracer{},
+		scenes: map[string]tracer{},
 	}
 }
 
 type Server struct {
-	scenelibAddr string
-
 	mu      sync.Mutex
 	serving int
 
@@ -106,33 +100,12 @@ func (s *Server) serveLayer(
 
 	tr, ok := s.scenes[sceneName]
 	if !ok {
-		log.Printf("scene %q not cached, fetching from scenelib", sceneName)
-		resp, err := http.Get(
-			s.scenelibAddr + "/scene?name=" + url.PathEscape(sceneName),
-		)
-		if err != nil {
-			http.Error(w,
-				"fetching scene: "+err.Error(),
-				http.StatusInternalServerError,
-			)
+		sceneFn, ok := library.Lookup(sceneName)
+		if !ok {
+			http.Error(w, fmt.Sprintf("unknown scene: %v", sceneName), http.StatusBadRequest)
 			return
 		}
-		defer resp.Body.Close()
-		if resp.StatusCode != http.StatusOK {
-			w.WriteHeader(resp.StatusCode)
-			fmt.Fprintf(w, "fetching scene: ")
-			io.Copy(w, resp.Body)
-			return
-		}
-		var sceneProto scene.Scene
-		if err := json.NewDecoder(resp.Body).Decode(&sceneProto); err != nil {
-			http.Error(w,
-				fmt.Sprintf("decoding scene: %v", err),
-				http.StatusInternalServerError,
-			)
-			return
-		}
-		scene := trace.BuildScene(sceneProto)
+		scene := trace.BuildScene(sceneFn())
 		accel := trace.NewGrid(4, scene.Objects)
 		tr = tracer{scene.Camera, accel}
 		s.scenes[sceneName] = tr
