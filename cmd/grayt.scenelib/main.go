@@ -23,11 +23,8 @@ func main() {
 	s := scenelib.NewServer()
 	s.Register("cornellbox_classic", cornellbox.Classic)
 	s.Register("cornellbox_splitbox", cornellbox.Splitbox)
-	/*
-		s.Register("cornellbox_reflections", reflections.CameraFn(), reflections.ObjectsFn)
-		s.Register("spheretree", spheretree.CameraFn(), spheretree.ObjectsFn)
-		s.Register("splitbox", splitbox.CameraFn(), splitbox.ObjectsFn)
-	*/
+	s.Register("cornellbox_mirror", cornellbox.Mirror)
+	// s.Register("spheretree", spheretree.CameraFn(), spheretree.ObjectsFn)
 
 	log.Printf("serving on %v", listenAddr)
 	log.Fatal(http.ListenAndServe(listenAddr, mware.LogRequests(s)))

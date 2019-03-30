@@ -3,9 +3,24 @@ package dsl
 import (
 	"math"
 
+	"github.com/peterstace/grayt/colour"
 	"github.com/peterstace/grayt/protocol"
 	"github.com/peterstace/grayt/xmath"
 )
+
+var (
+	White = colour.Colour{1, 1, 1}
+	Red   = colour.Colour{1, 0, 0}
+	Green = colour.Colour{0, 1, 0}
+	Blue  = colour.Colour{0, 0, 1}
+)
+
+func Hex(col int32) colour.Colour {
+	r := float64((col&0xff0000)>>0x10) / 0xff
+	g := float64((col&0x00ff00)>>0x08) / 0xff
+	b := float64((col&0x0000ff)>>0x00) / 0xff
+	return colour.Colour{r, g, b}
+}
 
 func DefaultCamera() protocol.Camera {
 	return protocol.Camera{
@@ -80,4 +95,8 @@ func AlignedSquare(a, b xmath.Vector) protocol.Surface {
 		panic(false)
 
 	}
+}
+
+func Sphere(center xmath.Vector, radius float64) protocol.Surface {
+	return protocol.Surface{Spheres: []protocol.Sphere{{center, radius}}}
 }
