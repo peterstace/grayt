@@ -115,6 +115,7 @@ func (s *Server) handleGetScenesCollection(w http.ResponseWriter, r *http.Reques
 		{Code: "cornellbox_classic"},
 		{Code: "cornellbox_splitbox"},
 		{Code: "cornellbox_mirror"},
+		{Code: "cornellbox_spheretree"},
 	}
 	if err := json.NewEncoder(w).Encode(responses); err != nil {
 		internalError(w, err)

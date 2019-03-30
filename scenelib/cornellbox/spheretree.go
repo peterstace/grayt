@@ -1,34 +1,45 @@
-package spheretree
-
-/*
+package cornellbox
 
 import (
 	"math/rand"
 
-	. "github.com/peterstace/grayt/examples/cornellbox"
-	. "github.com/peterstace/grayt/grayt"
+	"github.com/peterstace/grayt/protocol"
+	. "github.com/peterstace/grayt/scenelib/dsl"
 	"github.com/peterstace/grayt/xmath"
 )
 
-func CameraFn() CameraBlueprint {
-	c := Cam(1.3)
-	return c.With(
-		LookingAt(xmath.Vect(0.5, 0.25, -0.5)),
-		ScaleFieldOfView(0.95),
-		AspectRatioWidthAndHeight(2, 1),
-	)
-}
-
-func ObjectsFn() ObjectList {
-	return Group(
-		Tree(),
-		Floor,
-		Ceiling,
-		BackWall,
-		LeftWall.With(ColourRGB(Red)),
-		RightWall.With(ColourRGB(Green)),
-		CeilingLight().With(Emittance(5.0)),
-	)
+func SphereTree() protocol.Scene {
+	cam := CornellCam(1.3)
+	cam.LookingAt = Vect(0.5, 0.25, -0.5)
+	cam.FieldOfViewInRadians *= 0.95
+	cam.AspectWide = 2
+	cam.AspectHigh = 1
+	return protocol.Scene{
+		Camera: cam,
+		Objects: []protocol.Object{
+			protocol.Object{
+				Material: protocol.Material{Colour: White, Emittance: 5},
+				Surface:  CornellCeilingLight(),
+			},
+			protocol.Object{
+				Material: protocol.Material{Colour: White},
+				Surface: MergeSurfaces(
+					CornellFloor,
+					CornellBackWall,
+					CornellCeiling,
+					tree(),
+				),
+			},
+			protocol.Object{
+				Material: protocol.Material{Colour: Red},
+				Surface:  CornellLeftWall,
+			},
+			protocol.Object{
+				Material: protocol.Material{Colour: Green},
+				Surface:  CornellRightWall,
+			},
+		},
+	}
 }
 
 type sphere struct {
@@ -36,18 +47,18 @@ type sphere struct {
 	r float64
 }
 
-func Tree() ObjectList {
+func tree() protocol.Surface {
 
 	root := sphere{xmath.Vect(0.5, 0, -0.5), 0.2}
 	spheres := new([]sphere)
 	*spheres = append(*spheres, root)
 	recurse(spheres, root, 9)
 
-	var objList ObjectList
+	var surf protocol.Surface
 	for _, s := range *spheres {
-		objList = Group(objList, Sphere(s.c, s.r))
+		surf.Spheres = append(surf.Spheres, protocol.Sphere{s.c, s.r})
 	}
-	return objList
+	return surf
 }
 
 const radiusScaleDown = 0.7
@@ -121,4 +132,3 @@ func isValidChild(child, parent sphere, spheres *[]sphere) bool {
 func spheresIntersect(s1, s2 sphere) bool {
 	return s1.c.Sub(s2.c).Length() < s1.r+s2.r
 }
-*/

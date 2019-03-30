@@ -15,6 +15,10 @@ var (
 	Blue  = colour.Colour{0, 0, 1}
 )
 
+func Vect(x, y, z float64) xmath.Vector {
+	return xmath.Vector{x, y, z}
+}
+
 func Hex(col int32) colour.Colour {
 	r := float64((col&0xff0000)>>0x10) / 0xff
 	g := float64((col&0x00ff00)>>0x08) / 0xff

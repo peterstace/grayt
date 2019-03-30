@@ -24,7 +24,7 @@ func main() {
 	s.Register("cornellbox_classic", cornellbox.Classic)
 	s.Register("cornellbox_splitbox", cornellbox.Splitbox)
 	s.Register("cornellbox_mirror", cornellbox.Mirror)
-	// s.Register("spheretree", spheretree.CameraFn(), spheretree.ObjectsFn)
+	s.Register("cornellbox_spheretree", cornellbox.SphereTree)
 
 	log.Printf("serving on %v", listenAddr)
 	log.Fatal(http.ListenAndServe(listenAddr, mware.LogRequests(s)))

@@ -3,7 +3,6 @@ package cornellbox
 import (
 	"github.com/peterstace/grayt/protocol"
 	. "github.com/peterstace/grayt/scenelib/dsl"
-	. "github.com/peterstace/grayt/xmath"
 )
 
 func Mirror() protocol.Scene {
