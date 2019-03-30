@@ -111,7 +111,10 @@ func (s *Server) handleGetScenesCollection(w http.ResponseWriter, r *http.Reques
 		Code string `json:"code"`
 	}
 	// TODO: should get the full scene list from the grayt.scenelib server.
-	responses := []response{{Code: "cornellbox_classic"}}
+	responses := []response{
+		{Code: "cornellbox_classic"},
+		{Code: "cornellbox_splitbox"},
+	}
 	if err := json.NewEncoder(w).Encode(responses); err != nil {
 		internalError(w, err)
 	}

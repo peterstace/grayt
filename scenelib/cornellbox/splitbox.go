@@ -1,39 +1,49 @@
-package splitbox
-
-/*
+package cornellbox
 
 import (
 	"math/rand"
 
-	. "github.com/peterstace/grayt/examples/cornellbox"
-	. "github.com/peterstace/grayt/grayt"
+	"github.com/peterstace/grayt/colour"
+	"github.com/peterstace/grayt/protocol"
+	"github.com/peterstace/grayt/scenelib/dsl"
 	"github.com/peterstace/grayt/xmath"
 )
 
-func CameraFn() CameraBlueprint {
-	c := Cam(1.3)
-	return c.With(
-		LookingAt(xmath.Vect(0.5, initialBoxRadius.Y+0.03, -0.5)),
-		ScaleFieldOfView(0.5),
-		AspectRatioWidthAndHeight(16, 10),
-	)
+func Splitbox() protocol.Scene {
+	cam := CornellCam(1.3)
+	cam.LookingAt = xmath.Vect(0.5, initialBoxRadius.Y+0.03, -0.5)
+	cam.FieldOfViewInRadians *= 0.5
+	cam.AspectWide = 16
+	cam.AspectHigh = 10
+
+	redObjs := protocol.Object{
+		Material: protocol.Material{Colour: colour.Colour{1, 0, 0}},
+		Surface:  CornellLeftWall,
+	}
+	greenObjs := protocol.Object{
+		Material: protocol.Material{Colour: colour.Colour{0, 1, 0}},
+		Surface:  CornellRightWall,
+	}
+	lights := protocol.Object{
+		Material: protocol.Material{Colour: colour.Colour{1, 1, 1}, Emittance: 5},
+		Surface:  CornellCeilingLight(),
+	}
+	whiteObjs := protocol.Object{
+		Material: protocol.Material{Colour: colour.Colour{1, 1, 1}},
+		Surface: dsl.MergeSurfaces(
+			CornellFloor,
+			CornellCeiling,
+			CornellBackWall,
+			splitbox(),
+		),
+	}
+	return protocol.Scene{
+		Camera:  cam,
+		Objects: []protocol.Object{redObjs, greenObjs, lights, whiteObjs},
+	}
 }
 
-func ObjectsFn() ObjectList {
-	return Group(
-		Floor,
-		Ceiling,
-		BackWall,
-		LeftWall.With(ColourRGB(Red)),
-		RightWall.With(ColourRGB(Green)),
-		CeilingLight().With(Emittance(1)),
-		splitBox(),
-	)
-}
-
-const (
-	numMovements = 100
-)
+const numMovements = 100
 
 var initialBoxRadius = xmath.Vect(0.22, 0.1, 0.1)
 
@@ -41,8 +51,7 @@ type box struct {
 	min, max xmath.Vector
 }
 
-func splitBox() ObjectList {
-
+func splitbox() protocol.Surface {
 	v1 := xmath.Vect(0.5-initialBoxRadius.X, 0, -0.5+initialBoxRadius.Z)
 	v2 := xmath.Vect(0.5+initialBoxRadius.X, 2*initialBoxRadius.Y, -0.5-initialBoxRadius.Z)
 	v1, v2 = v1.Min(v2), v1.Max(v2)
@@ -75,11 +84,14 @@ func splitBox() ObjectList {
 		boxes = newBoxes
 	}
 
-	var objList ObjectList
-	for _, box := range boxes {
-		objList = Group(objList, AlignedBox(box.min, box.max))
+	var surf protocol.Surface
+	for _, b := range boxes {
+		surf.AlignedBoxes = append(surf.AlignedBoxes, protocol.AlignedBox{
+			CornerA: b.min,
+			CornerB: b.max,
+		})
 	}
-	return objList
+	return surf
 }
 
 func splitLeftRight(x float64, b box) (box, box) {
@@ -182,4 +194,3 @@ var movements = [...]func(float64, float64, box) []box{
 	shearFwdBack,
 	shearLeftRight,
 }
-*/

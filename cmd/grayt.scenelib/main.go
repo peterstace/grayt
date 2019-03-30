@@ -22,6 +22,7 @@ func main() {
 
 	s := scenelib.NewServer()
 	s.Register("cornellbox_classic", cornellbox.Classic)
+	s.Register("cornellbox_splitbox", cornellbox.Splitbox)
 	/*
 		s.Register("cornellbox_reflections", reflections.CameraFn(), reflections.ObjectsFn)
 		s.Register("spheretree", spheretree.CameraFn(), spheretree.ObjectsFn)
