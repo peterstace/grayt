@@ -4,7 +4,7 @@ import (
 	"math"
 
 	"github.com/peterstace/grayt/colour"
-	"github.com/peterstace/grayt/protocol"
+	"github.com/peterstace/grayt/scene"
 	"github.com/peterstace/grayt/xmath"
 )
 
@@ -26,8 +26,8 @@ func Hex(col int32) colour.Colour {
 	return colour.Colour{r, g, b}
 }
 
-func DefaultCamera() protocol.Camera {
-	return protocol.Camera{
+func DefaultCamera() scene.Camera {
+	return scene.Camera{
 		Location:             xmath.Vect(0, 10, 10),
 		LookingAt:            xmath.Vect(0, 0, 0),
 		UpDirection:          xmath.Vect(0, 1, 0),
@@ -39,10 +39,10 @@ func DefaultCamera() protocol.Camera {
 	}
 }
 
-type ObjectList []protocol.Object
+type ObjectList []scene.Object
 
-func MergeSurfaces(surfs ...protocol.Surface) protocol.Surface {
-	var all protocol.Surface
+func MergeSurfaces(surfs ...scene.Surface) scene.Surface {
+	var all scene.Surface
 	for _, s := range surfs {
 		all.Triangles = append(all.Triangles, s.Triangles...)
 		all.AlignedBoxes = append(all.AlignedBoxes, s.AlignedBoxes...)
@@ -57,7 +57,7 @@ func MergeSurfaces(surfs ...protocol.Surface) protocol.Surface {
 }
 
 func MergeObjectLists(lists ...ObjectList) ObjectList {
-	var objs []protocol.Object
+	var objs []scene.Object
 	for i := range lists {
 		for j := range lists[i] {
 			objs = append(objs, lists[i][j])
@@ -66,16 +66,16 @@ func MergeObjectLists(lists ...ObjectList) ObjectList {
 	return objs
 }
 
-func Square(a, b, c, d xmath.Vector) protocol.Surface {
-	return protocol.Surface{
-		Triangles: []protocol.Triangle{
+func Square(a, b, c, d xmath.Vector) scene.Surface {
+	return scene.Surface{
+		Triangles: []scene.Triangle{
 			{a, b, c},
 			{c, d, a},
 		},
 	}
 }
 
-func AlignedSquare(a, b xmath.Vector) protocol.Surface {
+func AlignedSquare(a, b xmath.Vector) scene.Surface {
 	same := func(a, b float64) int {
 		if a == b {
 			return 1
@@ -90,17 +90,17 @@ func AlignedSquare(a, b xmath.Vector) protocol.Surface {
 
 	switch {
 	case a.X == b.X:
-		return protocol.Surface{AlignXSquares: []protocol.AlignXSquare{{a.X, a.Y, b.Y, a.Z, b.Z}}}
+		return scene.Surface{AlignXSquares: []scene.AlignXSquare{{a.X, a.Y, b.Y, a.Z, b.Z}}}
 	case a.Y == b.Y:
-		return protocol.Surface{AlignYSquares: []protocol.AlignYSquare{{a.X, b.X, a.Y, a.Z, b.Z}}}
+		return scene.Surface{AlignYSquares: []scene.AlignYSquare{{a.X, b.X, a.Y, a.Z, b.Z}}}
 	case a.Z == b.Z:
-		return protocol.Surface{AlignZSquares: []protocol.AlignZSquare{{a.X, b.X, a.Y, b.Y, a.Z}}}
+		return scene.Surface{AlignZSquares: []scene.AlignZSquare{{a.X, b.X, a.Y, b.Y, a.Z}}}
 	default:
 		panic(false)
 
 	}
 }
 
-func Sphere(center xmath.Vector, radius float64) protocol.Surface {
-	return protocol.Surface{Spheres: []protocol.Sphere{{center, radius}}}
+func Sphere(center xmath.Vector, radius float64) scene.Surface {
+	return scene.Surface{Spheres: []scene.Sphere{{center, radius}}}
 }

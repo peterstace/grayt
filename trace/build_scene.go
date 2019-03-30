@@ -1,13 +1,13 @@
 package trace
 
-import "github.com/peterstace/grayt/protocol"
+import "github.com/peterstace/grayt/scene"
 
 type Scene struct {
 	Camera  Camera   `json:"camera"`
 	Objects []Object `json:"objects"`
 }
 
-func BuildScene(proto protocol.Scene) Scene {
+func BuildScene(proto scene.Scene) Scene {
 	scene := Scene{
 		Camera: NewCamera(proto.Camera),
 	}

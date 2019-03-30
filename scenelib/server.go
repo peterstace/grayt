@@ -5,26 +5,26 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/peterstace/grayt/protocol"
+	"github.com/peterstace/grayt/scene"
 )
 
 func NewServer() *Server {
 	return &Server{
-		sceneCache: make(map[string]protocol.Scene),
-		registry:   make(map[string]func() protocol.Scene),
+		sceneCache: make(map[string]scene.Scene),
+		registry:   make(map[string]func() scene.Scene),
 	}
 }
 
 type Server struct {
 	mu         sync.Mutex
-	sceneCache map[string]protocol.Scene
+	sceneCache map[string]scene.Scene
 
-	registry map[string]func() protocol.Scene
+	registry map[string]func() scene.Scene
 }
 
 func (s *Server) Register(
 	name string,
-	sceneFn func() protocol.Scene,
+	sceneFn func() scene.Scene,
 ) {
 	s.registry[name] = sceneFn
 }

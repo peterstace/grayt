@@ -3,26 +3,26 @@ package cornellbox
 import (
 	"math/rand"
 
-	"github.com/peterstace/grayt/protocol"
+	"github.com/peterstace/grayt/scene"
 	. "github.com/peterstace/grayt/scenelib/dsl"
 	"github.com/peterstace/grayt/xmath"
 )
 
-func SphereTree() protocol.Scene {
+func SphereTree() scene.Scene {
 	cam := CornellCam(1.3)
 	cam.LookingAt = Vect(0.5, 0.25, -0.5)
 	cam.FieldOfViewInRadians *= 0.95
 	cam.AspectWide = 2
 	cam.AspectHigh = 1
-	return protocol.Scene{
+	return scene.Scene{
 		Camera: cam,
-		Objects: []protocol.Object{
-			protocol.Object{
-				Material: protocol.Material{Colour: White, Emittance: 5},
+		Objects: []scene.Object{
+			scene.Object{
+				Material: scene.Material{Colour: White, Emittance: 5},
 				Surface:  CornellCeilingLight(),
 			},
-			protocol.Object{
-				Material: protocol.Material{Colour: White},
+			scene.Object{
+				Material: scene.Material{Colour: White},
 				Surface: MergeSurfaces(
 					CornellFloor,
 					CornellBackWall,
@@ -30,12 +30,12 @@ func SphereTree() protocol.Scene {
 					tree(),
 				),
 			},
-			protocol.Object{
-				Material: protocol.Material{Colour: Red},
+			scene.Object{
+				Material: scene.Material{Colour: Red},
 				Surface:  CornellLeftWall,
 			},
-			protocol.Object{
-				Material: protocol.Material{Colour: Green},
+			scene.Object{
+				Material: scene.Material{Colour: Green},
 				Surface:  CornellRightWall,
 			},
 		},
@@ -47,16 +47,16 @@ type sphere struct {
 	r float64
 }
 
-func tree() protocol.Surface {
+func tree() scene.Surface {
 
 	root := sphere{xmath.Vect(0.5, 0, -0.5), 0.2}
 	spheres := new([]sphere)
 	*spheres = append(*spheres, root)
 	recurse(spheres, root, 9)
 
-	var surf protocol.Surface
+	var surf scene.Surface
 	for _, s := range *spheres {
-		surf.Spheres = append(surf.Spheres, protocol.Sphere{s.c, s.r})
+		surf.Spheres = append(surf.Spheres, scene.Sphere{s.c, s.r})
 	}
 	return surf
 }

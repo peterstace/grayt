@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/peterstace/grayt/colour"
-	"github.com/peterstace/grayt/protocol"
+	"github.com/peterstace/grayt/scene"
 	"github.com/peterstace/grayt/trace"
 )
 
@@ -124,7 +124,7 @@ func (s *Server) serveLayer(
 			io.Copy(w, resp.Body)
 			return
 		}
-		var sceneProto protocol.Scene
+		var sceneProto scene.Scene
 		if err := json.NewDecoder(resp.Body).Decode(&sceneProto); err != nil {
 			http.Error(w,
 				fmt.Sprintf("decoding scene: %v", err),

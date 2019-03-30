@@ -3,12 +3,12 @@ package cornellbox
 import (
 	"math"
 
-	"github.com/peterstace/grayt/protocol"
+	"github.com/peterstace/grayt/scene"
 	"github.com/peterstace/grayt/scenelib/dsl"
 	"github.com/peterstace/grayt/xmath"
 )
 
-func CornellCam(d float64) protocol.Camera {
+func CornellCam(d float64) scene.Camera {
 	c := dsl.DefaultCamera()
 	c.Location = xmath.Vect(0.5, 0.5, d)
 	c.LookingAt = xmath.Vect(0.5, 0.5, -0.5)
@@ -24,17 +24,17 @@ var (
 	CornellRightWall = dsl.AlignedSquare(xmath.Vect(1, 0, 0), xmath.Vect(1, 1, -1))
 )
 
-func CornellCeilingLight() protocol.Surface {
+func CornellCeilingLight() scene.Surface {
 	const size = 0.9
-	return protocol.Surface{
-		AlignedBoxes: []protocol.AlignedBox{{
+	return scene.Surface{
+		AlignedBoxes: []scene.AlignedBox{{
 			CornerA: xmath.Vect(size, 1.0, -size),
 			CornerB: xmath.Vect(1.0-size, 0.999, -1.0+size),
 		}},
 	}
 }
 
-func CornellShortBlock() protocol.Surface {
+func CornellShortBlock() scene.Surface {
 	var (
 		// Left/Right, Top/Bottom, Front/Back.
 		LBF = xmath.Vect(0.76, 0.00, -0.12)
@@ -55,7 +55,7 @@ func CornellShortBlock() protocol.Surface {
 	)
 }
 
-func CornellTallBlock() protocol.Surface {
+func CornellTallBlock() scene.Surface {
 	var (
 		// Left/Right, Top/Bottom, Front/Back.
 		LBF = xmath.Vect(0.52, 0.00, -0.54)

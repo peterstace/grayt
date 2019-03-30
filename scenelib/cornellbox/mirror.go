@@ -1,19 +1,19 @@
 package cornellbox
 
 import (
-	"github.com/peterstace/grayt/protocol"
+	"github.com/peterstace/grayt/scene"
 	. "github.com/peterstace/grayt/scenelib/dsl"
 )
 
-func Mirror() protocol.Scene {
+func Mirror() scene.Scene {
 	const (
 		d = 1.3
 		e = 0.05
 	)
-	return protocol.Scene{
+	return scene.Scene{
 		Camera: CornellCam(d),
-		Objects: []protocol.Object{
-			protocol.Object{
+		Objects: []scene.Object{
+			scene.Object{
 				Surface: MergeSurfaces(
 					// Ceiling
 					AlignedSquare(Vect(0, 1, d), Vect(1, 1, -1)),
@@ -30,18 +30,18 @@ func Mirror() protocol.Scene {
 					AlignedSquare(Vect(0, 0, 0), Vect(0, 1, d)),
 					AlignedSquare(Vect(1, 0, 0), Vect(1, 1, d)),
 				),
-				Material: protocol.Material{
+				Material: scene.Material{
 					Colour: White,
 				},
 			},
-			protocol.Object{
+			scene.Object{
 				Surface: CornellCeilingLight(),
-				Material: protocol.Material{
+				Material: scene.Material{
 					Colour:    White,
 					Emittance: 5.0,
 				},
 			},
-			protocol.Object{
+			scene.Object{
 				Surface: MergeSurfaces(
 					AlignedSquare(Vect(e, e, -1), Vect(1-e, 1-e, -1)),
 					AlignedSquare(Vect(0, e, -e), Vect(0, 1-e, -1+e)),
@@ -50,39 +50,39 @@ func Mirror() protocol.Scene {
 					Sphere(Vect(0.85, 0.1, -0.85), 0.1),
 					Sphere(Vect(0.33, 0.6+0.075, -0.64), 0.075),
 				),
-				Material: protocol.Material{
+				Material: scene.Material{
 					Mirror: true,
 				},
 			},
-			protocol.Object{
+			scene.Object{
 				Surface: MergeSurfaces(
 					AlignedSquare(Vect(0, 0, 0), Vect(0, 1, -e)),
 					AlignedSquare(Vect(0, 0, -1+e), Vect(0, 1, -1)),
 					AlignedSquare(Vect(0, 0, -e), Vect(0, e, -1+e)),
 					AlignedSquare(Vect(0, 1-e, -e), Vect(0, 1, -1+e)),
 				),
-				Material: protocol.Material{
+				Material: scene.Material{
 					Colour: Red,
 				},
 			},
-			protocol.Object{
+			scene.Object{
 				Surface: MergeSurfaces(
 					AlignedSquare(Vect(1, 0, 0), Vect(1, 1, -e)),
 					AlignedSquare(Vect(1, 0, -1+e), Vect(1, 1, -1)),
 					AlignedSquare(Vect(1, 0, -e), Vect(1, e, -1+e)),
 					AlignedSquare(Vect(1, 1-e, -e), Vect(1, 1, -1+e)),
 				),
-				Material: protocol.Material{
+				Material: scene.Material{
 					Colour: Green,
 				},
 			},
-			protocol.Object{
+			scene.Object{
 				Surface:  CornellShortBlock(),
-				Material: protocol.Material{Colour: Hex(0xd684ff)},
+				Material: scene.Material{Colour: Hex(0xd684ff)},
 			},
-			protocol.Object{
+			scene.Object{
 				Surface:  CornellTallBlock(),
-				Material: protocol.Material{Colour: Hex(0x3ae3ff)},
+				Material: scene.Material{Colour: Hex(0x3ae3ff)},
 			},
 		},
 	}

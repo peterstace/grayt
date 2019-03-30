@@ -4,32 +4,32 @@ import (
 	"math/rand"
 
 	"github.com/peterstace/grayt/colour"
-	"github.com/peterstace/grayt/protocol"
+	"github.com/peterstace/grayt/scene"
 	"github.com/peterstace/grayt/scenelib/dsl"
 	"github.com/peterstace/grayt/xmath"
 )
 
-func Splitbox() protocol.Scene {
+func Splitbox() scene.Scene {
 	cam := CornellCam(1.3)
 	cam.LookingAt = xmath.Vect(0.5, initialBoxRadius.Y+0.03, -0.5)
 	cam.FieldOfViewInRadians *= 0.5
 	cam.AspectWide = 16
 	cam.AspectHigh = 10
 
-	redObjs := protocol.Object{
-		Material: protocol.Material{Colour: colour.Colour{1, 0, 0}},
+	redObjs := scene.Object{
+		Material: scene.Material{Colour: colour.Colour{1, 0, 0}},
 		Surface:  CornellLeftWall,
 	}
-	greenObjs := protocol.Object{
-		Material: protocol.Material{Colour: colour.Colour{0, 1, 0}},
+	greenObjs := scene.Object{
+		Material: scene.Material{Colour: colour.Colour{0, 1, 0}},
 		Surface:  CornellRightWall,
 	}
-	lights := protocol.Object{
-		Material: protocol.Material{Colour: colour.Colour{1, 1, 1}, Emittance: 5},
+	lights := scene.Object{
+		Material: scene.Material{Colour: colour.Colour{1, 1, 1}, Emittance: 5},
 		Surface:  CornellCeilingLight(),
 	}
-	whiteObjs := protocol.Object{
-		Material: protocol.Material{Colour: colour.Colour{1, 1, 1}},
+	whiteObjs := scene.Object{
+		Material: scene.Material{Colour: colour.Colour{1, 1, 1}},
 		Surface: dsl.MergeSurfaces(
 			CornellFloor,
 			CornellCeiling,
@@ -37,9 +37,9 @@ func Splitbox() protocol.Scene {
 			splitbox(),
 		),
 	}
-	return protocol.Scene{
+	return scene.Scene{
 		Camera:  cam,
-		Objects: []protocol.Object{redObjs, greenObjs, lights, whiteObjs},
+		Objects: []scene.Object{redObjs, greenObjs, lights, whiteObjs},
 	}
 }
 
@@ -51,7 +51,7 @@ type box struct {
 	min, max xmath.Vector
 }
 
-func splitbox() protocol.Surface {
+func splitbox() scene.Surface {
 	v1 := xmath.Vect(0.5-initialBoxRadius.X, 0, -0.5+initialBoxRadius.Z)
 	v2 := xmath.Vect(0.5+initialBoxRadius.X, 2*initialBoxRadius.Y, -0.5-initialBoxRadius.Z)
 	v1, v2 = v1.Min(v2), v1.Max(v2)
@@ -84,9 +84,9 @@ func splitbox() protocol.Surface {
 		boxes = newBoxes
 	}
 
-	var surf protocol.Surface
+	var surf scene.Surface
 	for _, b := range boxes {
-		surf.AlignedBoxes = append(surf.AlignedBoxes, protocol.AlignedBox{
+		surf.AlignedBoxes = append(surf.AlignedBoxes, scene.AlignedBox{
 			CornerA: b.min,
 			CornerB: b.max,
 		})

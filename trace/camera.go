@@ -4,7 +4,7 @@ import (
 	"math"
 	"math/rand"
 
-	"github.com/peterstace/grayt/protocol"
+	"github.com/peterstace/grayt/scene"
 	"github.com/peterstace/grayt/xmath"
 )
 
@@ -18,7 +18,7 @@ type Camera struct {
 	}
 }
 
-func NewCamera(conf protocol.Camera) Camera {
+func NewCamera(conf scene.Camera) Camera {
 	cam := Camera{}
 
 	upDirection := conf.UpDirection.Unit()

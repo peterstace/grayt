@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/peterstace/grayt/protocol"
+	gscene "github.com/peterstace/grayt/scene"
 	"github.com/peterstace/grayt/trace"
 	uuid "github.com/satori/go.uuid" // TODO: don't use uuids...
 )
@@ -66,11 +66,11 @@ func (s *Server) lookupScene(name string) (trace.Scene, error) {
 	if resp.StatusCode != http.StatusOK {
 		return trace.Scene{}, fmt.Errorf("fetching scene: %s", resp.Status)
 	}
-	var scene protocol.Scene
-	if err := json.NewDecoder(resp.Body).Decode(&scene); err != nil {
+	var scn gscene.Scene
+	if err := json.NewDecoder(resp.Body).Decode(&scn); err != nil {
 		return trace.Scene{}, fmt.Errorf("decoding scene: %v", err)
 	}
-	return trace.BuildScene(scene), nil
+	return trace.BuildScene(scn), nil
 }
 
 func (s *Server) Save(storageDir string) error {

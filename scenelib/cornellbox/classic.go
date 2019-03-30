@@ -2,14 +2,14 @@ package cornellbox
 
 import (
 	"github.com/peterstace/grayt/colour"
-	"github.com/peterstace/grayt/protocol"
+	"github.com/peterstace/grayt/scene"
 	"github.com/peterstace/grayt/scenelib/dsl"
 )
 
-func Classic() protocol.Scene {
+func Classic() scene.Scene {
 	cam := CornellCam(1.3)
-	whiteObjs := protocol.Object{
-		Material: protocol.Material{Colour: colour.Colour{1, 1, 1}},
+	whiteObjs := scene.Object{
+		Material: scene.Material{Colour: colour.Colour{1, 1, 1}},
 		Surface: dsl.MergeSurfaces(
 			CornellShortBlock(),
 			CornellTallBlock(),
@@ -18,22 +18,22 @@ func Classic() protocol.Scene {
 			CornellBackWall,
 		),
 	}
-	redObjs := protocol.Object{
-		Material: protocol.Material{Colour: colour.Colour{1, 0, 0}},
+	redObjs := scene.Object{
+		Material: scene.Material{Colour: colour.Colour{1, 0, 0}},
 		Surface:  CornellLeftWall,
 	}
-	greenObjs := protocol.Object{
-		Material: protocol.Material{Colour: colour.Colour{0, 1, 0}},
+	greenObjs := scene.Object{
+		Material: scene.Material{Colour: colour.Colour{0, 1, 0}},
 		Surface:  CornellRightWall,
 	}
-	lights := protocol.Object{
-		Material: protocol.Material{Colour: colour.Colour{1, 1, 1}, Emittance: 5},
+	lights := scene.Object{
+		Material: scene.Material{Colour: colour.Colour{1, 1, 1}, Emittance: 5},
 		Surface:  CornellCeilingLight(),
 	}
 
-	return protocol.Scene{
+	return scene.Scene{
 		Camera: cam,
-		Objects: []protocol.Object{
+		Objects: []scene.Object{
 			whiteObjs,
 			redObjs,
 			greenObjs,
