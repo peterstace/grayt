@@ -4,7 +4,7 @@ import (
 	"math/rand"
 
 	"github.com/peterstace/grayt/scene"
-	. "github.com/peterstace/grayt/scenelib/dsl"
+	. "github.com/peterstace/grayt/scene/dsl"
 	"github.com/peterstace/grayt/xmath"
 )
 

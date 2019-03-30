@@ -3,7 +3,7 @@ package cornellbox
 import (
 	"github.com/peterstace/grayt/colour"
 	"github.com/peterstace/grayt/scene"
-	"github.com/peterstace/grayt/scenelib/dsl"
+	"github.com/peterstace/grayt/scene/dsl"
 )
 
 func Classic() scene.Scene {
