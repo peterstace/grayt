@@ -16,20 +16,19 @@ Go RAY Tracer
 
 ## Architecture
 
-Controller
+Package layout:
 
-- There is only one of these.
-- Serves the UI.
-- Responsible for coordinating workers.
-- Responsible for saving state.
+| package name     | purpose                                                                                           |
+| scene            | hold types that define the scene, e.g. Scene, Object, Material, Surface                           |
+| scene/dsl        | DSL to make build scenes easier, intended as a dot import                                         |
+| scene/library    | holds a registry for all of the scenes                                                            |
+| scene/cornellbox | holds cornellbox specific scene factories. Can have other packages similarly to hold other scenes |
+| api              | API/server code                                                                                   |
+| control          | orchestrates tracing, accepts commands from the API, handles persistence                          |
+| trace            | tracing logic, acceleration structures, geometry                                                  |
+| colour           | colour type                                                                                       |
+| xmath            | math types such as vect and ray                                                                   |
 
-Workers
-
-- Responsible for doing the actual tracing.
-
-SceneStore
-
-- Serves up scenes.
 
 ## TODO
 
