@@ -13,13 +13,20 @@ import (
 
 func New() *Controller {
 	return &Controller{
-		renders: make(map[string]Render),
+		instances: make(map[string]*instance),
 	}
 }
 
 type Controller struct {
-	mu      sync.Mutex
-	renders map[string]Render
+	mu        sync.Mutex
+	instances map[string]*instance
+}
+
+type instance struct {
+	sceneName        string
+	created          time.Time
+	requestedWorkers int
+	accum            *accumulator
 }
 
 type Render struct {
@@ -38,8 +45,21 @@ func (c *Controller) GetRenders() []Render {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	var renders []Render
-	for _, ren := range c.renders {
-		renders = append(renders, ren)
+	for id, inst := range c.instances {
+		renders = append(renders, Render{
+			ID:        id,
+			SceneName: inst.sceneName,
+			Created:   inst.created,
+			Dimensions: xmath.Dimensions{
+				Wide: inst.accum.wide,
+				High: inst.accum.high,
+			},
+			Passes:           0,
+			Completed:        0,
+			TraceRateHz:      0.0,
+			RequestedWorkers: inst.requestedWorkers,
+			ActualWorkers:    0,
+		})
 	}
 	return renders
 }
@@ -59,11 +79,10 @@ func (c *Controller) NewRender(sceneName string, dim xmath.Dimensions) (string, 
 	sum := crc64.Checksum(buf[:], crc64.MakeTable(crc64.ECMA))
 	id := fmt.Sprintf("%X", sum)
 
-	c.renders[id] = Render{
-		ID:         id,
-		SceneName:  sceneName,
-		Dimensions: dim,
-		Created:    time.Now(),
+	c.instances[id] = &instance{
+		sceneName: sceneName,
+		created:   time.Now(),
+		accum:     newAccumulator(dim.Wide, dim.High),
 	}
 	return id, nil
 }
@@ -71,11 +90,10 @@ func (c *Controller) NewRender(sceneName string, dim xmath.Dimensions) (string, 
 func (c *Controller) SetWorkers(renderID string, workers int) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	ren, ok := c.renders[renderID]
+	inst, ok := c.instances[renderID]
 	if !ok {
 		return fmt.Errorf("unknown render id: %v", renderID)
 	}
-	ren.RequestedWorkers = workers
-	c.renders[renderID] = ren
+	inst.requestedWorkers = workers
 	return nil
 }
