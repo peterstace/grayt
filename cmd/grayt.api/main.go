@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/peterstace/grayt/api"
+	"github.com/peterstace/grayt/cmd/grayt.api/api"
 	"github.com/peterstace/grayt/mware"
 )
 
