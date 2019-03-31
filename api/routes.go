@@ -4,16 +4,20 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/peterstace/grayt/control"
 )
 
 func NewServer(assetsDir string) *Server {
 	return &Server{
 		assets: http.FileServer(http.Dir(assetsDir)),
+		ctrl:   control.New(),
 	}
 }
 
 type Server struct {
 	assets http.Handler
+	ctrl   *control.Controller
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
@@ -54,7 +58,7 @@ func (s *Server) routeRenders(w http.ResponseWriter, req *http.Request) {
 	if strings.HasPrefix(req.URL.Path, "/renders/") {
 		rest := strings.TrimPrefix(req.URL.Path, "/renders/")
 		parts := strings.Split(rest, "/")
-		if len(parts) != 2 {
+		if len(parts) == 2 {
 			id := parts[0]
 			switch parts[1] {
 			case "workers":

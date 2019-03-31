@@ -1,6 +1,8 @@
 package library
 
 import (
+	"sort"
+
 	"github.com/peterstace/grayt/scene"
 	"github.com/peterstace/grayt/scene/cornellbox"
 )
@@ -26,5 +28,6 @@ func Listing() []string {
 	for name := range registry {
 		names = append(names, name)
 	}
+	sort.Strings(names)
 	return names
 }
