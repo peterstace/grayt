@@ -83,11 +83,7 @@ func (s *Server) routeImage(w http.ResponseWriter, req *http.Request, id string)
 	s.handleGetImage(w, id)
 }
 
-func methodAllowed(
-	w http.ResponseWriter,
-	req *http.Request,
-	allowed ...string,
-) bool {
+func methodAllowed(w http.ResponseWriter, req *http.Request, allowed ...string) bool {
 	for _, allow := range allowed {
 		if req.Method == allow {
 			return true
