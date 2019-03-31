@@ -11,7 +11,6 @@ import (
 
 const (
 	listenAddrEnv = "LISTEN_ADDR"
-	workerAddrEnv = "WORKER_ADDR"
 	assetsDirEnv  = "ASSETS_DIR"
 )
 
@@ -21,17 +20,12 @@ func main() {
 		log.Fatalf("%s not set", listenAddrEnv)
 	}
 
-	workerAddr := os.Getenv(workerAddrEnv)
-	if workerAddr == "" {
-		log.Fatalf("%s not set", workerAddrEnv)
-	}
-
 	assetsDir := os.Getenv(assetsDirEnv)
 	if assetsDir == "" {
 		log.Fatalf("%s not set", assetsDirEnv)
 	}
 
-	s := api.NewServer(workerAddr, assetsDir)
+	s := api.NewServer(assetsDir)
 	log.Printf("serving on %v", listenAddr)
 	log.Fatal(http.ListenAndServe(listenAddr, mware.LogRequests(s)))
 }

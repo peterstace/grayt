@@ -19,17 +19,15 @@ import (
 	"github.com/peterstace/grayt/scene/library"
 )
 
-func NewServer(workerAddr, assetsDir string) *Server {
+func NewServer(assetsDir string) *Server {
 	return &Server{
-		workerAddr: workerAddr,
-		assets:     http.FileServer(http.Dir(assetsDir)),
-		renders:    map[string]*render{},
+		assets:  http.FileServer(http.Dir(assetsDir)),
+		renders: map[string]*render{},
 	}
 }
 
 type Server struct {
-	workerAddr string
-	assets     http.Handler
+	assets http.Handler
 
 	mu      sync.Mutex
 	renders map[string]*render
@@ -165,14 +163,13 @@ func (s *Server) handlePostRenders(w http.ResponseWriter, req *http.Request) {
 	}
 
 	newRender := render{
-		scene:      form.Scene,
-		pxWide:     form.PxWide,
-		pxHigh:     form.PxHigh,
-		created:    time.Now(),
-		cnd:        sync.NewCond(new(sync.Mutex)),
-		acc:        newAccumulator(form.PxWide, form.PxHigh),
-		monitor:    rateMonitor{points: list.New()},
-		workerAddr: s.workerAddr,
+		scene:   form.Scene,
+		pxWide:  form.PxWide,
+		pxHigh:  form.PxHigh,
+		created: time.Now(),
+		cnd:     sync.NewCond(new(sync.Mutex)),
+		acc:     newAccumulator(form.PxWide, form.PxHigh),
+		monitor: rateMonitor{points: list.New()},
 	}
 
 	id := fmt.Sprintf("%X", rand.Uint64())

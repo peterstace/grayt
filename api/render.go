@@ -1,16 +1,17 @@
 package api
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
-	"net/http"
 	"sync"
 	"time"
 
 	"github.com/peterstace/grayt/colour"
+	"github.com/peterstace/grayt/scene/library"
+	"github.com/peterstace/grayt/trace"
 )
 
 type render struct {
@@ -52,28 +53,15 @@ func (r *render) work() {
 
 	const depth = 30
 
-	url := fmt.Sprintf(
-		"http://%s/trace?scene_name=%s&px_wide=%d&px_high=%d&depth=%d",
-		r.workerAddr, r.scene, r.pxWide, r.pxHigh, depth,
-	)
-	resp, err := http.Get(url)
-	if err != nil {
-		log.Printf("error requesting  work: %v", err)
-		return
+	sceneFn, ok := library.Lookup(r.scene)
+	if !ok {
+		panic(fmt.Sprintf("unknown: %v", r.scene))
 	}
-	defer resp.Body.Close()
+	scn := trace.BuildScene(sceneFn())
+	accel := trace.NewGrid(4, scn.Objects)
 
-	if resp.StatusCode == http.StatusTooManyRequests {
-		return
-	}
-	if resp.StatusCode != http.StatusOK {
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			body = []byte("couldn't ready body")
-		}
-		log.Printf("worker result with non-200 status: %s", string(body))
-		return
-	}
+	var buf bytes.Buffer
+	traceLayer(&buf, r.pxWide, r.pxHigh, depth, accel, scn.Camera)
 
 	// TODO: should be able to reuse the pixel grid to save on allocations
 	pixels := r.pxWide * r.pxHigh
@@ -81,11 +69,11 @@ func (r *render) work() {
 		r.pxWide, r.pxHigh,
 		make([]colour.Colour, pixels),
 	}
-	if err := binary.Read(resp.Body, binary.BigEndian, &unitOfWork.pixels); err != nil {
+	if err := binary.Read(&buf, binary.BigEndian, &unitOfWork.pixels); err != nil {
 		log.Printf("could not read from worker response body: %v", err)
 		return
 	}
-	if n, err := resp.Body.Read([]byte{0}); n != 0 || err != io.EOF {
+	if n, err := buf.Read([]byte{0}); n != 0 || err != io.EOF {
 		log.Printf("more bytes in response body than expected")
 		return
 	}
