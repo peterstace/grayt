@@ -11,10 +11,15 @@ import (
 func main() {
 	listenAddr := os.Getenv("LISTEN_ADDR")
 	if listenAddr == "" {
-		log.Fatalf("LISTEN_ADDR not set")
+		log.Fatal("LISTEN_ADDR not set")
 	}
 
-	s := api.NewServer()
+	assetsDir := os.Getenv("ASSETS_DIR")
+	if assetsDir == "" {
+		log.Fatal("ASSETS_DIR not set")
+	}
+
+	s := api.NewServer(assetsDir)
 	log.Printf("serving on %v", listenAddr)
 	log.Fatal(http.ListenAndServe(listenAddr, s))
 }
