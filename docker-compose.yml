@@ -1,5 +1,13 @@
 version: '3'
 services:
+  new:
+    build: .
+    ports:
+      - "8082:80"
+    environment:
+      LISTEN_ADDR: ":80"
+      ASSETS_DIR: "assets"
+    command: "grayt"
   api:
     build: .
     ports:
