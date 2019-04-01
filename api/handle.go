@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"image/png"
 	"io/ioutil"
 	"net/http"
 	"sort"
@@ -112,7 +113,15 @@ func (s *Server) handlePutWorkers(w http.ResponseWriter, req *http.Request, id s
 
 func (s *Server) handleGetImage(w http.ResponseWriter, id string) {
 	// TODO
-	w.Write([]byte("TODO image"))
+	img, err := s.ctrl.GetImage(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if err := png.Encode(w, img); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func displayFloat64(f float64) string {

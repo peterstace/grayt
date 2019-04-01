@@ -1,89 +1,80 @@
 package control
 
 import (
-	"encoding/binary"
 	"image"
-	"io/ioutil"
-	"os"
 	"sync"
 
 	"github.com/peterstace/grayt/colour"
+	"github.com/peterstace/grayt/xmath"
 )
 
-// TODO: this file needs a big review
-
-type pixelGrid struct {
-	wide   int
-	high   int
-	pixels []colour.Colour
-}
-
-func (g *pixelGrid) set(x, y int, c colour.Colour) {
-	i := y*g.wide + x
-	g.pixels[i] = c
-}
-
 type accumulator struct {
-	sync.Mutex
-	passes int64
-	pixelGrid
+	mu        sync.Mutex
+	passes    int
+	dim       xmath.Dimensions
+	aggregate []colour.Colour
+	landing   []colour.Colour
 }
 
-func newAccumulator(pxWide, pxHigh int) *accumulator {
+func newAccumulator(dim xmath.Dimensions) *accumulator {
 	acc := new(accumulator)
-	acc.wide = pxWide
-	acc.high = pxHigh
-	acc.pixels = make([]colour.Colour, pxWide*pxHigh)
+	acc.dim = dim
+	n := dim.Wide * dim.High
+	acc.aggregate = make([]colour.Colour, n)
+	acc.landing = make([]colour.Colour, n)
 	return acc
 }
 
-func (a *accumulator) getPasses() int64 {
-	a.Lock()
-	p := a.passes
-	a.Unlock()
-	return p
+func (a *accumulator) set(x, y int, c colour.Colour) {
+	idx := x + a.dim.Wide*y
+	a.landing[idx] = c
 }
 
-func (a *accumulator) merge(g *pixelGrid, depth int) {
-	a.Lock()
-	defer a.Unlock()
-
-	a.passes += int64(depth)
-	for i, c := range a.pixels {
-		a.pixels[i] = c.Add(g.pixels[i])
+func (a *accumulator) merge(depth int) {
+	a.mu.Lock()
+	a.passes += depth
+	for i, c := range a.landing {
+		a.aggregate[i] = a.aggregate[i].Add(c)
 	}
+	a.mu.Unlock()
+}
+
+func (a *accumulator) getPasses() int {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.passes
 }
 
 // toImage converts the accumulator into an image. Exposure controls how bright
 // the arithmetic mean brightness in the image is. A value of 1.0 results in a
 // mean brightness half way between black and white.
 func (a *accumulator) toImage(exposure float64) image.Image {
-	a.Lock()
-	defer a.Unlock()
-
+	a.mu.Lock()
 	const gamma = 2.2
 	mean := a.mean()
-	img := image.NewNRGBA(image.Rect(0, 0, a.wide, a.high))
-	for x := 0; x < a.wide; x++ {
-		for y := 0; y < a.high; y++ {
-			i := y*a.wide + x
-			img.Set(x, y, a.pixels[i].
+	img := image.NewNRGBA(image.Rect(0, 0, a.dim.Wide, a.dim.High))
+	for x := 0; x < a.dim.Wide; x++ {
+		for y := 0; y < a.dim.High; y++ {
+			i := y*a.dim.Wide + x
+			img.Set(x, y, a.aggregate[i].
 				Scale(0.5*exposure/mean).
 				Pow(1.0/gamma).
 				ToNRGBA())
 		}
 	}
+	a.mu.Unlock()
 	return img
 }
 
 func (a *accumulator) mean() float64 {
 	var sum float64
-	for _, c := range a.pixels {
+	for _, c := range a.aggregate {
 		sum += c.R + c.G + c.B
 	}
-	return sum / float64(len(a.pixels)) / 3.0
+	return sum / float64(len(a.aggregate)) / 3.0
 }
 
+/*
 func loadAccumulator(fname string) (string, *accumulator, error) {
 	f, err := os.Open(fname)
 	if err != nil {
@@ -127,7 +118,9 @@ func loadAccumulator(fname string) (string, *accumulator, error) {
 		},
 	}, nil
 }
+*/
 
+/*
 func (a *accumulator) save(fname, sceneName string) error {
 	a.Lock()
 	defer a.Unlock()
@@ -168,3 +161,4 @@ func (a *accumulator) save(fname, sceneName string) error {
 	}
 	return os.Rename(f.Name(), fname)
 }
+*/
