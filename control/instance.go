@@ -26,6 +26,7 @@ type instance struct {
 	actualWorkers int64
 	completed     int64
 	traceRate     int64
+	workIndex     int64
 
 	workerWG sync.WaitGroup
 }
@@ -60,11 +61,14 @@ func (in *instance) dispatchWork() {
 		}
 
 		// TODO: loop over number of workers and launch a goroutine for each.
-		in.workerWG.Add(1)
-		atomic.StoreInt64(&in.actualWorkers, 1)
-		go in.work()
-
+		atomic.StoreInt64(&in.workIndex, 0)
+		atomic.StoreInt64(&in.actualWorkers, int64(in.requestedWorkers))
+		for i := 0; i < in.requestedWorkers; i++ {
+			in.workerWG.Add(1)
+			go in.work()
+		}
 		cnd.L.Unlock()
+
 		in.workerWG.Wait()
 		in.accum.merge(1)
 	}
@@ -83,22 +87,25 @@ func (in *instance) getPasses() int {
 }
 
 func (in *instance) work() {
-	// TODO: support multiple workers by using a shared index
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 	tr := trace.NewTracer(in.accel, rng)
 	wide := in.accum.dim.Wide
 	high := in.accum.dim.High
 	pxPitch := 2.0 / float64(wide)
-	for pxY := 0; pxY < high; pxY++ {
-		for pxX := 0; pxX < wide; pxX++ {
-			x := (float64(pxX-wide/2) + rng.Float64()) * pxPitch
-			y := (float64(pxY-wide/2) + rng.Float64()) * pxPitch * -1.0
-			cr := in.cam.MakeRay(x, y, rng)
-			cr.Dir = cr.Dir.Unit()
-			c := tr.TracePath(cr)
-			in.accum.set(pxX, pxY, c)
-			atomic.AddInt64(&in.completed, 1)
+	for {
+		idx := int(atomic.AddInt64(&in.workIndex, 1))
+		if idx >= wide*high {
+			break
 		}
+		pxY := idx / wide
+		pxX := idx % wide
+		x := (float64(pxX-wide/2) + rng.Float64()) * pxPitch
+		y := (float64(pxY-wide/2) + rng.Float64()) * pxPitch * -1.0
+		cr := in.cam.MakeRay(x, y, rng)
+		cr.Dir = cr.Dir.Unit()
+		c := tr.TracePath(cr)
+		in.accum.set(pxX, pxY, c)
+		atomic.AddInt64(&in.completed, 1)
 	}
 	in.workerWG.Done()
 }
