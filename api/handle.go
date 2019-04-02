@@ -6,7 +6,6 @@ import (
 	"image/png"
 	"io/ioutil"
 	"net/http"
-	"sort"
 	"strconv"
 
 	"github.com/peterstace/grayt/scene/library"
@@ -28,38 +27,7 @@ func (s *Server) handleGetScenes(w http.ResponseWriter) {
 }
 
 func (s *Server) handleGetRenders(w http.ResponseWriter) {
-	type resource struct {
-		Scene            string `json:"scene"`
-		PxWide           int    `json:"px_wide"`
-		PxHigh           int    `json:"px_high"`
-		Passes           int    `json:"passes"`
-		Completed        string `json:"completed"`
-		TraceRate        string `json:"trace_rate"`
-		ID               string `json:"uuid"`
-		RequestedWorkers int    `json:"requested_workers"`
-		ActualWorkers    int    `json:"actual_workers"`
-	}
-	resources := []resource{} // init as empty array because it marshals to json
-
-	renders := s.ctrl.GetRenders()
-	sort.Slice(renders, func(i, j int) bool {
-		return renders[i].Created.Before(renders[j].Created)
-	})
-	for _, r := range renders {
-		resources = append(resources, resource{
-			Scene:            r.SceneName,
-			PxWide:           r.Dimensions.Wide,
-			PxHigh:           r.Dimensions.High,
-			Passes:           r.Passes,
-			Completed:        displayFloat64(float64(r.Completed)),
-			TraceRate:        displayFloat64(r.TraceRateHz) + " Hz",
-			ID:               r.ID,
-			RequestedWorkers: r.RequestedWorkers,
-			ActualWorkers:    r.ActualWorkers,
-		})
-	}
-
-	if err := json.NewEncoder(w).Encode(resources); err != nil {
+	if err := json.NewEncoder(w).Encode(s.ctrl.getRenders()); err != nil {
 		http.Error(w, "encoding renders: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -80,7 +48,7 @@ func (s *Server) handlePostRenders(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	id, err := s.ctrl.NewRender(form.Scene, xmath.Dimensions{form.PxWide, form.PxHigh})
+	id, err := s.ctrl.newRender(form.Scene, xmath.Dimensions{form.PxWide, form.PxHigh})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -104,7 +72,7 @@ func (s *Server) handlePutWorkers(w http.ResponseWriter, req *http.Request, id s
 		return
 	}
 
-	if err := s.ctrl.SetWorkers(id, workers); err != nil {
+	if err := s.ctrl.setWorkers(id, workers); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -113,7 +81,7 @@ func (s *Server) handlePutWorkers(w http.ResponseWriter, req *http.Request, id s
 
 func (s *Server) handleGetImage(w http.ResponseWriter, id string) {
 	// TODO
-	img, err := s.ctrl.GetImage(id)
+	img, err := s.ctrl.getImage(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

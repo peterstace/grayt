@@ -4,20 +4,18 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-
-	"github.com/peterstace/grayt/control"
 )
 
 func NewServer(assetsDir string) *Server {
 	return &Server{
 		assets: http.FileServer(http.Dir(assetsDir)),
-		ctrl:   control.NewController(),
+		ctrl:   newController(),
 	}
 }
 
 type Server struct {
 	assets http.Handler
-	ctrl   *control.Controller
+	ctrl   *controller
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {

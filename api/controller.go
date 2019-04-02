@@ -1,4 +1,4 @@
-package control
+package api
 
 import (
 	"encoding/binary"
@@ -13,13 +13,13 @@ import (
 	"github.com/peterstace/grayt/xmath"
 )
 
-func NewController() *Controller {
-	return &Controller{
+func newController() *controller {
+	return &controller{
 		instances: make(map[string]*instance),
 	}
 }
 
-type Controller struct {
+type controller struct {
 	mu        sync.Mutex
 	instances map[string]*instance
 }
@@ -32,32 +32,32 @@ type instance struct {
 	requestedWorkers int
 }
 
-type Render struct {
-	ID               string
-	SceneName        string
-	Created          time.Time
-	Dimensions       xmath.Dimensions
-	Passes           int
-	Completed        int
-	TraceRateHz      float64
-	RequestedWorkers int
-	ActualWorkers    int
+type render struct {
+	Scene            string `json:"scene"`
+	PxWide           int    `json:"px_wide"`
+	PxHigh           int    `json:"px_high"`
+	Passes           int    `json:"passes"`
+	Completed        string `json:"completed"`
+	TraceRate        string `json:"trace_rate"`
+	ID               string `json:"uuid"`
+	RequestedWorkers int    `json:"requested_workers"`
+	ActualWorkers    int    `json:"actual_workers"`
 }
 
-func (c *Controller) GetRenders() []Render {
+func (c *controller) getRenders() []render {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	var renders []Render
+	renders := []render{}
 	for id, inst := range c.instances {
 		stats := inst.GetStats()
-		renders = append(renders, Render{
-			ID:               id,
-			SceneName:        inst.sceneName,
-			Created:          inst.created,
-			Dimensions:       inst.dim,
+		renders = append(renders, render{
+			Scene:            inst.sceneName,
+			PxWide:           inst.dim.Wide,
+			PxHigh:           inst.dim.High,
 			Passes:           stats.Passes,
-			Completed:        stats.Completed,
-			TraceRateHz:      float64(stats.TraceRateHz),
+			Completed:        displayFloat64(float64(stats.Completed)),
+			TraceRate:        displayFloat64(float64(stats.TraceRateHz)) + " Hz",
+			ID:               id,
 			RequestedWorkers: inst.requestedWorkers,
 			ActualWorkers:    stats.Workers,
 		})
@@ -65,7 +65,7 @@ func (c *Controller) GetRenders() []Render {
 	return renders
 }
 
-func (c *Controller) NewRender(sceneName string, dim xmath.Dimensions) (string, error) {
+func (c *controller) newRender(sceneName string, dim xmath.Dimensions) (string, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	sceneFn, ok := library.Lookup(sceneName)
@@ -92,7 +92,7 @@ func (c *Controller) NewRender(sceneName string, dim xmath.Dimensions) (string, 
 	return id, nil
 }
 
-func (c *Controller) SetWorkers(renderID string, workers int) error {
+func (c *controller) setWorkers(renderID string, workers int) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	inst, ok := c.instances[renderID]
@@ -104,7 +104,7 @@ func (c *Controller) SetWorkers(renderID string, workers int) error {
 	return nil
 }
 
-func (c *Controller) GetImage(renderID string) (image.Image, error) {
+func (c *controller) getImage(renderID string) (image.Image, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	inst, ok := c.instances[renderID]
