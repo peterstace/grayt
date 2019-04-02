@@ -15,13 +15,13 @@ import (
 
 func New() *Controller {
 	return &Controller{
-		instances: make(map[string]*instance),
+		instances: make(map[string]*Instance),
 	}
 }
 
 type Controller struct {
 	mu        sync.Mutex
-	instances map[string]*instance
+	instances map[string]*Instance
 }
 
 type Render struct {
@@ -41,16 +41,17 @@ func (c *Controller) GetRenders() []Render {
 	defer c.mu.Unlock()
 	var renders []Render
 	for id, inst := range c.instances {
+		stats := inst.GetStats()
 		renders = append(renders, Render{
 			ID:               id,
 			SceneName:        inst.sceneName,
 			Created:          inst.created,
 			Dimensions:       inst.accum.dim,
-			Passes:           inst.getPasses(),
-			Completed:        inst.getCompleted(),
-			TraceRateHz:      float64(inst.getTraceRateHz()),
+			Passes:           stats.Passes,
+			Completed:        stats.Completed,
+			TraceRateHz:      float64(stats.TraceRateHz),
 			RequestedWorkers: inst.requestedWorkers,
-			ActualWorkers:    inst.getWorkers(),
+			ActualWorkers:    stats.Workers,
 		})
 	}
 	return renders
@@ -72,7 +73,7 @@ func (c *Controller) NewRender(sceneName string, dim xmath.Dimensions) (string, 
 	sum := crc64.Checksum(buf[:], crc64.MakeTable(crc64.ECMA))
 	id := fmt.Sprintf("%X", sum)
 
-	inst := newInstance(sceneName, dim, accel, scn.Camera)
+	inst := NewInstance(sceneName, dim, accel, scn.Camera)
 	go inst.dispatchWork()
 	c.instances[id] = inst
 	return id, nil
@@ -85,7 +86,7 @@ func (c *Controller) SetWorkers(renderID string, workers int) error {
 	if !ok {
 		return fmt.Errorf("unknown render id: %v", renderID)
 	}
-	inst.setWorkers(workers)
+	inst.SetWorkers(workers)
 	return nil
 }
 

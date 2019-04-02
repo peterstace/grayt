@@ -12,7 +12,14 @@ import (
 
 // TODO: this functionality should live in the trace package (maybe called 'Tracer')
 
-type instance struct {
+type Stats struct {
+	Workers     int
+	Completed   int
+	Passes      int
+	TraceRateHz int
+}
+
+type Instance struct {
 	sceneName string
 	created   time.Time
 	accel     trace.AccelerationStructure
@@ -31,8 +38,8 @@ type instance struct {
 	workerWG sync.WaitGroup
 }
 
-func newInstance(sceneName string, dim xmath.Dimensions, accel trace.AccelerationStructure, cam trace.Camera) *instance {
-	inst := &instance{
+func NewInstance(sceneName string, dim xmath.Dimensions, accel trace.AccelerationStructure, cam trace.Camera) *Instance {
+	inst := &Instance{
 		sceneName:      sceneName,
 		created:        time.Now(),
 		accel:          accel,
@@ -44,14 +51,14 @@ func newInstance(sceneName string, dim xmath.Dimensions, accel trace.Acceleratio
 	return inst
 }
 
-func (in *instance) setWorkers(workers int) {
+func (in *Instance) SetWorkers(workers int) {
 	in.reqWorkersCond.L.Lock()
 	in.requestedWorkers = workers
 	in.reqWorkersCond.L.Unlock()
 	in.reqWorkersCond.Broadcast()
 }
 
-func (in *instance) dispatchWork() {
+func (in *Instance) dispatchWork() {
 	for {
 		cnd := in.reqWorkersCond
 		cnd.L.Lock()
@@ -60,7 +67,6 @@ func (in *instance) dispatchWork() {
 			cnd.Wait()
 		}
 
-		// TODO: loop over number of workers and launch a goroutine for each.
 		atomic.StoreInt64(&in.workIndex, 0)
 		atomic.StoreInt64(&in.actualWorkers, int64(in.requestedWorkers))
 		for i := 0; i < in.requestedWorkers; i++ {
@@ -74,19 +80,16 @@ func (in *instance) dispatchWork() {
 	}
 }
 
-func (in *instance) getWorkers() int {
-	return int(atomic.LoadInt64(&in.actualWorkers))
+func (in *Instance) GetStats() Stats {
+	return Stats{
+		Workers:     int(atomic.LoadInt64(&in.actualWorkers)),
+		Completed:   int(atomic.LoadInt64(&in.completed)),
+		Passes:      in.accum.getPasses(),
+		TraceRateHz: int(atomic.LoadInt64(&in.traceRate)),
+	}
 }
 
-func (in *instance) getCompleted() int {
-	return int(atomic.LoadInt64(&in.completed))
-}
-
-func (in *instance) getPasses() int {
-	return in.accum.getPasses()
-}
-
-func (in *instance) work() {
+func (in *Instance) work() {
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 	tr := trace.NewTracer(in.accel, rng)
 	wide := in.accum.dim.Wide
@@ -110,11 +113,7 @@ func (in *instance) work() {
 	in.workerWG.Done()
 }
 
-func (in *instance) getTraceRateHz() int {
-	return int(atomic.LoadInt64(&in.traceRate))
-}
-
-func (in *instance) monitorTraceRate() {
+func (in *Instance) monitorTraceRate() {
 	const samplePeriod = 5 * time.Second
 	var lastCompleted int64
 	ticker := time.NewTicker(samplePeriod)
