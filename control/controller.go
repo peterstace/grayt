@@ -13,15 +13,23 @@ import (
 	"github.com/peterstace/grayt/xmath"
 )
 
-func New() *Controller {
+func NewController() *Controller {
 	return &Controller{
-		instances: make(map[string]*Instance),
+		instances: make(map[string]*instance),
 	}
 }
 
 type Controller struct {
 	mu        sync.Mutex
-	instances map[string]*Instance
+	instances map[string]*instance
+}
+
+type instance struct {
+	*trace.Instance
+	sceneName        string
+	created          time.Time
+	dim              xmath.Dimensions
+	requestedWorkers int
 }
 
 type Render struct {
@@ -46,7 +54,7 @@ func (c *Controller) GetRenders() []Render {
 			ID:               id,
 			SceneName:        inst.sceneName,
 			Created:          inst.created,
-			Dimensions:       inst.accum.dim,
+			Dimensions:       inst.dim,
 			Passes:           stats.Passes,
 			Completed:        stats.Completed,
 			TraceRateHz:      float64(stats.TraceRateHz),
@@ -73,8 +81,13 @@ func (c *Controller) NewRender(sceneName string, dim xmath.Dimensions) (string, 
 	sum := crc64.Checksum(buf[:], crc64.MakeTable(crc64.ECMA))
 	id := fmt.Sprintf("%X", sum)
 
-	inst := NewInstance(sceneName, dim, accel, scn.Camera)
-	go inst.dispatchWork()
+	inst := &instance{
+		Instance:         trace.NewInstance(dim, accel, scn.Camera),
+		sceneName:        sceneName,
+		created:          time.Now(),
+		dim:              dim,
+		requestedWorkers: 0,
+	}
 	c.instances[id] = inst
 	return id, nil
 }
@@ -86,6 +99,7 @@ func (c *Controller) SetWorkers(renderID string, workers int) error {
 	if !ok {
 		return fmt.Errorf("unknown render id: %v", renderID)
 	}
+	inst.requestedWorkers = workers
 	inst.SetWorkers(workers)
 	return nil
 }
@@ -97,5 +111,5 @@ func (c *Controller) GetImage(renderID string) (image.Image, error) {
 	if !ok {
 		return nil, fmt.Errorf("unknown render id: %v", renderID)
 	}
-	return inst.accum.toImage(1.0), nil
+	return inst.Image(), nil
 }

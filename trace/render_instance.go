@@ -1,16 +1,14 @@
-package control
+package trace
 
 import (
+	"image"
 	"math/rand"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/peterstace/grayt/trace"
 	"github.com/peterstace/grayt/xmath"
 )
-
-// TODO: this functionality should live in the trace package (maybe called 'Tracer')
 
 type Stats struct {
 	Workers     int
@@ -20,10 +18,8 @@ type Stats struct {
 }
 
 type Instance struct {
-	sceneName string
-	created   time.Time
-	accel     trace.AccelerationStructure
-	cam       trace.Camera
+	accel AccelerationStructure
+	cam   Camera
 
 	accum *accumulator
 
@@ -38,15 +34,14 @@ type Instance struct {
 	workerWG sync.WaitGroup
 }
 
-func NewInstance(sceneName string, dim xmath.Dimensions, accel trace.AccelerationStructure, cam trace.Camera) *Instance {
+func NewInstance(dim xmath.Dimensions, accel AccelerationStructure, cam Camera) *Instance {
 	inst := &Instance{
-		sceneName:      sceneName,
-		created:        time.Now(),
 		accel:          accel,
 		cam:            cam,
 		accum:          newAccumulator(dim),
 		reqWorkersCond: sync.NewCond(new(sync.Mutex)),
 	}
+	go inst.dispatchWork()
 	go inst.monitorTraceRate()
 	return inst
 }
@@ -91,7 +86,7 @@ func (in *Instance) GetStats() Stats {
 
 func (in *Instance) work() {
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
-	tr := trace.NewTracer(in.accel, rng)
+	tr := NewTracer(in.accel, rng)
 	wide := in.accum.dim.Wide
 	high := in.accum.dim.High
 	pxPitch := 2.0 / float64(wide)
@@ -126,4 +121,8 @@ func (in *Instance) monitorTraceRate() {
 		}
 		lastCompleted = completed
 	}
+}
+
+func (in *Instance) Image() image.Image {
+	return in.accum.toImage(1.0)
 }

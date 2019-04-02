@@ -8,6 +8,8 @@ import (
 	"github.com/peterstace/grayt/xmath"
 )
 
+// TODO: no need for tracer to be exposed
+
 func NewTracer(accel AccelerationStructure, rng *rand.Rand) *Tracer {
 	return &Tracer{accel: accel, rng: rng}
 }

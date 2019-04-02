@@ -11,7 +11,7 @@ import (
 func NewServer(assetsDir string) *Server {
 	return &Server{
 		assets: http.FileServer(http.Dir(assetsDir)),
-		ctrl:   control.New(),
+		ctrl:   control.NewController(),
 	}
 }
 
