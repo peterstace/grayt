@@ -12,23 +12,7 @@ Go RAY Tracer
 - [X] Multithreading support.
 - [X] Fast acceleration structure.
 - [X] Web UI.
-- [X] Persistent storage of partial renders.
-
-## Architecture
-
-Package layout:
-
-| package name     | purpose                                                                                           |
-| scene            | hold types that define the scene, e.g. Scene, Object, Material, Surface                           |
-| scene/dsl        | DSL to make build scenes easier, intended as a dot import                                         |
-| scene/library    | holds a registry for all of the scenes                                                            |
-| scene/cornellbox | holds cornellbox specific scene factories. Can have other packages similarly to hold other scenes |
-| api              | API/server code                                                                                   |
-| control          | orchestrates tracing, accepts commands from the API, handles persistence                          |
-| trace            | tracing logic, acceleration structures, geometry                                                  |
-| colour           | colour type                                                                                       |
-| xmath            | math types such as vect and ray                                                                   |
-
+- [ ] Persistent storage of partial renders.
 
 ## TODO
 
@@ -37,8 +21,6 @@ Package layout:
 - Ability to delete renders.
 - Don't use sync xhr when posting new scene.
 - Use fixed space font for data in UI.
-- Put a link to the github repo in the source code.
-- Don't load scenes into memory unless they have active workers.
 
 ## Gallery
 

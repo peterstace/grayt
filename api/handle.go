@@ -80,7 +80,6 @@ func (s *Server) handlePutWorkers(w http.ResponseWriter, req *http.Request, id s
 }
 
 func (s *Server) handleGetImage(w http.ResponseWriter, id string) {
-	// TODO
 	img, err := s.ctrl.getImage(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

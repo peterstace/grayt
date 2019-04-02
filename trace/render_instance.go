@@ -98,7 +98,7 @@ func (in *Instance) work() {
 		pxY := idx / wide
 		pxX := idx % wide
 		x := (float64(pxX-wide/2) + rng.Float64()) * pxPitch
-		y := (float64(pxY-wide/2) + rng.Float64()) * pxPitch * -1.0
+		y := (float64(pxY-high/2) + rng.Float64()) * pxPitch * -1.0
 		cr := in.cam.MakeRay(x, y, rng)
 		cr.Dir = cr.Dir.Unit()
 		c := tr.TracePath(cr)
