@@ -8,18 +8,16 @@ import (
 	"github.com/peterstace/grayt/xmath"
 )
 
-// TODO: no need for tracer to be exposed
-
-func NewTracer(accel AccelerationStructure, rng *rand.Rand) *Tracer {
-	return &Tracer{accel: accel, rng: rng}
+func newTracer(accel accelerationStructure, rng *rand.Rand) *tracer {
+	return &tracer{accel: accel, rng: rng}
 }
 
-type Tracer struct {
-	accel AccelerationStructure
+type tracer struct {
+	accel accelerationStructure
 	rng   *rand.Rand
 }
 
-func (t *Tracer) TracePath(r xmath.Ray) colour.Colour {
+func (t *tracer) tracePath(r xmath.Ray) colour.Colour {
 	assertUnit(r.Dir)
 	intersection, material, hit := t.accel.closestHit(r)
 	if !hit {
@@ -50,7 +48,7 @@ func (t *Tracer) TracePath(r xmath.Ray) colour.Colour {
 	if material.Mirror {
 
 		reflected := r.Dir.Sub(intersection.unitNormal.Scale(2 * intersection.unitNormal.Dot(r.Dir)))
-		return t.TracePath(xmath.Ray{Start: hitLoc, Dir: reflected})
+		return t.tracePath(xmath.Ray{Start: hitLoc, Dir: reflected})
 
 	} else {
 
@@ -64,7 +62,7 @@ func (t *Tracer) TracePath(r xmath.Ray) colour.Colour {
 		// Apply the BRDF (bidirectional reflection distribution function).
 		brdf := rnd.Dot(intersection.unitNormal)
 
-		return t.TracePath(xmath.Ray{Start: hitLoc, Dir: rnd}).
+		return t.tracePath(xmath.Ray{Start: hitLoc, Dir: rnd}).
 			Scale(brdf / (1 - pEmit)).
 			Mul(material.Colour)
 	}

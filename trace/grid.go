@@ -15,7 +15,7 @@ type grid struct {
 	resolution xmath.Triple
 }
 
-func NewGrid(lambda float64, objs []Object) *grid {
+func newGrid(lambda float64, objs []object) *grid {
 	minBound, maxBound := bounds(objs)
 	boundDiff := maxBound.Sub(minBound)
 	volume := boundDiff.X * boundDiff.Y * boundDiff.Z
@@ -37,7 +37,7 @@ func NewGrid(lambda float64, objs []Object) *grid {
 	return grid
 }
 
-func bounds(objs []Object) (xmath.Vector, xmath.Vector) {
+func bounds(objs []object) (xmath.Vector, xmath.Vector) {
 	inf := math.Inf(+1)
 	minBound, maxBound := xmath.Vect(+inf, +inf, +inf), xmath.Vect(-inf, -inf, -inf)
 	for _, obj := range objs {
@@ -48,7 +48,7 @@ func bounds(objs []Object) (xmath.Vector, xmath.Vector) {
 	return minBound, maxBound
 }
 
-func (g *grid) populate(objs []Object) {
+func (g *grid) populate(objs []object) {
 	for _, obj := range objs {
 		min, max := obj.Surface.bound()
 		minCoord := xmath.Truncate(min.Sub(g.minBound).Div(g.stride)).Min(g.resolution.Sub(xmath.Triple{1, 1, 1}))
@@ -216,5 +216,5 @@ func (g *grid) findHitInCell(pos xmath.Triple, next xmath.Vector, r xmath.Ray) (
 
 type link struct {
 	next *link
-	obj  Object
+	obj  object
 }

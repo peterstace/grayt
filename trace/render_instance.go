@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/peterstace/grayt/scene"
 	"github.com/peterstace/grayt/xmath"
 )
 
@@ -18,8 +19,8 @@ type Stats struct {
 }
 
 type Instance struct {
-	accel AccelerationStructure
-	cam   Camera
+	accel accelerationStructure
+	cam   camera
 
 	accum *accumulator
 
@@ -34,9 +35,10 @@ type Instance struct {
 	workerWG sync.WaitGroup
 }
 
-func NewInstance(dim xmath.Dimensions, accel AccelerationStructure, cam Camera) *Instance {
+func NewInstance(dim xmath.Dimensions, scn scene.Scene) *Instance {
+	cam, objs := buildScene(scn)
 	inst := &Instance{
-		accel:          accel,
+		accel:          newGrid(4, objs),
 		cam:            cam,
 		accum:          newAccumulator(dim),
 		reqWorkersCond: sync.NewCond(new(sync.Mutex)),
@@ -86,7 +88,7 @@ func (in *Instance) GetStats() Stats {
 
 func (in *Instance) work() {
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
-	tr := NewTracer(in.accel, rng)
+	tr := newTracer(in.accel, rng)
 	wide := in.accum.dim.Wide
 	high := in.accum.dim.High
 	pxPitch := 2.0 / float64(wide)
@@ -99,9 +101,9 @@ func (in *Instance) work() {
 		pxX := idx % wide
 		x := (float64(pxX-wide/2) + rng.Float64()) * pxPitch
 		y := (float64(pxY-high/2) + rng.Float64()) * pxPitch * -1.0
-		cr := in.cam.MakeRay(x, y, rng)
+		cr := in.cam.makeRay(x, y, rng)
 		cr.Dir = cr.Dir.Unit()
-		c := tr.TracePath(cr)
+		c := tr.tracePath(cr)
 		in.accum.set(pxX, pxY, c)
 		atomic.AddInt64(&in.completed, 1)
 	}

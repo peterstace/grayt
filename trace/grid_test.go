@@ -6,7 +6,7 @@ import (
 
 func TestGridPopulationCrash(t *testing.T) {
 	//Causesed a crash before bugfix.
-	objs := []Object{
+	objs := []object{
 		{
 			Surface: &alignYSquare{
 				X1: 0,
@@ -26,5 +26,5 @@ func TestGridPopulationCrash(t *testing.T) {
 			},
 		},
 	}
-	NewGrid(4, objs)
+	newGrid(4, objs)
 }

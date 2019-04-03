@@ -2,16 +2,16 @@ package trace
 
 import "github.com/peterstace/grayt/xmath"
 
-type AccelerationStructure interface {
+type accelerationStructure interface {
 	closestHit(xmath.Ray) (intersection, material, bool)
 }
 
-func newListAccelerationStructure(objs []Object) AccelerationStructure {
+func newListAccelerationStructure(objs []object) accelerationStructure {
 	return listAccelerationStructure{objs}
 }
 
 type listAccelerationStructure struct {
-	objs []Object
+	objs []object
 }
 
 func (a listAccelerationStructure) closestHit(r xmath.Ray) (intersection, material, bool) {

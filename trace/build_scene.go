@@ -2,18 +2,11 @@ package trace
 
 import "github.com/peterstace/grayt/scene"
 
-type Scene struct {
-	Camera  Camera   `json:"camera"`
-	Objects []Object `json:"objects"`
-}
-
-func BuildScene(proto scene.Scene) Scene {
-	scene := Scene{
-		Camera: NewCamera(proto.Camera),
-	}
+func buildScene(proto scene.Scene) (camera, []object) {
+	var objs []object
 	for _, o := range proto.Objects {
 		add := func(s surface) {
-			scene.Objects = append(scene.Objects, Object{
+			objs = append(objs, object{
 				Surface: s,
 				Material: material{
 					Colour:    o.Material.Colour,
@@ -47,5 +40,5 @@ func BuildScene(proto scene.Scene) Scene {
 			add(&pipe{C1: x.EndpointA, C2: x.EndpointB, R: x.Radius})
 		}
 	}
-	return scene
+	return newCamera(proto.Camera), objs
 }

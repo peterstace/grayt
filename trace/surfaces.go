@@ -24,12 +24,12 @@ type material struct {
 	Mirror    bool          `json:"mirror"`
 }
 
-type Object struct {
+type object struct {
 	Surface  surface  `json:"surface"`
 	Material material `json:"material"`
 }
 
-func (o Object) String() string {
+func (o object) String() string {
 	return fmt.Sprintf("Surface={%v} Material={%v}", o.Surface, o.Material)
 }
 

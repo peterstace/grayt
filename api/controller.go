@@ -75,16 +75,13 @@ func (c *controller) newRender(sceneName string, dim xmath.Dimensions) (string, 
 		return "", fmt.Errorf("unknown scene name: %v", sceneName)
 	}
 
-	scn := trace.BuildScene(sceneFn())
-	accel := trace.NewGrid(4, scn.Objects)
-
 	var buf [16]byte
 	binary.LittleEndian.PutUint64(buf[:], uint64(time.Now().Unix()))
 	sum := crc64.Checksum(buf[:], crc64.MakeTable(crc64.ECMA))
 	id := fmt.Sprintf("%X", sum)
 
 	inst := &instance{
-		Instance:         trace.NewInstance(dim, accel, scn.Camera),
+		Instance:         trace.NewInstance(dim, sceneFn()),
 		sceneName:        sceneName,
 		created:          time.Now(),
 		dim:              dim,

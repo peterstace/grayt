@@ -8,7 +8,7 @@ import (
 	"github.com/peterstace/grayt/xmath"
 )
 
-type Camera struct {
+type camera struct {
 	screen, eye struct {
 		// X vectors go from the center of the screen or eye to the right of
 		// the screen or eye.  Y vectors go from the center of the screen or
@@ -18,8 +18,8 @@ type Camera struct {
 	}
 }
 
-func NewCamera(conf scene.Camera) Camera {
-	cam := Camera{}
+func newCamera(conf scene.Camera) camera {
+	cam := camera{}
 
 	upDirection := conf.UpDirection.Unit()
 	viewDirection := conf.LookingAt.Sub(conf.Location).Unit()
@@ -39,7 +39,7 @@ func NewCamera(conf scene.Camera) Camera {
 	return cam
 }
 
-func (c *Camera) MakeRay(x, y float64, rng *rand.Rand) xmath.Ray {
+func (c *camera) makeRay(x, y float64, rng *rand.Rand) xmath.Ray {
 	start := c.eye.loc.
 		Add(c.eye.x.Scale(2*rng.Float64() - 1.0)).
 		Add(c.eye.y.Scale(2*rng.Float64() - 1.0))
