@@ -6,6 +6,7 @@ import (
 	"image/png"
 	"io/ioutil"
 	"net/http"
+	"sort"
 	"strconv"
 
 	"github.com/peterstace/grayt/scene/library"
@@ -27,7 +28,11 @@ func (s *Server) handleGetScenes(w http.ResponseWriter) {
 }
 
 func (s *Server) handleGetRenders(w http.ResponseWriter) {
-	if err := json.NewEncoder(w).Encode(s.ctrl.getRenders()); err != nil {
+	renders := s.ctrl.getRenders()
+	sort.Slice(renders, func(i, j int) bool {
+		return renders[i].Created.Before(renders[j].Created)
+	})
+	if err := json.NewEncoder(w).Encode(renders); err != nil {
 		http.Error(w, "encoding renders: "+err.Error(), http.StatusInternalServerError)
 		return
 	}

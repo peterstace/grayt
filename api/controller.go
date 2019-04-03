@@ -33,15 +33,16 @@ type instance struct {
 }
 
 type render struct {
-	Scene            string `json:"scene"`
-	PxWide           int    `json:"px_wide"`
-	PxHigh           int    `json:"px_high"`
-	Passes           int    `json:"passes"`
-	Completed        string `json:"completed"`
-	TraceRate        string `json:"trace_rate"`
-	ID               string `json:"uuid"`
-	RequestedWorkers int    `json:"requested_workers"`
-	ActualWorkers    int    `json:"actual_workers"`
+	Scene            string    `json:"scene"`
+	PxWide           int       `json:"px_wide"`
+	PxHigh           int       `json:"px_high"`
+	Passes           int       `json:"passes"`
+	Completed        string    `json:"completed"`
+	TraceRate        string    `json:"trace_rate"`
+	ID               string    `json:"uuid"`
+	RequestedWorkers int       `json:"requested_workers"`
+	ActualWorkers    int       `json:"actual_workers"`
+	Created          time.Time `json:"-"`
 }
 
 func (c *controller) getRenders() []render {
@@ -60,6 +61,7 @@ func (c *controller) getRenders() []render {
 			ID:               id,
 			RequestedWorkers: inst.requestedWorkers,
 			ActualWorkers:    stats.Workers,
+			Created:          inst.created,
 		})
 	}
 	return renders
