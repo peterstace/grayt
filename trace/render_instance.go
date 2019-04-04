@@ -12,73 +12,110 @@ import (
 )
 
 type Stats struct {
+	LoadState   string
 	Workers     int
 	Completed   int
 	Passes      int
 	TraceRateHz int
 }
 
-type Instance struct {
-	accel accelerationStructure
-	cam   camera
+// States: unloaded, loading, loaded
 
+type loadState int
+
+const (
+	unloaded loadState = iota
+	loading
+	loaded
+)
+
+type Instance struct {
+	// Access controlled by cond variable
+	cond             *sync.Cond
+	requestedWorkers int
+	loadState        loadState
+	sceneFn          func() scene.Scene
+	accel            accelerationStructure
+	cam              camera
+
+	// Access self controlled
 	accum *accumulator
 
-	reqWorkersCond   *sync.Cond
-	requestedWorkers int
-
+	// Atomic access
 	actualWorkers int64
 	completed     int64
 	traceRate     int64
-	workIndex     int64
-
-	workerWG sync.WaitGroup
 }
 
-func NewInstance(dim xmath.Dimensions, scn scene.Scene) *Instance {
-	cam, objs := buildScene(scn)
+func NewInstance(dim xmath.Dimensions, sceneFn func() scene.Scene) *Instance {
 	inst := &Instance{
-		accel:          newGrid(4, objs),
-		cam:            cam,
-		accum:          newAccumulator(dim),
-		reqWorkersCond: sync.NewCond(new(sync.Mutex)),
+		sceneFn: sceneFn,
+		accum:   newAccumulator(dim),
+		cond:    sync.NewCond(new(sync.Mutex)),
 	}
+	go inst.loadScene()
 	go inst.dispatchWork()
 	go inst.monitorTraceRate()
 	return inst
 }
 
+func (in *Instance) loadScene() {
+	in.cond.L.Lock()
+	for in.requestedWorkers == 0 || in.loadState != unloaded {
+		in.cond.Wait()
+	}
+	in.loadState = loading
+	in.cond.L.Unlock()
+
+	cam, objs := buildScene(in.sceneFn())
+	in.cam = cam
+	in.accel = newGrid(4, objs)
+
+	in.cond.L.Lock()
+	in.loadState = loaded
+	in.cond.Broadcast()
+	in.cond.L.Unlock()
+}
+
 func (in *Instance) SetWorkers(workers int) {
-	in.reqWorkersCond.L.Lock()
+	in.cond.L.Lock()
 	in.requestedWorkers = workers
-	in.reqWorkersCond.L.Unlock()
-	in.reqWorkersCond.Broadcast()
+	in.cond.L.Unlock()
+	in.cond.Broadcast()
 }
 
 func (in *Instance) dispatchWork() {
 	for {
-		cnd := in.reqWorkersCond
-		cnd.L.Lock()
-		for in.requestedWorkers == 0 {
+		in.cond.L.Lock()
+		for in.requestedWorkers == 0 || in.loadState != loaded {
 			atomic.StoreInt64(&in.actualWorkers, 0)
-			cnd.Wait()
+			in.cond.Wait()
 		}
 
-		atomic.StoreInt64(&in.workIndex, 0)
+		var ctx workContext
 		atomic.StoreInt64(&in.actualWorkers, int64(in.requestedWorkers))
+		ctx.wg.Add(in.requestedWorkers)
 		for i := 0; i < in.requestedWorkers; i++ {
-			in.workerWG.Add(1)
-			go in.work()
+			go in.work(&ctx)
 		}
-		cnd.L.Unlock()
+		in.cond.L.Unlock()
 
-		in.workerWG.Wait()
+		ctx.wg.Wait()
 		in.accum.merge(1)
 	}
 }
 
 func (in *Instance) GetStats() Stats {
+	in.cond.L.Lock()
+	loadState := map[loadState]string{
+		unloaded: "unloaded",
+		loading:  "loading",
+		loaded:   "loaded",
+	}[in.loadState]
+	in.cond.L.Unlock()
+
 	return Stats{
+		LoadState:   loadState,
 		Workers:     int(atomic.LoadInt64(&in.actualWorkers)),
 		Completed:   int(atomic.LoadInt64(&in.completed)),
 		Passes:      in.accum.getPasses(),
@@ -86,14 +123,19 @@ func (in *Instance) GetStats() Stats {
 	}
 }
 
-func (in *Instance) work() {
+type workContext struct {
+	idx int64
+	wg  sync.WaitGroup
+}
+
+func (in *Instance) work(ctx *workContext) {
 	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
 	tr := newTracer(in.accel, rng)
 	wide := in.accum.dim.Wide
 	high := in.accum.dim.High
 	pxPitch := 2.0 / float64(wide)
 	for {
-		idx := int(atomic.AddInt64(&in.workIndex, 1))
+		idx := int(atomic.AddInt64(&ctx.idx, 1))
 		if idx >= wide*high {
 			break
 		}
@@ -107,7 +149,7 @@ func (in *Instance) work() {
 		in.accum.set(pxX, pxY, c)
 		atomic.AddInt64(&in.completed, 1)
 	}
-	in.workerWG.Done()
+	ctx.wg.Done()
 }
 
 func (in *Instance) monitorTraceRate() {

@@ -36,6 +36,7 @@ type render struct {
 	Scene            string    `json:"scene"`
 	PxWide           int       `json:"px_wide"`
 	PxHigh           int       `json:"px_high"`
+	LoadState        string    `json:"load_state"`
 	Passes           int       `json:"passes"`
 	Completed        string    `json:"completed"`
 	TraceRate        string    `json:"trace_rate"`
@@ -55,6 +56,7 @@ func (c *controller) getRenders() []render {
 			Scene:            inst.sceneName,
 			PxWide:           inst.dim.Wide,
 			PxHigh:           inst.dim.High,
+			LoadState:        stats.LoadState,
 			Passes:           stats.Passes,
 			Completed:        displayFloat64(float64(stats.Completed)),
 			TraceRate:        displayFloat64(float64(stats.TraceRateHz)) + " Hz",
@@ -81,7 +83,7 @@ func (c *controller) newRender(sceneName string, dim xmath.Dimensions) (string, 
 	id := fmt.Sprintf("%X", sum)
 
 	inst := &instance{
-		Instance:         trace.NewInstance(dim, sceneFn()),
+		Instance:         trace.NewInstance(dim, sceneFn),
 		sceneName:        sceneName,
 		created:          time.Now(),
 		dim:              dim,
