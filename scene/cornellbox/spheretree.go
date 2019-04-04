@@ -97,6 +97,7 @@ func findChildren(spheres *[]sphere, parent sphere) (sphere, sphere) {
 	return child1, child2
 }
 
+// TODO: this should be reset at the start of each new scene generation
 var rnd = rand.New(rand.NewSource(0))
 
 func createChild(parent sphere) sphere {
