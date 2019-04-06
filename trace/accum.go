@@ -1,7 +1,9 @@
 package trace
 
 import (
+	"encoding/binary"
 	"image"
+	"io"
 	"sync"
 
 	"github.com/peterstace/grayt/colour"
@@ -74,91 +76,48 @@ func (a *accumulator) mean() float64 {
 	return sum / float64(len(a.aggregate)) / 3.0
 }
 
-/*
-func loadAccumulator(fname string) (string, *accumulator, error) {
-	f, err := os.Open(fname)
-	if err != nil {
-		return "", nil, err
-	}
-	defer f.Close()
-
-	var (
-		sceneNameLen int64
-		passes       int64
-		wide         int64
-		high         int64
-	)
-	if err := binary.Read(f, binary.LittleEndian, &sceneNameLen); err != nil {
-		return "", nil, err
-	}
-	sceneName := make([]byte, sceneNameLen)
-	if err := binary.Read(f, binary.LittleEndian, &sceneName); err != nil {
-		return "", nil, err
-	}
-	if err := binary.Read(f, binary.LittleEndian, &passes); err != nil {
-		return "", nil, err
-	}
-	if err := binary.Read(f, binary.LittleEndian, &wide); err != nil {
-		return "", nil, err
-	}
-	if err := binary.Read(f, binary.LittleEndian, &high); err != nil {
-		return "", nil, err
-	}
-	pixels := make([]colour.Colour, wide*high)
-	if err := binary.Read(f, binary.LittleEndian, &pixels); err != nil {
-		return "", nil, err
-	}
-
-	return string(sceneName), &accumulator{
-		passes: passes,
-		pixelGrid: pixelGrid{
-			wide:   int(wide),
-			high:   int(high),
-			pixels: pixels,
-		},
-	}, nil
+type countingWriter struct {
+	w io.Writer
+	n int
 }
-*/
 
-/*
-func (a *accumulator) save(fname, sceneName string) error {
-	a.Lock()
-	defer a.Unlock()
-
-	f, err := ioutil.TempFile(".", "")
-	if err != nil {
-		return err
-	}
-	defer os.Remove(f.Name())
-
-	if err := binary.Write(f, binary.LittleEndian, int64(len(sceneName))); err != nil {
-		f.Close()
-		return err
-	}
-	if err := binary.Write(f, binary.LittleEndian, []byte(sceneName)); err != nil {
-		f.Close()
-		return err
-	}
-	if err := binary.Write(f, binary.LittleEndian, int64(a.passes)); err != nil {
-		f.Close()
-		return err
-	}
-	if err := binary.Write(f, binary.LittleEndian, int64(a.wide)); err != nil {
-		f.Close()
-		return err
-	}
-	if err := binary.Write(f, binary.LittleEndian, int64(a.high)); err != nil {
-		f.Close()
-		return err
-	}
-	if err := binary.Write(f, binary.LittleEndian, a.pixels); err != nil {
-		f.Close()
-		return err
-	}
-
-	if err := f.Close(); err != nil {
-		return err
-	}
-	return os.Rename(f.Name(), fname)
+func (c *countingWriter) Write(p []byte) (int, error) {
+	n, err := c.w.Write(p)
+	c.n += n
+	return n, err
 }
-*/
+
+type countingReader struct {
+	r io.Reader
+	n int
+}
+
+func (c *countingReader) Read(p []byte) (int, error) {
+	n, err := c.r.Read(p)
+	c.n += n
+	return n, err
+}
+
+func (a *accumulator) WriteTo(w io.Writer) (int64, error) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	cw := countingWriter{w, 0}
+	for _, data := range []interface{}{a.dim, a.passes, a.aggregate} {
+		if err := binary.Write(&cw, binary.BigEndian, data); err != nil {
+			return int64(cw.n), err
+		}
+	}
+	return int64(cw.n), nil
+}
+
+func (a *accumulator) ReadFrom(r io.Reader) (int64, error) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	cr := countingReader{r, 0}
+	for _, data := range []interface{}{&a.dim, &a.passes, &a.aggregate} {
+		if err := binary.Read(&cr, binary.BigEndian, data); err != nil {
+			return int64(cr.n), err
+		}
+	}
+	return int64(cr.n), nil
+}
