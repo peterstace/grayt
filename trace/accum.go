@@ -2,6 +2,7 @@ package trace
 
 import (
 	"encoding/binary"
+	"fmt"
 	"image"
 	"io"
 	"sync"
@@ -116,10 +117,26 @@ func (a *accumulator) ReadFrom(r io.Reader) (int64, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	cr := countingReader{r, 0}
-	for _, data := range []interface{}{&a.dim, &a.passes, &a.aggregate} {
-		if err := binary.Read(&cr, binary.BigEndian, data); err != nil {
-			return int64(cr.n), err
+
+	var err error
+	read := func(data interface{}) {
+		if err != nil {
+			return
 		}
+		err = binary.Read(&cr, binary.BigEndian, data)
 	}
-	return int64(cr.n), nil
+
+	var wide, high int64
+	read(&wide)
+	read(&high)
+	if err == nil && (int(wide) != a.dim.Wide || int(high) != a.dim.High) {
+		err = fmt.Errorf("dimension mismatch: %vx%v vs %vx%v", a.dim.Wide, a.dim.High, wide, high)
+	}
+
+	var passes int64
+	read(&passes)
+	a.passes = int(passes)
+
+	read(&a.aggregate)
+	return int64(cr.n), err
 }

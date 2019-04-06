@@ -23,14 +23,13 @@ type Stats struct {
 	TraceRateHz int
 }
 
-// States: unloaded, loading, loaded
-
 type loadState int
 
 const (
 	unloaded loadState = iota
 	loading
 	loaded
+	loadError
 )
 
 type Instance struct {
@@ -81,7 +80,18 @@ func (in *Instance) loadScene() {
 	in.accel = newGrid(4, objs)
 
 	in.accum = newAccumulator(in.dim)
-	// TODO: stat filename, if exists then load into accumulator (check dimensions).
+	f, err := os.Open(in.accumFilename)
+	if err == nil {
+		defer f.Close()
+		if _, err := in.accum.ReadFrom(f); err != nil {
+			log.Printf("could not read from accum state file: %v", err)
+			in.cond.L.Lock()
+			in.loadState = loadError
+			in.cond.Broadcast()
+			in.cond.L.Unlock()
+			return
+		}
+	}
 
 	in.cond.L.Lock()
 	in.loadState = loaded
@@ -142,9 +152,10 @@ func (in *Instance) saveAccum() {
 func (in *Instance) GetStats() Stats {
 	in.cond.L.Lock()
 	loadState := map[loadState]string{
-		unloaded: "unloaded",
-		loading:  "loading",
-		loaded:   "loaded",
+		unloaded:  "unloaded",
+		loading:   "loading",
+		loaded:    "loaded",
+		loadError: "error",
 	}[in.loadState]
 	var passes int
 	if in.accum != nil {
