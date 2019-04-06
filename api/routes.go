@@ -6,12 +6,13 @@ import (
 	"strings"
 )
 
-func NewServer(assetsDir, dataDir string) *Server {
-	return &Server{
+func NewServer(assetsDir, dataDir string) (*Server, error) {
+	s := &Server{
 		dataDir: dataDir,
 		assets:  http.FileServer(http.Dir(assetsDir)),
 		ctrl:    newController(),
 	}
+	return s, s.loadRenders()
 }
 
 type Server struct {

@@ -24,7 +24,10 @@ func main() {
 		log.Fatal("DATA_DIR not set")
 	}
 
-	s := api.NewServer(assetsDir, dataDir)
+	s, err := api.NewServer(assetsDir, dataDir)
+	if err != nil {
+		log.Fatalf("could not create server: %v", err)
+	}
 	log.Printf("serving on %v", listenAddr)
 	log.Fatal(http.ListenAndServe(listenAddr, s))
 }
