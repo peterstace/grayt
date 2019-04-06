@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"hash/crc64"
 	"image"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -13,13 +14,16 @@ import (
 	"github.com/peterstace/grayt/xmath"
 )
 
-func newController() *controller {
+func newController(dataDir string) *controller {
 	return &controller{
+		dataDir:   dataDir,
 		instances: make(map[string]*instance),
 	}
 }
 
 type controller struct {
+	dataDir string
+
 	mu        sync.Mutex
 	instances map[string]*instance
 }
@@ -82,8 +86,9 @@ func (c *controller) newRender(sceneName string, dim xmath.Dimensions) (string, 
 	sum := crc64.Checksum(buf[:], crc64.MakeTable(crc64.ECMA))
 	id := fmt.Sprintf("%X", sum)
 
+	accumFilename := filepath.Join(c.dataDir, id+".data")
 	inst := &instance{
-		Instance:         trace.NewInstance(dim, sceneFn),
+		Instance:         trace.NewInstance(dim, sceneFn, accumFilename),
 		sceneName:        sceneName,
 		created:          time.Now(),
 		dim:              dim,

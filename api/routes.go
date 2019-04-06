@@ -6,10 +6,10 @@ import (
 	"strings"
 )
 
-func NewServer(assetsDir string) *Server {
+func NewServer(assetsDir, dataDir string) *Server {
 	return &Server{
 		assets: http.FileServer(http.Dir(assetsDir)),
-		ctrl:   newController(),
+		ctrl:   newController(dataDir),
 	}
 }
 

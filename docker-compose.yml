@@ -7,4 +7,5 @@ services:
     environment:
       LISTEN_ADDR: ":80"
       ASSETS_DIR: "assets"
+      DATA_DIR: "data"
     command: "grayt"

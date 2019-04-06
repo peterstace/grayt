@@ -19,7 +19,12 @@ func main() {
 		log.Fatal("ASSETS_DIR not set")
 	}
 
-	s := api.NewServer(assetsDir)
+	dataDir := os.Getenv("DATA_DIR")
+	if dataDir == "" {
+		log.Fatal("DATA_DIR not set")
+	}
+
+	s := api.NewServer(assetsDir, dataDir)
 	log.Printf("serving on %v", listenAddr)
 	log.Fatal(http.ListenAndServe(listenAddr, s))
 }

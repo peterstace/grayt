@@ -2,6 +2,7 @@ package trace
 
 import (
 	"image"
+	"log"
 	"math/rand"
 	"sync"
 	"sync/atomic"
@@ -30,11 +31,15 @@ const (
 )
 
 type Instance struct {
+	// Read only variables
+	sceneFn       func() scene.Scene
+	accumFilename string
+	dim           xmath.Dimensions
+
 	// Access controlled by cond variable
 	cond             *sync.Cond
 	requestedWorkers int
 	loadState        loadState
-	sceneFn          func() scene.Scene
 	accel            accelerationStructure
 	cam              camera
 
@@ -47,11 +52,12 @@ type Instance struct {
 	traceRate     int64
 }
 
-func NewInstance(dim xmath.Dimensions, sceneFn func() scene.Scene) *Instance {
+func NewInstance(dim xmath.Dimensions, sceneFn func() scene.Scene, filename string) *Instance {
 	inst := &Instance{
-		sceneFn: sceneFn,
-		accum:   newAccumulator(dim),
-		cond:    sync.NewCond(new(sync.Mutex)),
+		sceneFn:       sceneFn,
+		accumFilename: filename,
+		dim:           dim,
+		cond:          sync.NewCond(new(sync.Mutex)),
 	}
 	go inst.loadScene()
 	go inst.dispatchWork()
@@ -71,6 +77,9 @@ func (in *Instance) loadScene() {
 	in.cam = cam
 	in.accel = newGrid(4, objs)
 
+	in.accum = newAccumulator(in.dim)
+	// TODO: stat filename, if exists then load into accumulator (check dimensions).
+
 	in.cond.L.Lock()
 	in.loadState = loaded
 	in.cond.Broadcast()
@@ -85,6 +94,7 @@ func (in *Instance) SetWorkers(workers int) {
 }
 
 func (in *Instance) dispatchWork() {
+	var lastSave time.Time
 	for {
 		in.cond.L.Lock()
 		for in.requestedWorkers == 0 || in.loadState != loaded {
@@ -102,7 +112,15 @@ func (in *Instance) dispatchWork() {
 
 		ctx.wg.Wait()
 		in.accum.merge(1)
+		if time.Since(lastSave) > time.Minute {
+			in.saveAccum()
+			lastSave = time.Now()
+		}
 	}
+}
+
+func (in *Instance) saveAccum() {
+	log.Printf("saving accum at %q", in.accumFilename)
 }
 
 func (in *Instance) GetStats() Stats {
@@ -112,13 +130,17 @@ func (in *Instance) GetStats() Stats {
 		loading:  "loading",
 		loaded:   "loaded",
 	}[in.loadState]
+	var passes int
+	if in.accum != nil {
+		passes = in.accum.getPasses()
+	}
 	in.cond.L.Unlock()
 
 	return Stats{
 		LoadState:   loadState,
 		Workers:     int(atomic.LoadInt64(&in.actualWorkers)),
 		Completed:   int(atomic.LoadInt64(&in.completed)),
-		Passes:      in.accum.getPasses(),
+		Passes:      passes,
 		TraceRateHz: int(atomic.LoadInt64(&in.traceRate)),
 	}
 }
