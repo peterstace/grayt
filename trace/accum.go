@@ -102,7 +102,9 @@ func (a *accumulator) WriteTo(w io.Writer) (int64, error) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	cw := countingWriter{w, 0}
-	for _, data := range []interface{}{a.dim, a.passes, a.aggregate} {
+	for _, data := range []interface{}{
+		int64(a.dim.Wide), int64(a.dim.High), int64(a.passes), a.aggregate,
+	} {
 		if err := binary.Write(&cw, binary.BigEndian, data); err != nil {
 			return int64(cw.n), err
 		}

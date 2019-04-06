@@ -2,8 +2,11 @@ package trace
 
 import (
 	"image"
+	"io/ioutil"
 	"log"
 	"math/rand"
+	"os"
+	"path/filepath"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -120,7 +123,20 @@ func (in *Instance) dispatchWork() {
 }
 
 func (in *Instance) saveAccum() {
-	log.Printf("saving accum at %q", in.accumFilename)
+	log.Printf("saving accumulator state")
+	dir := filepath.Dir(in.accumFilename)
+	tmpF, err := ioutil.TempFile(dir, "*.data")
+	if err != nil {
+		log.Printf("could not create tmp file: %v", err)
+		return
+	}
+	defer os.Remove(tmpF.Name())
+	if _, err := in.accum.WriteTo(tmpF); err != nil {
+		log.Printf("could not write to accumulator state file: %v", err)
+	}
+	if err := os.Rename(tmpF.Name(), in.accumFilename); err != nil {
+		log.Printf("could not rename accumulator state file: %v", err)
+	}
 }
 
 func (in *Instance) GetStats() Stats {
