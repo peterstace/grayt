@@ -8,14 +8,16 @@ import (
 
 func NewServer(assetsDir, dataDir string) *Server {
 	return &Server{
-		assets: http.FileServer(http.Dir(assetsDir)),
-		ctrl:   newController(dataDir),
+		dataDir: dataDir,
+		assets:  http.FileServer(http.Dir(assetsDir)),
+		ctrl:    newController(),
 	}
 }
 
 type Server struct {
-	assets http.Handler
-	ctrl   *controller
+	dataDir string
+	assets  http.Handler
+	ctrl    *controller
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {

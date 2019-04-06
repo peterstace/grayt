@@ -1,13 +1,17 @@
 package api
 
 import (
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"hash/crc64"
 	"image/png"
 	"io/ioutil"
 	"net/http"
+	"path/filepath"
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/peterstace/grayt/scene/library"
 	"github.com/peterstace/grayt/xmath"
@@ -53,8 +57,17 @@ func (s *Server) handlePostRenders(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	id, err := s.ctrl.newRender(form.Scene, xmath.Dimensions{form.PxWide, form.PxHigh})
-	if err != nil {
+	id := generateID()
+	accumFilename := filepath.Join(s.dataDir, id+".data")
+	now := time.Now()
+	dim := xmath.Dimensions{form.PxWide, form.PxHigh}
+	metadataFilename := filepath.Join(s.dataDir, id+".json")
+	if err := saveMetadata(metadata{form.Scene, now, dim}, metadataFilename); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err := s.ctrl.newRender(id, accumFilename, now, form.Scene, dim); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -82,6 +95,13 @@ func (s *Server) handlePutWorkers(w http.ResponseWriter, req *http.Request, id s
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+func generateID() string {
+	var buf [16]byte
+	binary.LittleEndian.PutUint64(buf[:], uint64(time.Now().Unix()))
+	sum := crc64.Checksum(buf[:], crc64.MakeTable(crc64.ECMA))
+	return fmt.Sprintf("%X", sum)
 }
 
 func (s *Server) handleGetImage(w http.ResponseWriter, id string) {
