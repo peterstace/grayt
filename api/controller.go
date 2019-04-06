@@ -2,9 +2,11 @@ package api
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"hash/crc64"
 	"image"
+	"io/ioutil"
 	"path/filepath"
 	"sync"
 	"time"
@@ -73,6 +75,12 @@ func (c *controller) getRenders() []render {
 	return renders
 }
 
+type save struct {
+	SceneName string           `json:"scene_name"`
+	Created   time.Time        `json:"created"`
+	Dim       xmath.Dimensions `json:"dim"`
+}
+
 func (c *controller) newRender(sceneName string, dim xmath.Dimensions) (string, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -87,10 +95,25 @@ func (c *controller) newRender(sceneName string, dim xmath.Dimensions) (string, 
 	id := fmt.Sprintf("%X", sum)
 
 	accumFilename := filepath.Join(c.dataDir, id+".data")
+	metadataFilename := filepath.Join(c.dataDir, id+".json")
+
+	now := time.Now()
+	metadataBuf, err := json.Marshal(save{
+		SceneName: sceneName,
+		Created:   now,
+		Dim:       dim,
+	})
+	if err != nil {
+		return "", fmt.Errorf("marshalling metadata: %v", err)
+	}
+	if err := ioutil.WriteFile(metadataFilename, metadataBuf, 0775); err != nil {
+		return "", fmt.Errorf("writing metadata: %v", err)
+	}
+
 	inst := &instance{
 		Instance:         trace.NewInstance(dim, sceneFn, accumFilename),
 		sceneName:        sceneName,
-		created:          time.Now(),
+		created:          now,
 		dim:              dim,
 		requestedWorkers: 0,
 	}
