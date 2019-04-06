@@ -10,6 +10,7 @@ function updateStatus() {
         <tr>
           <td>scene name</td>
           <td>dimensions</td>
+          <td>load state</td>
           <td>passes</td>
           <td>completed</td>
           <td>trace rate</td>
@@ -22,6 +23,7 @@ function updateStatus() {
         <tr>
           <td>${obj[i].scene}</td>
           <td>${obj[i].px_wide}x${obj[i].px_high}</td>
+          <td>${obj[i].load_state}</td>
           <td>${obj[i].passes}</td>
           <td>${obj[i].completed}</td>
           <td>${obj[i].trace_rate}</td>

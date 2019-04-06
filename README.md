@@ -12,7 +12,7 @@ Go RAY Tracer
 - [X] Multithreading support.
 - [X] Fast acceleration structure.
 - [X] Web UI.
-- [X] Persistent storage of partial renders.
+- [ ] Persistent storage of partial renders.
 
 ## TODO
 
@@ -21,8 +21,6 @@ Go RAY Tracer
 - Ability to delete renders.
 - Don't use sync xhr when posting new scene.
 - Use fixed space font for data in UI.
-- Put a link to the github repo in the source code.
-- Don't load scenes into memory unless they have active workers.
 
 ## Gallery
 
@@ -38,3 +36,6 @@ Go RAY Tracer
 
 ![Cornell Box](/gallery/out_q100000.png)
 
+## Scene Ideas
+
+- 3D patchwork: https://mattdesl.svbtle.com/pen-plotter-2
