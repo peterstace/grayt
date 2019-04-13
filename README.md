@@ -16,11 +16,16 @@ Go RAY Tracer
 
 ## TODO
 
-- Use terminology for focal distance / focal ratio correctly.
-- Voxel Geometry
 - Ability to delete renders.
-- Don't use sync xhr when posting new scene.
 - Use fixed space font for data in UI.
+- Default scene display ratio.
+- Load passes statistics from accumulator.
+- Calculate resolutions in backend.
+- Allow to downsample resolution.
+- Allow to choose exposure level.
+- Try different lambda values for grid.
+- Bounding Volume Hierarchy
+- Use pointer to material instead of copying in each object.
 
 ## Gallery
 
