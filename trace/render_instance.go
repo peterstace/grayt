@@ -93,6 +93,9 @@ func (in *Instance) loadScene() {
 		}
 	}
 
+	completed := int64(in.accum.dim.High * in.accum.dim.Wide * in.accum.getPasses())
+	atomic.StoreInt64(&in.completed, completed)
+
 	in.cond.L.Lock()
 	in.loadState = loaded
 	in.cond.Broadcast()
